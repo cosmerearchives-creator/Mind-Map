@@ -19,17 +19,41 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Build APK
-        run: gradle --no-daemon assembleDebug
-      - name: Prepare APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk Silverlight.apk
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Verify signing configuration
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          for variable in SIGNING_KEY KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!variable}" ]; then
+              echo "::error::Missing required signing secret: $variable"
+              exit 1
+            fi
+          done
+          printf '%s' "$SIGNING_KEY" | base64 --decode > "$RUNNER_TEMP/silverlight-release.jks"
+          keytool -list -keystore "$RUNNER_TEMP/silverlight-release.jks" -alias "$KEY_ALIAS" -storepass "$KEYSTORE_PASSWORD" >/dev/null
+      - name: Build and sign release APK
+        env:
+          SILVERLIGHT_KEYSTORE: ${{ runner.temp }}/silverlight-release.jks
+          SILVERLIGHT_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SILVERLIGHT_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SILVERLIGHT_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle --no-daemon assembleRelease
+      - name: Verify signed APK
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          test -s "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n 1)"
+          "$APKSIGNER" verify --verbose "$APK"
+          cp "$APK" Silverlight.apk
+      - uses: actions/upload-artifact@v4
         with:
-          name: Silverlight-APK
+          name: Silverlight-signed-APK
           path: Silverlight.apk
       - name: Publish latest release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v0.7.${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight v0.7.${GITHUB_RUN_NUMBER}" --notes "Mind-Map Android build with update checks on launch against this public repository. Android requires installation approval. Debug signatures can vary between builds; back up boards before installing a replacement." --latest --target "${GITHUB_SHA}"
+          gh release create "v0.7.${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight v0.7.${GITHUB_RUN_NUMBER}" --notes "Permanently signed Android release. Launch-time update checks use this repository. Android still requires user approval for installation. If you installed a debug-signed build, export your boards before uninstalling it." --latest --target "${GITHUB_SHA}"
