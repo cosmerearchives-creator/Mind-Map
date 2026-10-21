@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Silverlight</AssemblyName>
+    <RootNamespace>Silverlight.Windows</RootNamespace>
+    <ApplicationTitle>Silverlight</ApplicationTitle>
+    <Version>0.8.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <Content Include="../app/src/main/assets/index.html" Link="web/index.html" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
