@@ -13,8 +13,8 @@ namespace Silverlight.Windows;
 
 public sealed class MainWindow : Form
 {
-    private const string ReleasesApi = "https://api.github.com/repos/cosmerearchives-creator/Mind-Map/releases/latest";
-    private const string ReleasesPage = "https://github.com/cosmerearchives-creator/Mind-Map/releases/latest";
+    private const string ReleasesApi = "https://api.github.com/repos/cosmerearchives-creator/Mind-Map/releases?per_page=30";
+    private const string ReleasesPage = "https://github.com/cosmerearchives-creator/Mind-Map/releases";
     private readonly WebView2 browser = new() { Dock = DockStyle.Fill };
     private readonly ToolStripMenuItem updates = new("Check for updates");
     private readonly HttpClient http = new();
@@ -55,7 +55,9 @@ public sealed class MainWindow : Form
             using var response = await http.GetAsync(ReleasesApi);
             response.EnsureSuccessStatusCode();
             using var data = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            var tag = data.RootElement.GetProperty("tag_name").GetString() ?? "";
+            var release = data.RootElement.EnumerateArray().FirstOrDefault(x => (x.GetProperty("tag_name").GetString() ?? "").StartsWith("v0.8.", StringComparison.Ordinal));
+            if (release.ValueKind == JsonValueKind.Undefined) { if (manual) MessageBox.Show("No Windows releases found yet."); return; }
+            var tag = release.GetProperty("tag_name").GetString() ?? "";
             // Desktop releases use v0.8.N tags. Avoid comparing Android version codes.
             if (!tag.StartsWith("v0.8.", StringComparison.Ordinal) || !int.TryParse(tag.AsSpan(5), out var latest))
             {
