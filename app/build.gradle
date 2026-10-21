@@ -1,4 +1,5 @@
 plugins { id 'com.android.application' }
+
 android {
  namespace 'com.cosmerearchives.silverlight'
  compileSdk 35
@@ -9,7 +10,23 @@ android {
   versionCode 700000 + Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
   versionName '0.7.' + (System.getenv('GITHUB_RUN_NUMBER') ?: '1')
  }
- buildTypes { release { minifyEnabled false } }
+ signingConfigs {
+  release {
+   def keyPath = System.getenv('SILVERLIGHT_KEYSTORE')
+   if (keyPath) {
+    storeFile file(keyPath)
+    storePassword System.getenv('SILVERLIGHT_KEYSTORE_PASSWORD')
+    keyAlias System.getenv('SILVERLIGHT_KEY_ALIAS')
+    keyPassword System.getenv('SILVERLIGHT_KEY_PASSWORD')
+   }
+  }
+ }
+ buildTypes {
+  release {
+   minifyEnabled false
+   signingConfig signingConfigs.release
+  }
+ }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
   targetCompatibility JavaVersion.VERSION_17
