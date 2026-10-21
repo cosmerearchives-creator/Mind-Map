@@ -1,0 +1,40 @@
+name: Build Windows installer
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/src/main/assets/index.html'
+      - 'windows/**'
+      - '.github/workflows/windows.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish Windows application
+        shell: pwsh
+        run: |
+          dotnet publish windows/Silverlight.Windows.csproj -c Release -r win-x64 --self-contained true -p:Version=0.8.${{ github.run_number }} -p:AssemblyVersion=0.8.${{ github.run_number }}.0 -o windows/publish
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+      - name: Build setup installer
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DBuildNumber=${{ github.run_number }}" "windows/installer.iss"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Silverlight-Windows-Installer
+          path: windows/output/Silverlight-Setup.exe
+      - name: Publish Windows release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v0.8.${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight Windows v0.8.${{ github.run_number }}" --notes "Initial Windows WebView2 wrapper. Same shared mind-map UI as Android. Windows checks for new Windows releases on launch. This installer is unsigned; Windows may show a SmartScreen prompt." --latest=false --target "${{ github.sha }}"
