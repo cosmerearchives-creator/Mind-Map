@@ -22,6 +22,8 @@ import android.webkit.WebView;
 import android.view.View;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
+import androidx.webkit.WebViewCompat;
+import androidx.webkit.WebViewFeature;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.net.HttpURLConnection;
@@ -37,6 +39,7 @@ public class MainActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private long downloadId = -1;
     private Uri readyApk;
+    private DriveSync driveSync;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -51,6 +54,14 @@ public class MainActivity extends Activity {
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this)).build();
         webView.setWebViewClient(new WebViewClientCompat() {
+            @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest req) {
+                Uri uri = req.getUrl();
+                if ("https".equals(uri.getScheme()) && "appassets.androidplatform.net".equals(uri.getHost()) && uri.getPath().startsWith("/assets/")) return false;
+                if (req.isForMainFrame() && ("https".equals(uri.getScheme()) || "http".equals(uri.getScheme()))) {
+                    try { startActivity(new Intent(Intent.ACTION_VIEW, uri)); } catch (Exception ignored) { }
+                }
+                return true;
+            }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
                 return loader.shouldInterceptRequest(req.getUrl());
             }
@@ -63,6 +74,13 @@ public class MainActivity extends Activity {
                 catch (Exception e) { fileCallback = null; cb.onReceiveValue(null); return false; }
             }
         });
+        driveSync = new DriveSync(this);
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            WebViewCompat.addWebMessageListener(webView, "SilverlightNative", java.util.Collections.singleton("https://appassets.androidplatform.net"),
+                (view, message, origin, mainFrame, proxy) -> {
+                    if (mainFrame && "https://appassets.androidplatform.net".equals(origin.toString())) driveSync.receive(message.getData(), proxy);
+                });
+        }
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
         checkUpdates();
     }
@@ -166,7 +184,9 @@ public class MainActivity extends Activity {
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_FILE && fileCallback != null) {
+        if (requestCode == DriveSync.AUTHORIZE) {
+            driveSync.authorizationResult(resultCode, data);
+        } else if (requestCode == PICK_FILE && fileCallback != null) {
             fileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
             fileCallback = null;
         } else if (requestCode == INSTALL_PERMISSION && (Build.VERSION.SDK_INT < 26 || getPackageManager().canRequestPackageInstalls())) {
@@ -176,5 +196,9 @@ public class MainActivity extends Activity {
     @Override public void onBackPressed() {
         if (webView != null && webView.canGoBack()) webView.goBack();
         else super.onBackPressed();
+    }
+    @Override protected void onDestroy() {
+        if (driveSync != null) driveSync.close();
+        super.onDestroy();
     }
 }

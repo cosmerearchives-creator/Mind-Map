@@ -1,7 +1,7 @@
 name: Build and publish Mind-Map APK
 on:
   push:
-    branches: [main]
+    branches: [main, sync/manual-drive-transfer]
   workflow_dispatch:
 
 permissions:
@@ -12,6 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate snapshot preservation
+        run: node tests/sync-core.cjs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -73,4 +78,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v0.7.${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight v0.7.${GITHUB_RUN_NUMBER}" --notes-file RELEASE_NOTES.md --latest --target "${GITHUB_SHA}"
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            gh release create "v0.7.${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight v0.7.${GITHUB_RUN_NUMBER}" --notes-file RELEASE_NOTES.md --latest --target "${GITHUB_SHA}"
+          else
+            gh release create "sync-preview-android-${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight Drive preview — Android ${GITHUB_RUN_NUMBER}" --notes-file RELEASE_NOTES.md --prerelease --latest=false --target "${GITHUB_SHA}"
+          fi

@@ -1,9 +1,10 @@
 name: Build Windows installer
 on:
   push:
-    branches: [main]
+    branches: [main, sync/manual-drive-transfer]
     paths:
       - 'app/src/main/assets/index.html'
+      - 'app/src/main/assets/*.js'
       - 'windows/**'
       - '.github/workflows/windows.yml'
   workflow_dispatch:
@@ -14,6 +15,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate snapshot preservation
+        run: node tests/sync-core.cjs
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -52,4 +58,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v0.8.${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight Windows v0.8.${{ github.run_number }}" --notes-file RELEASE_NOTES.md --latest=false --target "${{ github.sha }}"
+          if ("${{ github.ref_name }}" -eq "main") {
+            gh release create "v0.8.${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight Windows v0.8.${{ github.run_number }}" --notes-file RELEASE_NOTES.md --latest=false --target "${{ github.sha }}"
+          } else {
+            gh release create "sync-preview-windows-${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight Drive preview — Windows ${{ github.run_number }}" --notes-file RELEASE_NOTES.md --prerelease --latest=false --target "${{ github.sha }}"
+          }

@@ -19,6 +19,7 @@ public sealed class MainWindow : Form
     private readonly ToolStripMenuItem updates = new("Check for updates");
     private readonly HttpClient http = new() { Timeout = TimeSpan.FromMinutes(5) };
     private bool checking;
+    private readonly DriveSync driveSync = new();
 
     public MainWindow()
     {
@@ -46,6 +47,30 @@ public sealed class MainWindow : Form
                 Directory.CreateDirectory(data);
                 await browser.EnsureCoreWebView2Async(await CoreWebView2Environment.CreateAsync(userDataFolder: data));
                 browser.CoreWebView2.SetVirtualHostNameToFolderMapping("silverlight.local", Path.Combine(AppContext.BaseDirectory, "web"), CoreWebView2HostResourceAccessKind.DenyCors);
+                browser.CoreWebView2.NavigationStarting += (_, args) => {
+                    if (Uri.TryCreate(args.Uri, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.Host == "silverlight.local" && uri.AbsolutePath == "/index.html") return;
+                    args.Cancel = true;
+                    if (uri is not null && uri.Scheme is "https" or "http") Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
+                };
+                browser.CoreWebView2.NewWindowRequested += (_, args) => {
+                    args.Handled = true;
+                    if (Uri.TryCreate(args.Uri, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http") Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
+                };
+                browser.CoreWebView2.WebMessageReceived += async (_, args) => {
+                    if (!Uri.TryCreate(args.Source, UriKind.Absolute, out var origin) || origin.Scheme != "https" || origin.Host != "silverlight.local" || origin.AbsolutePath != "/index.html") return;
+                    string? requestId = null;
+                    try {
+                        using var message = JsonDocument.Parse(args.WebMessageAsJson);
+                        var request = message.RootElement;
+                        if (request.GetProperty("channel").GetString() != "silverlight-drive") return;
+                        requestId = request.GetProperty("id").GetString();
+                        var result = await driveSync.ExecuteAsync(request, this);
+                        if (!IsDisposed) browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel = "silverlight-drive", id = requestId, result }));
+                    } catch (Exception error) {
+                        string description = error is InvalidOperationException ? error.Message : error is OperationCanceledException ? "Google request was cancelled or timed out. Local BOARDS are unchanged; check cloud copies before retrying an upload." : "Google Drive request failed. Check your connection and OAuth setup, then retry. Local BOARDS are unchanged.";
+                        if (!IsDisposed) browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel = "silverlight-drive", id = requestId, error = description }));
+                    }
+                };
                 browser.CoreWebView2.Navigate("https://silverlight.local/index.html");
                 await CheckUpdatesAsync(false);
             }
@@ -187,7 +212,7 @@ public sealed class MainWindow : Form
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing) { browser.Dispose(); http.Dispose(); }
+        if (disposing) { driveSync.Dispose(); browser.Dispose(); http.Dispose(); }
         base.Dispose(disposing);
     }
 }

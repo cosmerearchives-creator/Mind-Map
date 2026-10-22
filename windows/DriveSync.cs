@@ -1,0 +1,156 @@
+using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+
+namespace Silverlight.Windows;
+
+// Fixed Drive operations only. OAuth uses system browser, loopback, state and PKCE.
+// Tokens are session-only and never sent to the shared HTML or saved to disk.
+internal sealed class DriveSync : IDisposable
+{
+    private const int Limit = 64 * 1024 * 1024;
+    private const string Api = "https://www.googleapis.com/drive/v3/files";
+    private const string Scope = "https://www.googleapis.com/auth/drive.appdata";
+    private readonly HttpClient http = new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(3) };
+    private readonly HashSet<string> listed = new();
+    private readonly CancellationTokenSource lifetime = new();
+    private string? token;
+    private DateTime expires;
+    private bool busy;
+
+    public async Task<object> ExecuteAsync(JsonElement request, IWin32Window owner)
+    {
+        if (busy) throw new InvalidOperationException("Another Drive request is still running.");
+        busy = true;
+        try
+        {
+            string op = request.GetProperty("op").GetString() ?? "";
+            if (op is not ("connect" or "list" or "upload" or "download")) throw new InvalidOperationException("Unsupported Drive operation.");
+            if (op == "connect" || token is null || DateTime.UtcNow >= expires) await AuthorizeAsync(owner);
+            if (op == "connect") return new { platform = "Windows" };
+            if (op == "list")
+            {
+                string page = request.TryGetProperty("pageToken", out var p) ? p.GetString() ?? "" : "";
+                if (page.Length == 0) listed.Clear();
+                var query = "trashed = false and appProperties has { key='silverlightSnapshot' and value='1' }";
+                var result = JsonNode.Parse(await SendAsync(HttpMethod.Get, Api + "?spaces=appDataFolder&pageSize=100&fields=" + Uri.EscapeDataString("files(id,name,createdTime,appProperties),nextPageToken") + "&q=" + Uri.EscapeDataString(query) + (page.Length == 0 ? "" : "&pageToken=" + Uri.EscapeDataString(page))))!.AsObject();
+                result["files"] ??= new JsonArray();
+                foreach (var file in result["files"]!.AsArray()) listed.Add(file!["id"]!.GetValue<string>());
+                return result;
+            }
+            if (op == "download")
+            {
+                string id = request.GetProperty("fileId").GetString() ?? "";
+                if (!listed.Contains(id) || !System.Text.RegularExpressions.Regex.IsMatch(id, @"\A[A-Za-z0-9_-]+\z")) throw new InvalidOperationException("Choose a snapshot from View cloud copies first.");
+                return new { snapshot = await SendAsync(HttpMethod.Get, Api + "/" + id + "?alt=media") };
+            }
+            string snapshot = request.GetProperty("snapshot").GetString() ?? "";
+            if (Encoding.UTF8.GetByteCount(snapshot) > Limit) throw new InvalidOperationException("Workspace exceeds the 64 MB transfer limit.");
+            using var document = JsonDocument.Parse(snapshot);
+            var root = document.RootElement;
+            if (root.GetProperty("format").GetString() != "silverlight-snapshot-v1") throw new InvalidOperationException("Invalid snapshot format.");
+            var metadata = new {
+                name = "silverlight-snapshot-" + Guid.NewGuid() + ".json",
+                parents = new[] { "appDataFolder" },
+                appProperties = new { silverlightSnapshot = "1", platform = "Windows", boards = root.GetProperty("workspace").GetProperty("boards").GetArrayLength().ToString(), revision = root.GetProperty("revision").GetString() }
+            };
+            using var body = new MultipartContent("related", "silverlight_" + Guid.NewGuid().ToString("N"));
+            body.Add(new StringContent(JsonSerializer.Serialize(metadata), Encoding.UTF8, "application/json"));
+            body.Add(new StringContent(snapshot, Encoding.UTF8, "application/json"));
+            return JsonNode.Parse(await SendAsync(HttpMethod.Post, "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", body))!;
+        }
+        finally { busy = false; }
+    }
+
+    private async Task<string> SendAsync(HttpMethod method, string url, HttpContent? body = null)
+    {
+        using var message = new HttpRequestMessage(method, url) { Content = body };
+        message.Headers.Authorization = new("Bearer", token);
+        using var response = await http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, lifetime.Token);
+        if (response.StatusCode == HttpStatusCode.Unauthorized) { token = null; throw new InvalidOperationException("Google session expired. Connect Google and retry."); }
+        if (response.StatusCode == HttpStatusCode.Forbidden) throw new InvalidOperationException("Google Drive access was refused. Check Drive API, consent test users, scope and available storage.");
+        if (!response.IsSuccessStatusCode) throw new InvalidOperationException("Google Drive returned HTTP " + (int)response.StatusCode + ". Local BOARDS are unchanged. Check cloud copies before retrying an upload.");
+        if (response.Content.Headers.ContentLength > Limit) throw new InvalidOperationException("Cloud snapshot exceeds the transfer limit.");
+        using var output = new MemoryStream();
+        using var input = await response.Content.ReadAsStreamAsync(lifetime.Token);
+        var buffer = new byte[16384]; int count;
+        while ((count = await input.ReadAsync(buffer, lifetime.Token)) > 0) {
+            if (output.Length + count > Limit) throw new InvalidOperationException("Cloud snapshot exceeds the transfer limit.");
+            await output.WriteAsync(buffer.AsMemory(0, count), lifetime.Token);
+        }
+        return Encoding.UTF8.GetString(output.ToArray());
+    }
+
+    private static string Base64Url(byte[] bytes) => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    private async Task AuthorizeAsync(IWin32Window owner)
+    {
+        var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Silverlight");
+        var config = Path.Combine(folder, "google-desktop-oauth.json");
+        if (!File.Exists(config))
+        {
+            MessageBox.Show(owner, "Select the OAuth JSON downloaded for a Desktop app client in the SAME Google Cloud project as Silverlight Android (silverlight-512321). In Google Cloud: Google Auth Platform → Clients → Create client → Desktop app → Download JSON. Your boards and passwords are not included in this file.", "Set up Windows Google Drive");
+            using var picker = new OpenFileDialog { Title = "Select Google Desktop app OAuth JSON", Filter = "Google OAuth JSON (*.json)|*.json" };
+            if (picker.ShowDialog(owner) != DialogResult.OK) throw new InvalidOperationException("Windows Google setup is waiting for its Desktop app OAuth JSON. Local BOARDS are unchanged.");
+            using var candidate = JsonDocument.Parse(await File.ReadAllTextAsync(picker.FileName));
+            ValidateClient(candidate.RootElement);
+            Directory.CreateDirectory(folder);
+            File.Copy(picker.FileName, config, false);
+        }
+        using var settings = JsonDocument.Parse(await File.ReadAllTextAsync(config));
+        var client = ValidateClient(settings.RootElement);
+        string clientId = client.GetProperty("client_id").GetString()!;
+        string secret = client.TryGetProperty("client_secret", out var cs) ? cs.GetString() ?? "" : "";
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        timeout.CancelAfter(TimeSpan.FromMinutes(3));
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        string redirect = "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port + "/";
+        string state = Base64Url(RandomNumberGenerator.GetBytes(32));
+        string verifier = Base64Url(RandomNumberGenerator.GetBytes(64));
+        string challenge = Base64Url(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
+        string Query(Dictionary<string,string> parameters) => string.Join("&", parameters.Select(p => Uri.EscapeDataString(p.Key)+"="+Uri.EscapeDataString(p.Value)));
+        var parameters = new Dictionary<string,string> { ["client_id"]=clientId, ["redirect_uri"]=redirect, ["response_type"]="code", ["scope"]=Scope, ["state"]=state, ["code_challenge"]=challenge, ["code_challenge_method"]="S256", ["prompt"]="select_account" };
+        Process.Start(new ProcessStartInfo("https://accounts.google.com/o/oauth2/v2/auth?"+Query(parameters)) { UseShellExecute = true });
+        string? code = null;
+        while (code is null)
+        {
+            using var connection = await listener.AcceptTcpClientAsync(timeout.Token);
+            using var stream = connection.GetStream();
+            using var reader = new StreamReader(stream, Encoding.ASCII, false, 1024, true);
+            var line = await reader.ReadLineAsync(timeout.Token) ?? "";
+            var parts = line.Split(' ');
+            Uri? callback = null;
+            bool valid = line.Length < 8192 && parts.Length == 3 && parts[0] == "GET" && Uri.TryCreate(redirect.TrimEnd('/') + parts[1], UriKind.Absolute, out callback) && callback.AbsolutePath == "/";
+            var values = valid ? System.Web.HttpUtility.ParseQueryString(callback!.Query) : null;
+            valid = valid && values!["state"] == state;
+            string page = valid ? "Google sign-in received. Return to Silverlight." : "Invalid sign-in response. Return to Silverlight and try again.";
+            byte[] reply = Encoding.UTF8.GetBytes("HTTP/1.1 " + (valid ? "200 OK" : "400 Bad Request") + "\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\nContent-Length: " + Encoding.UTF8.GetByteCount(page) + "\r\n\r\n" + page);
+            await stream.WriteAsync(reply, timeout.Token);
+            if (!valid) continue;
+            if (values!["error"] is not null) throw new InvalidOperationException("Google sign-in was cancelled or Drive access was denied. Local BOARDS are unchanged.");
+            code = values["code"];
+            if (string.IsNullOrEmpty(code)) throw new InvalidOperationException("Google did not return an authorization code.");
+        }
+        listener.Stop();
+        var exchange = new Dictionary<string,string> { ["client_id"]=clientId, ["code"]=code, ["code_verifier"]=verifier, ["grant_type"]="authorization_code", ["redirect_uri"]=redirect };
+        if (secret.Length > 0) exchange["client_secret"] = secret;
+        using var content = new FormUrlEncodedContent(exchange);
+        using var result = await http.PostAsync("https://oauth2.googleapis.com/token", content, timeout.Token);
+        if (!result.IsSuccessStatusCode) throw new InvalidOperationException("Google could not complete Windows sign-in. Check the Desktop OAuth client and consent configuration.");
+        using var credentials = JsonDocument.Parse(await result.Content.ReadAsStringAsync(timeout.Token));
+        token = credentials.RootElement.GetProperty("access_token").GetString();
+        if (string.IsNullOrEmpty(token)) throw new InvalidOperationException("Google did not grant Drive access.");
+        expires = DateTime.UtcNow.AddSeconds(Math.Max(0, credentials.RootElement.GetProperty("expires_in").GetInt32()-60));
+        listed.Clear();
+    }
+    private static JsonElement ValidateClient(JsonElement root)
+    {
+        if (!root.TryGetProperty("installed", out var client) || !client.TryGetProperty("client_id",out var id) || !(id.GetString() ?? "").EndsWith(".apps.googleusercontent.com",StringComparison.Ordinal)) throw new InvalidOperationException("Choose an OAuth JSON for a Desktop app client, not an Android or Web client.");
+        return client;
+    }
+    public void Dispose() { lifetime.Cancel(); lifetime.Dispose(); http.Dispose(); token = null; }
+}

@@ -1,11 +1,16 @@
-# Silverlight Archives — Sticky movement and image display
+# Silverlight Archives — Google Drive manual-transfer preview
 
-- Windows: left-click and drag any Sticky immediately, including BOARD STICKIES such as Selish. Double-click a BOARD STICKY to open its BOARD; use its menu to edit it.
-- Android: retain hold-and-drag, double-tap to open a BOARD STICKY, and pinch zoom.
-- IMAGE STICKIES: choose Placard or Raw image during creation or editing. Raw mode hides the frame and background, preserves the uploaded image's transparency, and retains movement, resizing, tags, connections, Collections, editing and deletion. Select it to reveal its title/menu and tags. Existing images default to Placard.
-- Existing Collection collapse/reordering, tag suggestions, draggable connection labels and proportional/free resizing remain available.
-- Local storage, board IDs, backup format and platform application identity remain unchanged. No data migration or reset is required.
+Testing preview. Automatic device sync and conflict merging are NOT enabled. Stable update checks will not offer this preview automatically.
 
-Google Drive device sync and conflict resolution remain unimplemented. OAuth setup alone does not enable sync. No new PDF/ebook import improvements are included; existing import and JSON backup remain available.
+- The cloud button opens Connect Google, Upload this device, View cloud copies and Local recovery.
+- Upload creates a separate immutable copy in the app's private Google Drive storage. It never replaces or deletes earlier cloud copies.
+- Restore previews BOARD/STICKY counts, verifies the snapshot checksum and relationships, then saves a local recovery copy and the incoming workspace together in one storage transaction.
+- Transfers preserve stable IDs, nested BOARD references, connections, Collections, tags, embedded images, Raw/Placard settings and workspace appearance.
+- Android authorization uses Google Play services. Windows uses the system browser with state validation and PKCE. Tokens stay in the native app, outside board data and exports; Windows sign-in is session-only.
+- Windows first asks for the downloaded OAuth JSON for a Desktop app client from the SAME Google Cloud project as Android. Select this file locally; do not upload credentials to GitHub or chat.
 
-Automated interaction checks cover mouse dragging across Sticky types, BOARD opening, touch hold/pan, raw display and save/restore. Device installation and real Android touch testing still need confirmation.
+Export a JSON backup before testing. Sign into the same Google account on both devices, upload from the device holding the desired BOARDS, then review and restore on the other device. Restore replaces that device's complete workspace; it does not merge competing edits.
+
+Automated checks: lossless snapshot round-trip, schema/checksum/reference rejection, two-device transfer simulation, cancel, transaction-abort rollback, stale-review rejection, durable local recovery, reload, and Sticky movement regression.
+
+Still requires real-account testing: Google consent, cross-platform appData visibility, Windows → Android → Windows transfers, sign-in cancellation/expiry and network interruptions. Google Drive automatic sync/conflict resolution and further PDF/ebook import improvements remain unimplemented.
