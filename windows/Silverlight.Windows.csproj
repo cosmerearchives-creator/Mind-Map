@@ -7,7 +7,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Silverlight</AssemblyName>
     <RootNamespace>Silverlight.Windows</RootNamespace>
-    <ApplicationTitle>Silverlight</ApplicationTitle>
+    <ApplicationTitle>Silverlight Archives</ApplicationTitle>
+    <ApplicationIcon>app.ico</ApplicationIcon>
     <Version>0.8.0</Version>
   </PropertyGroup>
   <ItemGroup>
