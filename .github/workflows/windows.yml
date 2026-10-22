@@ -52,4 +52,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v0.8.${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight Windows v0.8.${{ github.run_number }}" --notes "Initial Windows WebView2 wrapper. Same shared mind-map UI as Android. Windows checks for new Windows releases on launch. This installer is unsigned; Windows may show a SmartScreen prompt." --latest=false --target "${{ github.sha }}"
+          gh release create "v0.8.${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight Windows v0.8.${{ github.run_number }}" --notes-file RELEASE_NOTES.md --latest=false --target "${{ github.sha }}"

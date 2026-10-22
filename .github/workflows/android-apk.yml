@@ -73,4 +73,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v0.7.${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight v0.7.${GITHUB_RUN_NUMBER}" --notes "Permanently signed Android release. Launch-time update checks use this repository. Android still requires user approval for installation. If you installed a debug-signed build, export your boards before uninstalling it." --latest --target "${GITHUB_SHA}"
+          gh release create "v0.7.${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight v0.7.${GITHUB_RUN_NUMBER}" --notes-file RELEASE_NOTES.md --latest --target "${GITHUB_SHA}"

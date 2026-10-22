@@ -83,3 +83,10 @@ Preserve the HOME PAGE / BOARD / STICKY vocabulary in issue reports, discussions
 - Images: edit an Image Sticky to choose proportional resize or unrestricted stretching; original image dimensions supply its aspect ratio for new uploads.
 - This release does **not** include Google Drive sync or improvements to PDF/ebook import. Those remain separately planned.
 - Verify Android touch and Windows mouse interactions, Collections inside Collections, image persistence, line-to-Sticky routing, and save/restore before marking fully stabilized.
+
+## October 22 — Windows dragging and Raw image follow-up
+- Mouse dragging starts on movement without a hold delay for every Sticky type. BOARD STICKY content no longer uses nested buttons that consume dragging. Double-click/double-tap opens its BOARD; its menu still edits the Sticky.
+- Touch retains its hold delay for dragging and pre-hold movement for canvas panning.
+- Image creation and editing offer Placard (default for old images) and Raw. Raw hides the placard background/frame, preserves source alpha transparency and retains standard Sticky operations. Selecting Raw reveals its title/menu and tags.
+- Automated browser checks cover six Sticky types, BOARD opening, Raw editing and persistence, and touch hold versus pan. Platform build workflows validate packaging; real-device installation and touch verification remain outstanding.
+- Google Drive sync/conflict resolution and additional PDF/ebook import improvements remain unimplemented.
