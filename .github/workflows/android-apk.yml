@@ -34,6 +34,22 @@ jobs:
           done
           printf '%s' "$SIGNING_KEY" | base64 --decode > "$RUNNER_TEMP/silverlight-release.jks"
           keytool -list -keystore "$RUNNER_TEMP/silverlight-release.jks" -alias "$KEY_ALIAS" -storepass "$KEYSTORE_PASSWORD" >/dev/null
+      - name: Generate Silverlight tower launcher icon
+        run: |
+          python -m pip install --quiet Pillow
+          python - <<'PY'
+          import base64, io, re
+          from pathlib import Path
+          from PIL import Image
+          html = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          match = re.search(r'class="brandTower"[^>]+src="data:image/webp;base64,([^"]+)"', html)
+          if not match:
+              raise SystemExit("Missing embedded Silverlight tower art")
+          tower = Image.open(io.BytesIO(base64.b64decode(match.group(1)))).convert("RGBA")
+          path = Path("app/src/main/res/drawable-nodpi/silverlight_tower.png")
+          path.parent.mkdir(parents=True, exist_ok=True)
+          tower.resize((512, 512), Image.Resampling.LANCZOS).save(path)
+          PY
       - name: Build and sign release APK
         env:
           SILVERLIGHT_KEYSTORE: ${{ runner.temp }}/silverlight-release.jks
