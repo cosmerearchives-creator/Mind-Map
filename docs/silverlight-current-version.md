@@ -63,3 +63,15 @@ This inventory is a feature contract, not a comprehensive QA certification. Conf
 
 ## Future development
 Preserve the HOME PAGE / BOARD / STICKY vocabulary in issue reports, discussions and code-facing specs. Treat generic Sticky changes as applicable to Board Stickies. Log regressions and future feature requests against this baseline.
+
+## October 22 — Sticky editor, media and appearance release
+- Double-tapping a BOARD opens a unified **Create Sticky** dialog with **Note**, **Collection**, and **Image** tabs. Notes are the default.
+- The Note tab includes title, notes, tags and the nested BOARD STICKY toggle. The Collection tab creates a resizable COLLECTION. The Image tab can import a local image as an IMAGE STICKY.
+- IMAGE STICKIES can be moved, placed in COLLECTIONS and stretched or shrunk via a corner resize control.
+- Sticky appearance controls include default colors, an arbitrary custom color picker, favorite colors saved in the application, and an uploaded image background with fill/fit/tile and overlay opacity.
+- Existing Stickies have the background customizations available in their editor.
+- App branding uses **Silverlight Archives** with the tower emblem on the header and Android/Windows application icons.
+
+**Verification limitation:** JavaScript syntax parsing and platform build workflows are not equivalent to interactive testing. Touch behavior, image file persistence, background display, image sizing, and new dialogs should be manually validated on Android and Windows.
+
+**Still planned, not in this release:** Google Drive device synchronization and conflict resolution.
