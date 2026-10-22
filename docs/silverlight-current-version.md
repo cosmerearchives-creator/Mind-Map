@@ -1,0 +1,65 @@
+# Silverlight — current-version feature inventory
+
+Release baseline: October 22, 2026. The application may still display **Openboard** in older builds or interface areas. This file establishes the agreed vocabulary and behavioral baseline; it is not a claim that every flow has been device-tested.
+
+## Vocabulary (use consistently)
+- **HOME PAGE**: The top-level library displaying main boards.
+- **BOARD**: An independent, zoomable canvas/workspace. A board can be main or nested.
+- **STICKY**: *Every object placed on a board*, including text, checklists, links, images, nested-board representations, and collections. All generic operations on Stickies apply to Board Stickies unless an explicit exception is stated.
+- **BOARD STICKY**: A Sticky on one board which opens another board. The same nested board is both a BOARD (its own workspace) and a STICKY (in its parent).
+- **COLLECTION**: A resizable Sticky that organizes other Stickies on the same board.
+- **CONNECTION**: A visible relationship between Stickies. **HANDLE** is the + control on a Sticky; **TRUNK** is a shared connection segment; **BRANCH** is its individually editable offshoot; **JUNCTION** is the draggable splitting point; **LABEL** is a small text box directly *on* its segment.
+- **TAG**: Case-insensitive keyword on a Sticky or manually on a board. Tag namespaces are scoped to the main-board hierarchy.
+
+## Current feature baseline
+
+### HOME PAGE / BOARD
+- Home page lists main boards only; nested boards are reached through Board Stickies.
+- Main boards and nested boards each have an infinite zoomable, pannable workspace, tabs and saving.
+- New Sticky types: text, checklist, link, Board Sticky, Collection. PDF import includes board reconstruction attempts.
+- Double-tap blank canvas opens creation dialog.
+- Editing a text Sticky can convert it to a Board Sticky; nested boards are not silently destroyed on detachment.
+
+### STICKIES
+- Every object on a board is a Sticky, including a Board Sticky.
+- Stickies support colors, editing, dragging, tags and connection handles where applicable.
+- Tags are available during new Sticky creation as well as later editing.
+- Board Stickies link to separate board data rather than copying it.
+
+### COLLECTIONS
+- Collections are resizable canvas containers represented as Stickies.
+- Drag a Sticky into a Collection to stack it with that Collection's members; drag out to detach without deleting.
+- Move a Collection to move its organized contents. Membership is saved in the board data.
+- Board Stickies count as Stickies for collection membership.
+- Collections may contain other Collections; cyclic nesting is forbidden.
+- Review on Android and Windows: nested sizing, drag precision, responsive stacking, and connection routing.
+
+### CONNECTIONS
+- Visible + handles on Stickies can be dragged to create connections.
+- One-to-many connections use a shared trunk and independently branching segments.
+- Long-press or drag the junction dot to reposition it; double-tap can reset to automatic placement.
+- Tap a connection or trunk to edit it or delete it.
+- Each branch supports forward/backward/both/none arrow directions.
+- Each branch and shared trunk supports an independent label *directly on* the line (not floating off to a side).
+- Review on devices: hit targets, junction interaction, curved-line labels and line routing.
+
+### TAGS
+- Comma-separated, trimmed, case-insensitive tags, with duplicates merged.
+- Board tag summaries count cards directly on that board only, not recursively inherited descendants.
+- A manual board tag can exist without any matching card.
+- Tap a tag to open a board with the same name within its main-board hierarchy, if present.
+- A board named for a tag can import references to matching boards anywhere under the same main board.
+- Matching imports include explicitly tagged boards **and** boards with directly contained cards using that tag; duplicates are avoided.
+- Tag searches do not cross main-board boundaries.
+
+### DATA / PLATFORMS
+- Offline-first data, JSON backup/import, autosaving, undo/redo, Android WebView and Windows WebView2 wrappers.
+- Signed Android APK workflow and Windows installer workflow.
+- Update checking on both platforms is part of the current version.
+- Google Drive synchronization remains a separately planned feature, **not** a delivered guarantee.
+
+## Release/testing rule
+This inventory is a feature contract, not a comprehensive QA certification. Confirm Android touch workflows, Windows mouse workflows, nested-board preservation, undo/redo, backup round-trip, and release installation before treating this version as a stable final release. Do not equate a GitHub workflow starting with a published downloadable release.
+
+## Future development
+Preserve the HOME PAGE / BOARD / STICKY vocabulary in issue reports, discussions and code-facing specs. Treat generic Sticky changes as applicable to Board Stickies. Log regressions and future feature requests against this baseline.
