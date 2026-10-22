@@ -78,7 +78,7 @@ public class MainActivity extends Activity {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             WebViewCompat.addWebMessageListener(webView, "SilverlightNative", java.util.Collections.singleton("https://appassets.androidplatform.net"),
                 (view, message, origin, mainFrame, proxy) -> {
-                    if (mainFrame && "https://appassets.androidplatform.net".equals(origin.toString())) driveSync.receive(message.getData(), proxy);
+                    if (mainFrame && "https".equals(origin.getScheme()) && "appassets.androidplatform.net".equals(origin.getHost()) && (origin.getPort() == -1 || origin.getPort() == 443)) driveSync.receive(message.getData(), proxy);
                 });
         }
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");

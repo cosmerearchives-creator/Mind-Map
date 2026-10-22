@@ -68,19 +68,21 @@ internal sealed class DriveSync : IDisposable
 
     private async Task<string> SendAsync(HttpMethod method, string url, HttpContent? body = null)
     {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        deadline.CancelAfter(TimeSpan.FromMinutes(3));
         using var message = new HttpRequestMessage(method, url) { Content = body };
         message.Headers.Authorization = new("Bearer", token);
-        using var response = await http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, lifetime.Token);
+        using var response = await http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
         if (response.StatusCode == HttpStatusCode.Unauthorized) { token = null; throw new InvalidOperationException("Google session expired. Connect Google and retry."); }
         if (response.StatusCode == HttpStatusCode.Forbidden) throw new InvalidOperationException("Google Drive access was refused. Check Drive API, consent test users, scope and available storage.");
         if (!response.IsSuccessStatusCode) throw new InvalidOperationException("Google Drive returned HTTP " + (int)response.StatusCode + ". Local BOARDS are unchanged. Check cloud copies before retrying an upload.");
         if (response.Content.Headers.ContentLength > Limit) throw new InvalidOperationException("Cloud snapshot exceeds the transfer limit.");
         using var output = new MemoryStream();
-        using var input = await response.Content.ReadAsStreamAsync(lifetime.Token);
+        using var input = await response.Content.ReadAsStreamAsync(deadline.Token);
         var buffer = new byte[16384]; int count;
-        while ((count = await input.ReadAsync(buffer, lifetime.Token)) > 0) {
+        while ((count = await input.ReadAsync(buffer, deadline.Token)) > 0) {
             if (output.Length + count > Limit) throw new InvalidOperationException("Cloud snapshot exceeds the transfer limit.");
-            await output.WriteAsync(buffer.AsMemory(0, count), lifetime.Token);
+            await output.WriteAsync(buffer.AsMemory(0, count), deadline.Token);
         }
         return Encoding.UTF8.GetString(output.ToArray());
     }
@@ -122,6 +124,12 @@ internal sealed class DriveSync : IDisposable
             using var stream = connection.GetStream();
             using var reader = new StreamReader(stream, Encoding.ASCII, false, 1024, true);
             var line = await reader.ReadLineAsync(timeout.Token) ?? "";
+            int headerBytes = line.Length;
+            string? header;
+            while (!string.IsNullOrEmpty(header = await reader.ReadLineAsync(timeout.Token))) {
+                headerBytes += header.Length;
+                if (headerBytes > 16384) throw new InvalidOperationException("The local Google sign-in response was too large. Connect Google and retry.");
+            }
             var parts = line.Split(' ');
             Uri? callback = null;
             bool valid = line.Length < 8192 && parts.Length == 3 && parts[0] == "GET" && Uri.TryCreate(redirect.TrimEnd('/') + parts[1], UriKind.Absolute, out callback) && callback.AbsolutePath == "/";
