@@ -75,3 +75,11 @@ Preserve the HOME PAGE / BOARD / STICKY vocabulary in issue reports, discussions
 **Verification limitation:** JavaScript syntax parsing and platform build workflows are not equivalent to interactive testing. Touch behavior, image file persistence, background display, image sizing, and new dialogs should be manually validated on Android and Windows.
 
 **Still planned, not in this release:** Google Drive device synchronization and conflict resolution.
+
+## October 22 — Organization and layout follow-up
+- Collections: collapse/expand and manual up/down reordering of contained Stickies, preserving the ability to drag Stickies into and out of Collections. Existing nested Collection layouts remain a QA concern.
+- Tags: while typing, suggest tags within the current main-Board hierarchy; tapping a tag without a same-named Board opens a list of matching Stickies for navigation.
+- Connections: labels on individual branches and shared trunks can be dragged along their respective connection segments (position saved).
+- Images: edit an Image Sticky to choose proportional resize or unrestricted stretching; original image dimensions supply its aspect ratio for new uploads.
+- This release does **not** include Google Drive sync or improvements to PDF/ebook import. Those remain separately planned.
+- Verify Android touch and Windows mouse interactions, Collections inside Collections, image persistence, line-to-Sticky routing, and save/restore before marking fully stabilized.
