@@ -41,7 +41,7 @@ internal static class ClipboardTests
         Check(ClipboardFormats.HtmlFragment("Version:1.0\r\n<html><!--StartFragment--><b>Text</b><!--EndFragment--></html>") == "<b>Text</b>");
         Check(ClipboardFormats.HtmlFragment("<p>Plain HTML</p>") == "<p>Plain HTML</p>");
         var header = "Version:1.0\r\nStartFragment:0000000000\r\nEndFragment:0000000000\r\n";
-        var prefix = "<html>é", fragment = "<b>🐉</b>";
+        string prefix = "<html>é", fragment = "<b>🐉</b>";
         int start = Encoding.UTF8.GetByteCount(header + prefix), end = start + Encoding.UTF8.GetByteCount(fragment);
         var offsets = $"Version:1.0\r\nStartFragment:{start:D10}\r\nEndFragment:{end:D10}\r\n";
         Check(ClipboardFormats.HtmlFragment(offsets + prefix + fragment + "</html>") == fragment);
