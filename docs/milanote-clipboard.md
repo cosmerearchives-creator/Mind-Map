@@ -2,7 +2,7 @@
 
 Open a destination Board in Silverlight. Select cards in Milanote and use **Copy** (Ctrl+C), then use **Ctrl+V** on the Silverlight canvas or **Board actions > Paste**. Review the preview and choose **Paste selection**. Ordinary editor paste and ordinary text/image paste retain their existing behavior. Clipboard access occurs only after an explicit paste; nothing monitors or uploads the clipboard.
 
-The adapter recognizes Milanote's `application/milanote-elements` JSON payload, HTML `data-milanote-elements` payloads and explicitly identified JSON text payloads. The fields were verified against Milanote's publicly served application code on 2026-10-23. Windows decodes both Chromium's registered custom-MIME clipboard container and Firefox's application/x-moz-custom-clipdata container. Android can read structured data only if the platform clipboard exposes it as HTML/text; it cannot retrieve another app's internal clipboard state.
+The adapter recognizes Milanote's `application/milanote-elements` JSON payload, HTML `data-milanote-elements` payloads and explicitly identified JSON text payloads. The fields were verified against Milanote's publicly served application code on 2026-10-23. Windows Ctrl+V on the canvas uses the native clipboard reader, as does Board actions > Paste; editor paste remains normal. Windows decodes both Chromium's registered custom-MIME clipboard container and Firefox's application/x-moz-custom-clipdata container. Android can read structured data only if the platform clipboard exposes it as HTML/text; it cannot retrieve another app's internal clipboard state.
 
 Supported conversion:
 
