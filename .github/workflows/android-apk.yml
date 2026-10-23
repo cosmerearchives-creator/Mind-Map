@@ -15,8 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate snapshot preservation
-        run: node tests/sync-core.cjs
+      - name: Validate snapshots and automatic merge
+        run: node tests/validate.cjs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

@@ -44,13 +44,15 @@ final class DriveSync {
         if (current != null) { respond(proxy, request.optString("id"), null, "Another Drive request is still running."); return; }
         current = request; reply = proxy;
         String op = request.optString("op");
-        if (!java.util.Arrays.asList("connect", "list", "upload", "download").contains(op)) { finish(null, "Unsupported Drive operation."); return; }
-        if (token == null || "connect".equals(op)) authorize(); else execute();
+        if (!java.util.Arrays.asList("connect", "session", "list", "upload", "download").contains(op)) { finish(null, "Unsupported Drive operation."); return; }
+        if (token == null || "connect".equals(op) || "session".equals(op)) authorize(); else execute();
     }
     private void authorize() {
         AuthorizationRequest request = AuthorizationRequest.builder().setRequestedScopes(Collections.singletonList(new Scope(SCOPE))).build();
         Identity.getAuthorizationClient(activity).authorize(request).addOnSuccessListener(result -> {
             if (result.hasResolution()) {
+                if (current == null) return;
+                if (current.optBoolean("silent")) { try { finish(new JSONObject().put("connected",false), null); } catch (Exception ignored) { finish(null,"Google sign-in required."); } return; }
                 try { activity.startIntentSenderForResult(result.getPendingIntent().getIntentSender(), AUTHORIZE, null, 0, 0, 0); }
                 catch (Exception ignored) { finish(null, "Google sign-in could not open. Check Google Play services and OAuth setup."); }
             } else authorized(result);
@@ -65,14 +67,17 @@ final class DriveSync {
     private void authorized(AuthorizationResult result) {
         token = result.getAccessToken();
         if (token == null || token.isEmpty()) { finish(null, "Drive access was not granted."); return; }
-        listed.clear(); execute();
+        if ("connect".equals(current.optString("op"))) listed.clear(); execute();
     }
     private void execute() {
         final JSONObject request = current;
         executor.execute(() -> {
             try {
                 String op = request.getString("op"); JSONObject result;
-                if ("connect".equals(op)) result = new JSONObject().put("platform", "Android");
+                JSONObject user = new JSONObject(call("GET", "https://www.googleapis.com/drive/v3/about?fields=user(permissionId)", null, null)).getJSONObject("user");
+                String accountId = user.getString("permissionId");
+                if (request.has("expectedAccount") && !accountId.equals(request.getString("expectedAccount"))) throw new Exception("Google account changed. Reconnect the original account before syncing.");
+                if ("connect".equals(op) || "session".equals(op)) result = new JSONObject().put("platform", "Android").put("connected",true).put("accountId",accountId);
                 else if ("list".equals(op)) {
                     String page = request.optString("pageToken");
                     if (page.isEmpty()) listed.clear();
@@ -90,9 +95,11 @@ final class DriveSync {
                     byte[] content = snapshot.getBytes(StandardCharsets.UTF_8);
                     if (content.length>LIMIT) throw new Exception("Workspace exceeds the 64 MB transfer limit.");
                     JSONObject envelope = new JSONObject(snapshot);
-                    if (!"silverlight-snapshot-v1".equals(envelope.optString("format"))) throw new Exception("Invalid snapshot format.");
+                    if (!"silverlight-snapshot-v1".equals(envelope.optString("format")) && !"silverlight-auto-v1".equals(envelope.optString("format"))) throw new Exception("Invalid snapshot format.");
                     JSONArray boards = envelope.getJSONObject("workspace").getJSONArray("boards");
                     JSONObject properties = new JSONObject().put("silverlightSnapshot","1").put("platform","Android").put("boards",String.valueOf(boards.length())).put("revision",envelope.getString("revision"));
+                    boolean automatic = "silverlight-auto-v1".equals(envelope.optString("format"));
+                    properties.put("protocol",automatic?"auto-v1":"manual-v1").put("dataset",automatic?envelope.getJSONObject("auto").getString("dataset"):"");
                     JSONObject metadata = new JSONObject().put("name","silverlight-snapshot-"+UUID.randomUUID()+".json").put("parents",new JSONArray().put("appDataFolder")).put("appProperties",properties);
                     String boundary = "silverlight_"+UUID.randomUUID();
                     byte[] head = ("--"+boundary+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+metadata+"\r\n--"+boundary+"\r\nContent-Type: application/json\r\n\r\n").getBytes(StandardCharsets.UTF_8);

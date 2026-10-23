@@ -18,8 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate snapshot preservation
-        run: node tests/sync-core.cjs
+      - name: Validate snapshots and automatic merge
+        run: node tests/validate.cjs
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'

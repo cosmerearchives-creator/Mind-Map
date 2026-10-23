@@ -1,8 +1,8 @@
 # Silverlight Google Drive Sync — Implementation Contract
 
-Status: **Manual-transfer preview implemented on `sync/manual-drive-transfer`; real Google account/device testing required. Automatic synchronization and conflict merging are NOT enabled.** The owner reports Android OAuth setup was completed; it has not yet been verified by an app authorization attempt.
+Status: **Automatic sync while the app is open is implemented in the next preview on `sync/manual-drive-transfer`; real-account verification of this new build is required.** Manual transfers in both directions were confirmed by the owner. See [automatic-sync.md](automatic-sync.md) for current setup, protocol and limits. Closed-app syncing remains unimplemented.
 
-## Preview implementation and next user step
+## Historical manual-transfer preview setup
 - Android uses Google Play services AuthorizationClient and the existing package/release signing identity. Tokens never enter HTML or board exports.
 - Windows uses system-browser OAuth, loopback redirect, state validation and PKCE. On first Connect Google, select the JSON downloaded for a **Desktop app** OAuth client in the **same Google Cloud project as Android**, currently `silverlight-512321`. It is copied to `%LOCALAPPDATA%/Silverlight/google-desktop-oauth.json`; tokens are session-only. To replace a mistakenly selected Desktop configuration, close Silverlight and remove just that configuration file, then connect again. Never remove the WebView2 data folder.
 - Enable Drive API and include the Google account in the consent screen's testing audience when applicable. Use the same account on both devices.
@@ -19,7 +19,7 @@ Status: **Manual-transfer preview implemented on `sync/manual-drive-transfer`; r
 5. Make a small identifiable change on Android, upload, then review/restore that copy on Windows. Confirm Local recovery can restore the previous workspace.
 6. Report any Google error text and which step failed. Do not send tokens, passwords or board contents.
 
-The sections below describe the full intended sync system; automatic behavior and conflict resolution remain future work.
+The sections below are the original design contract. The immutable protocol in automatic-sync.md replaces the proposed mutable manifest.
 
 ## Authorization
 - Use Google Play services AuthorizationClient with `https://www.googleapis.com/auth/drive.appdata`.

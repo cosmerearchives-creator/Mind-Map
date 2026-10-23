@@ -197,6 +197,10 @@ public class MainActivity extends Activity {
         if (webView != null && webView.canGoBack()) webView.goBack();
         else super.onBackPressed();
     }
+    @Override protected void onResume() {
+        super.onResume();
+        if (webView != null) webView.evaluateJavascript("window.dispatchEvent(new Event('silverlight-resume'))", null);
+    }
     @Override protected void onDestroy() {
         if (driveSync != null) driveSync.close();
         super.onDestroy();

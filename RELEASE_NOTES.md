@@ -1,16 +1,16 @@
-# Silverlight Archives — Google Drive manual-transfer preview
+# Silverlight Archives — automatic Google Drive sync preview
 
-Testing preview. Automatic device sync and conflict merging are NOT enabled. Stable update checks will not offer this preview automatically.
+Automatic syncing is implemented while Silverlight is open. This preview needs real-device verification before stable promotion. Syncing while the app is closed is not implemented.
 
-- The cloud button opens Connect Google, Upload this device, View cloud copies and Local recovery.
-- Upload creates a separate immutable copy in the app's private Google Drive storage. It never replaces or deletes earlier cloud copies.
-- Restore previews BOARD/STICKY counts, verifies the snapshot checksum and relationships, then saves a local recovery copy and the incoming workspace together in one storage transaction.
-- Transfers preserve stable IDs, nested BOARD references, connections, Collections, tags, embedded images, Raw/Placard settings and workspace appearance.
-- Android authorization uses Google Play services. Windows uses the system browser with state validation and PKCE. Tokens stay in the native app, outside board data and exports; Windows sign-in is session-only.
-- Windows first asks for the downloaded OAuth JSON for a Desktop app client from the SAME Google Cloud project as Android. Select this file locally; do not upload credentials to GitHub or chat.
+- Saves, resume, restart and internet return trigger syncing; open apps also check roughly every 15 seconds.
+- Different BOARDS combine. Competing edits within one BOARD and delete-versus-edit retain all versions for review. Resolution preserves alternative content as separate conflict-copy BOARDS.
+- Deletion history prevents stale offline devices from resurrecting BOARDS. IDs, images, connections, tags, Collections and nested BOARD links remain intact.
+- Incoming changes save a local recovery copy and sync history atomically. Pending edits stay local during outages or sign-in problems. Status includes Synced, Pending, Offline and Needs attention.
+- Automatic requests never launch consent unexpectedly and stop if the Google account changes. Windows retains its refresh credential encrypted for the current Windows user; Android uses Google Play services.
+- Manual upload, restore and Local recovery remain available. Manual restore pauses automatic syncing. Tabs, views and favorite-color preferences stay local.
 
-Export a JSON backup before testing. Sign into the same Google account on both devices, upload from the device holding the desired BOARDS, then review and restore on the other device. Restore replaces that device's complete workspace; it does not merge competing edits.
+First use: export backups and update both apps over the existing installations. On Windows choose cloud → Enable automatic sync, complete consent and wait for Synced. On Android enable it with the same Google account and Join workspace for the workspace Windows created. Keep both apps open for the first test. Reuse the existing Desktop OAuth JSON; no new Google client is needed.
 
-Automated checks: lossless snapshot round-trip, schema/checksum/reference rejection, two-device transfer simulation, cancel, transaction-abort rollback, stale-review rejection, durable local recovery, reload, and Sticky movement regression.
+Tests cover snapshot/merge integrity, 80 delivery orders, independent offline edits, conflict restart, safe copies, tombstones, storage rollback/retry, network retry, account mismatch, raw images, manual restore and Sticky dragging. Native builds/signature verification run in release workflows.
 
-Still requires real-account testing: Google consent, cross-platform appData visibility, Windows → Android → Windows transfers, sign-in cancellation/expiry and network interruptions. Google Drive automatic sync/conflict resolution and further PDF/ebook import improvements remain unimplemented.
+Limits: no closed-app syncing or within-BOARD automatic merge. Full immutable snapshots/conflict history count toward the 64 MB limit and consume Drive space. Snapshot pruning and asset deduplication remain future work. Additional PDF/ebook import improvements are not included.
