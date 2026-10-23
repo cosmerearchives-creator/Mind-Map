@@ -2,7 +2,7 @@
 window.installAssetTransfer=function(raw,list){'use strict';const A=SilverlightAssets,PART=1024*1024,MAX_PARTS=1024;
 async function request(op,args={}){
  if(op==='upload'){
-  const original=typeof args.snapshot==='string'?JSON.parse(args.snapshot):args.snapshot,bundle=await A.pack(original);A.assertSize(bundle);const text=JSON.stringify(bundle);
+  const original=typeof args.snapshot==='string'?JSON.parse(args.snapshot):args.snapshot,bundle=await (typeof SilverlightTasks!=='undefined'?SilverlightTasks.run('pack',original):A.pack(original));A.assertSize(bundle);const text=JSON.stringify(bundle);
   if(!Object.keys(bundle.assets).length&&new TextEncoder().encode(text).length<PART)return raw(op,{...args,snapshot:JSON.stringify(original)});
   const files=await list({silent:args.silent,expectedAccount:args.expectedAccount}),known=new Map(files.filter(f=>f.appProperties?.protocol==='part-v2').map(f=>[f.appProperties.revision,f.id]));
   const objects=[['document',JSON.stringify(bundle.document)],...Object.entries(bundle.assets)],entries=[];

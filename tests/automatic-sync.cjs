@@ -1,6 +1,6 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),path=require('node:path'),{pathToFileURL}=require('node:url');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-(async()=>{
+(async()=>{const server=await require('./serve-assets.cjs')();
  const browser=await chromium.launch({headless:true,channel:'msedge'});let files=[],failUpload=false,account='same-google-account',connects=0,stopA=false;
  try{
  const errors=[];
@@ -11,7 +11,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    const originalTimeout=window.setTimeout;window.setTimeout=(fn,delay,...args)=>originalTimeout(fn,[15000,3000,2000,5000,60000].includes(delay)?250:delay,...args);
    if(!localStorage.getItem('seeded')){localStorage.setItem('seeded','1');localStorage.setItem('openboard.v1',JSON.stringify({boards:[{id:'one',title:'One',cards:[{id:'image',kind:'image',title:'Image',body:'',imageMode:'raw',imageData:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg"/>'),x:30,y:30}],connections:[]},{id:'two',title:'Two',cards:[]}],views:{},tabs:[],active:null}))}
    window.SilverlightNative={postMessage:async text=>{const r=JSON.parse(text);try{const result=await window.driveMock(r);window.SilverlightNative.onmessage({data:JSON.stringify({channel:r.channel,id:r.id,result})})}catch(e){window.SilverlightNative.onmessage({data:JSON.stringify({channel:r.channel,id:r.id,error:e.message})})}}};
-  });await page.goto(pathToFileURL(path.resolve('app/src/main/assets/index.html')).href);await page.locator('[data-board="one"]').waitFor();await page.waitForTimeout(300);return {page,context};
+  });await server.attach(page);await page.goto(server.url);await page.locator('[data-board="one"]').waitFor();await page.waitForTimeout(300);return {page,context};
  }
  async function read(page,key='main'){return page.evaluate(async key=>{const db=await new Promise((resolve,reject)=>{const q=indexedDB.open('openboard-workspace',1);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});try{const r=await SilverlightAssetStore.read(db,key);return key==='main'?JSON.parse(r.state):r}finally{db.close()}},key)}
  async function until(fn,description){for(let i=0;i<180;i++){if(await fn())return;await sleep(100)}throw Error('Timed out: '+description)}
@@ -35,7 +35,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  for(const p of [A.page,B.page]){const titles=(await read(p)).boards.map(b=>b.title);assert.ok(titles.some(t=>t.startsWith('Windows conflict')));assert.ok(titles.some(t=>t.startsWith('Android conflict')));assert.equal((await read(p)).boards.find(b=>b.id==='one').cards.find(c=>c.id==='image').imageMode,'raw')}
  await A.context.setOffline(true);await B.page.locator('#home').click();await B.page.locator('[data-boardmenu="two"]').click();await B.page.locator('#deleteBoard').click();await B.page.locator('#yesDelete').click();await until(async()=>(await read(B.page,'auto-sync-meta')).records.find(r=>r.id==='two').versions[0].board===null,'deletion published');await A.page.reload();await A.page.waitForTimeout(350);await A.page.locator('#home').click();await A.page.locator('[data-board="two"]').waitFor();await A.context.setOffline(false);await until(async()=>!(await read(A.page)).boards.some(b=>b.id==='two'),'old offline device receives tombstone');
  failUpload=true;await rename(A.page,'one','Offline pending edit');await until(async()=>(await A.page.locator('#syncStatusBar').innerText()).includes('Simulated network interruption'),'network failure reported');assert.equal((await read(A.page)).boards.find(b=>b.id==='one').title,'Offline pending edit');failUpload=false;await until(async()=>(await read(B.page)).boards.find(b=>b.id==='one').title==='Offline pending edit','retry publishes retained local edit');
- const count=files.length;account='other-google-account';await rename(A.page,'one','Must stay local');await until(async()=>(await A.page.locator('#syncStatusBar').innerText()).includes('Google account changed'),'account mismatch stops sync');await sleep(700);assert.equal(files.length,count,'account switch cannot upload into another Drive');assert.equal((await read(B.page)).boards.find(b=>b.id==='one').title,'Offline pending edit');assert.deepEqual(errors,[]);
+ const count=files.length;account='other-google-account';await rename(A.page,'one','Must stay local');await until(async()=>(await A.page.locator('#syncStatusBar').innerText()).includes('Google account changed'),'account mismatch stops sync');await sleep(700);assert.equal(files.length,count,'account switch cannot upload into another Drive');assert.equal((await read(B.page)).boards.find(b=>b.id==='one').title,'Offline pending edit');for(const p of [A.page,B.page])assert.ok(await p.evaluate(()=>SilverlightTasks.stats.workerJobs>0));assert.deepEqual(errors,[]);
  console.log('PASS: two-device automatic join, independent offline edits, atomic storage-failure rollback/retry, concurrent conflict retention/restart, keep-all resolution, deletion versus stale offline device, network retry, raw-image preservation, persistent device identity, silent resume and account mismatch protection.');
- }finally{await browser.close()}
+ }finally{await browser.close();await server.close()}
 })().catch(e=>{console.error(e);process.exit(1)});

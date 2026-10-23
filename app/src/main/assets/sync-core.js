@@ -4,7 +4,7 @@
 const FORMAT='silverlight-snapshot-v1', MAX_BYTES=256*1024*1024;
 function canonical(value){if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+canonical(value[k])).join(',')+'}';return JSON.stringify(value)}
 function workspace(input){
- const w=JSON.parse(JSON.stringify(input));
+ const assets=typeof module!=='undefined'?require('./assets-core.js'):root.SilverlightAssets;const w=assets?assets.clone(input):JSON.parse(JSON.stringify(input));
  if(!w||!Array.isArray(w.boards))throw Error('This is not a Silverlight workspace.');
  const validId=x=>typeof x==='string'&&x.length>0&&x.length<=300;
  const boards=new Set();

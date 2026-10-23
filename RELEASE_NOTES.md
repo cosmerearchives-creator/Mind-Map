@@ -1,11 +1,9 @@
-# Silverlight Archives — larger workspaces, shared images and keyboard deletion
+# Silverlight Archives — large Board performance
 
-- Delete removes one selected Sticky or a multi-selection in one undoable action. Editing text, open dialogs and drawing/connection gestures keep their normal keyboard behavior. Deleting a Collection detaches unselected members; selected members and their connections are removed together. Deleting a nested Board Sticky keeps its destination Board, matching the existing Sticky delete action.
-- Raise workspace/transfer safeguards from 64 MB to 256 MB. Paste checks count identical image content once; clipboard selections support 64 MB and Milanote media recovery supports 128 MB per selection. Per-image download/pixel limits remain intact.
-- Store images by SHA-256 identity separately from Board records in IndexedDB. Identical image/background/icon data is reused across Boards, Library items, recovery copies and sync history. Existing inline workspaces migrate on save; legacy backups and cloud copies remain readable. Undo history also reuses image data.
-- New JSON backups and image-containing selection copies include each unique image once, preserving original bytes and transparency. Backup imports validate image hashes before changing the workspace.
-- Manual and automatic cloud transfers use reusable, verified small parts and a final manifest. Unchanged image parts are not uploaded again; incomplete uploads do not publish a restoreable snapshot. Restore validates all parts and image hashes before applying the workspace. Recovery and incoming data are written atomically.
+- Render visible Stickies and connections with overscan, preserving all offscreen content.
+- Update moving Stickies and affected connections during dragging; reuse spatial indexes and Collection layout.
+- Store changed Boards separately and reuse shared image assets. Existing workspace formats migrate safely.
+- Prepare storage, hashing and sync operations in background workers where supported.
+- Display cached thumbnails while preserving original image bytes and transparency in storage, backups and sync.
 
-Update BOTH Windows and Android before using new multipart cloud copies or new-format backups. Older builds cannot read those new transfers; existing legacy copies remain compatible with this build. Large workspaces still depend on available memory and device storage. Recovery copies and their image assets are retained; this update does not delete cloud history or old local recovery assets.
-
-Validation: lossless transfer above the old 64 MB limit, asset deduplication, image corruption/missing-asset rejection, reusable parts and interrupted uploads; isolated full-app tests for legacy migration/reload, image selection copy/paste, Delete/Undo/editor isolation, compact/legacy backups, atomic storage failure, manual restore/recovery and two-device automatic sync/conflict handling. Windows/Android CI builds validate native integrations. Real Google Drive authorization/network and large-workspace memory behavior on physical Android devices remain unverified.
+Local synthetic tests with 3,000 cards show substantially faster opening and dragging. See docs/performance.md for measurements, checks and limitations. Physical Android performance and real signed-in Google Drive transfers remain unverified; automated tests use Edge and simulated transport.

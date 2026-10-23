@@ -19,7 +19,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
   assert.equal(await page.locator('#commitMilanote').isDisabled(),true);assert.ok((await page.locator('#milanoteSummary').innerText()).includes('more than one filename'));
   await page.locator('[data-nested-target]').first().selectOption(child);assert.equal(await page.locator('#commitMilanote').isDisabled(),false);
   await page.locator('#commitMilanote').click();await page.waitForTimeout(500);
-  const read=()=>page.evaluate(()=>new Promise(resolve=>{const q=indexedDB.open('openboard-workspace',1);q.onsuccess=()=>{const r=q.result.transaction('documents').objectStore('documents').get('main');r.onsuccess=()=>resolve(JSON.parse(r.result.state))}}));
+  const read=()=>require('./read-workspace.cjs')(page);
   let saved=await read();const root=saved.boards.find(b=>b.source?.path===main),nested=saved.boards.find(b=>b.source?.path===child);assert.ok(root&&nested);assert.equal(saved.boards.some(b=>b.source?.path===duplicate),false);assert.equal(root.cards.find(c=>c.kind==='nested').boardId,nested.id);
   const note=root.cards.find(c=>c.title==='Ashspren');assert.equal(note.kind,'text');assert.equal(note.body,'(EMPTY BOARD ON IMPORT - CHANGE TO NESTED TO USE AS NEW BOARD)');assert.equal(note.hideTitle,false);assert.equal(note.boardId,undefined);
   await page.reload();await page.locator('[data-card]').first().waitFor();saved=await read();assert.equal(saved.boards.find(b=>b.id===root.id).cards.find(c=>c.id===note.id).body,note.body);

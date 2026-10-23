@@ -1,8 +1,8 @@
 window.installAutoSync=function(app,transport){
 'use strict';
-const core=SilverlightSync,crdt=SilverlightAuto;
+const core=SilverlightSync,crdt=new Proxy(SilverlightAuto,{get(target,key){return ['capture','verify','observed','envelope','merge','projection','resolve','recoverReference'].includes(key)?(...values)=>SilverlightTasks.run('auto',{method:key,values}):target[key]}});
 let meta=null,running=false,timer=null,retry=5000,label='Automatic sync is off',message='',started=false;
-const clone=x=>JSON.parse(JSON.stringify(x)),state=()=>core.canonical(app.getState());
+const clone=x=>SilverlightAssets.clone(x),state=()=>SilverlightAssets.fingerprint(app.getState());
 function status(value,details=''){label=value;message=details;const bar=document.querySelector('#syncStatusBar');if(bar){bar.hidden=!meta?.enabled;bar.textContent=value+(details?' · '+details:'');bar.dataset.state=value;bar.onclick=transport.show}const el=document.querySelector('#autoStatus');if(el)el.textContent=value+(details?' · '+details:'');const last=document.querySelector('#autoLastSynced');if(last)last.textContent=meta?.lastSynced?'Last synced: '+new Date(meta.lastSynced).toLocaleString():'Not synced yet';const button=document.querySelector('#driveSync');button.title=value+(details?' · '+details:'');button.setAttribute('aria-label',button.title)}
 function schedule(delay=2000){clearTimeout(timer);if(meta?.enabled)timer=setTimeout(()=>cycle(),delay)}
 function changed(){if(meta?.enabled){status('Pending');schedule()}}
@@ -20,11 +20,11 @@ async function cycle(){
   for(const file of files){if(known.has(file.id))continue;const result=await call('download',{fileId:file.id});const snapshot=JSON.parse(result.snapshot),records=await crdt.verify(snapshot,meta.dataset);remote.push(...records);cloudHashes.push(await core.revision(records));known.add(file.id)}
   if(!available()||!meta.enabled){schedule(3000);return}
   // Capture intervening edits before learning remote clocks; they are concurrent, not overwrites.
-  current=clone(app.getState());expected=state();next=await crdt.capture(meta,current);next.records=crdt.merge(next.records,remote);next.files=[...known];
-  const projected=crdt.projection(next.records,current);let incoming=null;
+  current=clone(app.getState());expected=state();next=await crdt.capture(meta,current);next.records=await crdt.merge(next.records,remote);next.files=[...known];
+  const projected=await crdt.projection(next.records,current);let incoming=null;
   if(!projected.missing.length){core.workspace(projected.workspace);incoming=projected.workspace;next=await crdt.observed(next,incoming)}
   next.missing=projected.missing;next.conflicts=projected.conflicts;
-  await persist(next,incoming&&core.canonical(current.boards)!==core.canonical(incoming.boards)?incoming:null,expected);
+  await persist(next,incoming&&SilverlightAssets.fingerprint(current.boards)!==SilverlightAssets.fingerprint(incoming.boards)?incoming:null,expected);
   const digest=await core.revision(meta.records);
   if(cloudHashes.includes(digest)&&meta.published!==digest){next=clone(meta);next.published=digest;await persist(next)}
   if(meta.published!==digest){const snapshot=await crdt.envelope(meta,app.getState());const result=await call('upload',{snapshot});next=clone(meta);next.published=digest;if(result.id&&!next.files.includes(result.id))next.files.push(result.id);await persist(next)}
@@ -48,7 +48,7 @@ async function enable(){
 }
 async function resolveBoard(id,index,all=false,reference=false){
  if(running)return;running=true;try{
-  const expected=state();let next=await crdt.capture(meta,app.getState());next=reference?crdt.recoverReference(next,id):crdt.resolve(next,id,index,all);const projected=crdt.projection(next.records,app.getState());if(projected.missing.length)throw Error('This choice would leave a BOARD STICKY pointing to a missing BOARD. Keep that BOARD, or remove its links first.');core.workspace(projected.workspace);next=await crdt.observed(next,projected.workspace);next.conflicts=projected.conflicts;next.missing=[];await persist(next,projected.workspace,expected);app.close();schedule(0);
+  const expected=state();let next=await crdt.capture(meta,app.getState());next=reference?await crdt.recoverReference(next,id):await crdt.resolve(next,id,index,all);const projected=await crdt.projection(next.records,app.getState());if(projected.missing.length)throw Error('This choice would leave a BOARD STICKY pointing to a missing BOARD. Keep that BOARD, or remove its links first.');core.workspace(projected.workspace);next=await crdt.observed(next,projected.workspace);next.conflicts=projected.conflicts;next.missing=[];await persist(next,projected.workspace,expected);app.close();schedule(0);
  }catch(e){status('Needs attention',e.message)}finally{running=false}
 }
 function conflicts(){
