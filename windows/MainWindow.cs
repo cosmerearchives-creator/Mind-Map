@@ -73,8 +73,8 @@ public sealed class MainWindow : Form
                             string? clipId = request.TryGetProperty("id", out var clip) ? clip.GetString() : null;
                             try
                             {
-                                var result = ClipboardBridge.Read(request);
-                                using var encoded = JsonDocument.Parse(JsonSerializer.Serialize(result));
+                                var clipboardResult = ClipboardBridge.Read(request);
+                                using var encoded = JsonDocument.Parse(JsonSerializer.Serialize(clipboardResult));
                                 browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel = "silverlight-clipboard", id = clipId, items = encoded.RootElement.GetProperty("items") }));
                             }
                             catch (Exception error)
