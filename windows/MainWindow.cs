@@ -30,11 +30,16 @@ public sealed class MainWindow : Form
         Controls.Add(browser);
 
         var menu = new MenuStrip();
-        var file = new ToolStripMenuItem("Silverlight");
+        var file = new ToolStripMenuItem("&Silverlight");
         updates.Click += async (_, _) => await CheckUpdatesAsync(true);
         file.DropDownItems.Add(updates);
         file.DropDownItems.Add(new ToolStripMenuItem("Open releases", null, (_, _) => OpenReleases()));
         menu.Items.Add(file);
+        var viewMenu = new ToolStripMenuItem("&View");
+        var hintsMenu = new ToolStripMenuItem("Canvas &tips") { Checked = true, CheckOnClick = true };
+        hintsMenu.Click += async (_, _) => { if (browser.CoreWebView2 is not null) await browser.CoreWebView2.ExecuteScriptAsync("window.SilverlightUI?.setHints(" + (hintsMenu.Checked ? "true" : "false") + ")"); };
+        viewMenu.DropDownItems.Add(hintsMenu);
+        menu.Items.Add(viewMenu);
         MainMenuStrip = menu;
         Controls.Add(menu);
 
@@ -62,6 +67,7 @@ public sealed class MainWindow : Form
                     try {
                         using var message = JsonDocument.Parse(args.WebMessageAsJson);
                         var request = message.RootElement;
+                        if (request.GetProperty("channel").GetString() == "silverlight-ui") { if (request.TryGetProperty("hints", out var shown)) hintsMenu.Checked = shown.GetBoolean(); return; }
                         if (request.GetProperty("channel").GetString() != "silverlight-drive") return;
                         requestId = request.GetProperty("id").GetString();
                         var result = await driveSync.ExecuteAsync(request, this);
@@ -151,10 +157,8 @@ public sealed class MainWindow : Form
 
     private async Task DownloadAndInstallAsync(Uri address, string version)
     {
-        var updateDir = Path.Combine(Path.GetTempPath(), "Silverlight-Updates");
-        Directory.CreateDirectory(updateDir);
-        var installer = Path.Combine(updateDir, "Silverlight-Setup-" + version + ".exe");
-        var partial = installer + ".partial";
+        UpdateFiles? files = null;
+        string stage = "preparing the update folder";
         using var progress = new Form
         {
             Text = "Downloading Silverlight update",
@@ -168,12 +172,16 @@ public sealed class MainWindow : Form
         progress.Show(this);
         try
         {
+            files = UpdateFiles.Create(
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Silverlight", "Updates"),
+                Path.Combine(Path.GetTempPath(), "Silverlight-Updates"));
+            stage = "downloading the installer";
             using var response = await http.GetAsync(address, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
             var length = response.Content.Headers.ContentLength;
             if (length is > 0) { bar.Style = ProgressBarStyle.Continuous; bar.Maximum = 100; }
             await using (var source = await response.Content.ReadAsStreamAsync())
-            await using (var output = new FileStream(partial, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true))
+            await using (var output = new FileStream(files.PartialPath, FileMode.Open, FileAccess.Write, FileShare.None, 81920, true))
             {
                 var buffer = new byte[81920];
                 long received = 0;
@@ -188,25 +196,29 @@ public sealed class MainWindow : Form
                         bar.Value = pct;
                         label.Text = $"Downloading installer… {pct}%";
                     }
-                    Application.DoEvents();
+
                 }
             }
-            if (new FileInfo(partial).Length < 1024 * 100)
-                throw new IOException("Downloaded file is unexpectedly small.");
-            File.Move(partial, installer, true);
+            stage = "verifying the downloaded installer";
+            files.Complete(length);
             progress.Close();
 
             if (MessageBox.Show("Download complete. Close Silverlight and start the installer? Your board data will remain in the local app data folder.",
                 "Install update", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
-            Process.Start(new ProcessStartInfo(installer) { UseShellExecute = true });
+            stage = "launching the installer";
+            var launched = Process.Start(new ProcessStartInfo(files.InstallerPath) { UseShellExecute = true, WorkingDirectory = files.DirectoryPath });
+            if (launched is null) throw new IOException("Windows did not start the installer.");
             Close();
         }
         catch (Exception ex)
         {
             progress.Close();
-            try { if (File.Exists(partial)) File.Delete(partial); } catch { }
-            MessageBox.Show("Could not download or launch the updater: " + ex.Message + "\n\nYou can install manually from GitHub Releases.", "Silverlight");
+            files?.DeletePartial();
+            var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Silverlight", "updater-error.log");
+            try { Directory.CreateDirectory(Path.GetDirectoryName(logPath)!); File.AppendAllText(logPath, DateTimeOffset.Now + " " + stage + "\n" + files?.DirectoryPath + "\n" + ex + "\n\n"); } catch { }
+            string recovery = stage == "launching the installer" && files is not null ? "\n\nThe downloaded installer is available at:\n" + files.InstallerPath : "\n\nYou can install manually from GitHub Releases.";
+            MessageBox.Show("Update failed while " + stage + ": " + ex.Message + recovery + "\n\nDiagnostic log: " + logPath, "Silverlight");
         }
     }
 

@@ -1,7 +1,7 @@
 name: Build Windows installer
 on:
   push:
-    branches: [main, feature/rich-notes-board-navigation]
+    branches: [main, feature/rich-notes-board-navigation, feature/workspace-polish]
     paths:
       - 'app/src/main/assets/index.html'
       - 'app/src/main/assets/*.js'
@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Verify updater file handling
+        run: dotnet run --project tests/updater/Updater.Tests.csproj -c Release
       - name: Generate Windows icon from tower artwork
         shell: pwsh
         run: |
