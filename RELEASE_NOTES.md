@@ -1,17 +1,12 @@
-# Silverlight Archives — simpler Board imports
+# Silverlight Archives — Milanote clipboard paste
 
-- Import PDF / ZIP from Home or the add menu. Review objects, destinations and warnings before changing the workspace.
-- Put each main Board and all descendant PDFs together in one folder. Choose its main PDF, and the importer reconstructs nesting from Board titles and filenames. Existing nested folder layouts remain supported.
-- Duplicate filename matches, ownership conflicts and cycles require review before import.
-- Nested Board tiles with no associated PDF become Notes titled with the Board name, containing exactly: (EMPTY BOARD ON IMPORT - CHANGE TO NESTED TO USE AS NEW BOARD). Position, Collection membership and connections are retained; Notes can be converted to new Boards in the normal editor.
-- Recover notes, rich formatting, colors, highlights, lists, Collections, images, Board artwork and positions where the PDF retains them. Board icons use titles below; Collection Board rows use titles beside artwork.
-- Resolve shortcut badges to unique imported or existing Boards. Unresolved shortcuts retain artwork in Unsorted instead of creating duplicate Boards.
-- Recover independent arrow endpoints and direction, then use Silverlight's existing curves and forks. Crossing arrows remain separate links. Ambiguous endpoints can be assigned in preview.
-- Fully covered recovered notes go to Unsorted; partial overlaps are flagged. Pending connections reconnect when both endpoints are placed. Intentional background images stay on canvas.
-- Board deletion offers an explicit option to include owned nested Boards, showing names and count. Shortcut destinations are excluded. Undo restores the deletion.
+- Copy selected cards in Milanote, then Ctrl+V on a Silverlight Board or choose Board actions > Paste. A preview appears when Milanote's structured clipboard data is available.
+- Convert rich Notes, included Collection members, included nested Board contents, known Board shortcuts and connection endpoints into native objects. Connections use Silverlight's curves and forks.
+- Nested Board tiles without copied contents become Notes with the Board title and (EMPTY BOARD ON IMPORT - CHANGE TO NESTED TO USE AS NEW BOARD).
+- Windows Paste now reads Chromium custom clipboard formats. Ordinary text, image and editor pasting remain supported.
+- Show warnings for unavailable image pixels, missing endpoint cards and unsupported specialized objects. Private image references and nested Board tiles do not guarantee that image files or descendant contents are present.
+- Paste is additive, previewed, cancellable and undoable, with validation errors shown before changing the workspace.
 
-Import is best effort: flattened or omitted PDF content cannot be reconstructed, OCR is not included, and source fonts may map to available fonts. Large images are bounded with warnings. Existing workspace and sync data remain compatible.
+Validation uses protocol fixtures derived from Milanote's publicly served application code, browser paste/reload regressions, existing clipboard regressions, snapshot/merge checks and Windows custom-format parsing tests. Live Milanote copy/paste and physical Android clipboard behavior remain unverified without a real copied sample. See docs/milanote-clipboard.md for supported formats and limits.
 
-Validation includes five supplied Milanote PDFs, 251 connector paths in the dense-arrow sample, offline extraction, transparency/photo artwork, flat and nested ZIP hierarchy, duplicate resolution, empty Note conversion, import/reload, shortcuts, recursive deletion/undo and shared snapshot/merge, clipboard and cross-device sync suites. Native builds run in release workflows; physical-device import remains a separate verification step.
-
-See docs/milanote-import.md for rules and limits. Earlier workspace, drawing navigation, editor and updater improvements remain included.
+Existing PDF/ZIP imports remain available. The separately reported unresponsive PDF Import button is not diagnosed or fixed by this clipboard release.
