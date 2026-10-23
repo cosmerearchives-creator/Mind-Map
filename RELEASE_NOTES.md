@@ -1,16 +1,15 @@
-# Silverlight Archives — automatic Google Drive sync
+# Silverlight Archives — canvas editing and smarter syncing
 
-Automatic syncing is implemented while Silverlight is open. The owner confirmed syncing works on Windows and Android; this release brings the tested build to the stable update channels. Syncing while the app is closed is not implemented.
+- Every STICKY has a resizable frame. Select it to reveal the corner handle. Text keeps its size and scrolls when the frame is smaller than its content. Minimum frame: 120 × 80; Collection minimum height: 150, increased when necessary to keep contained STICKY centers below the protected header.
+- Image frame resizing hides/reveals the original image without deleting pixels or changing its scale. Edit the Image STICKY to scale the image or adjust its horizontal/vertical position inside the frame. Works in Placard and transparent Raw modes.
+- Collections reserve space for their title and controls. Existing overlapping members move below the header. Choose Arranged or Free canvas in Edit STICKY. Free canvas allows side/bottom overhang while the center stays in the Collection and the whole STICKY stays below its header. Remove from Collection is available explicitly in the editor.
+- Collection and nested BOARD STICKY titles default to Center, with Left/Center/Right choices. Collection notes are removed from the editor; existing note data is retained in backups and syncing.
+- Bring forward, Send backward, Bring to front and Send to back are available in Edit STICKY. Collection members stay above their Collection background and below its protected header. Moving a Collection moves its descendants; deleting one keeps its member STICKies.
+- Edit Canvas (pencil button) provides pen, color, width, eraser, undo/redo, Finish and Cancel. Finish creates a cropped transparent PNG Raw Image STICKY at the drawing location; empty/cancelled drawings add nothing. Existing STICKies remain stationary while drawing.
+- Automatic sync compares individual STICKies and properties within the same BOARD. Separate additions and compatible edits combine automatically, including a move on one device and a text edit on another. Position coordinates are treated together. Contradictory changes and deletion-versus-edit retain BOARD versions for review and safe conflict copies. Intentional visual overlap is allowed.
 
-- Saves, resume, restart and internet return trigger syncing; open apps also check roughly every 15 seconds.
-- Different BOARDS combine. Competing edits within one BOARD and delete-versus-edit retain all versions for review. Resolution preserves alternative content as separate conflict-copy BOARDS.
-- Deletion history prevents stale offline devices from resurrecting BOARDS. IDs, images, connections, tags, Collections and nested BOARD links remain intact.
-- Incoming changes save a local recovery copy and sync history atomically. Pending edits stay local during outages or sign-in problems. Status includes Synced, Pending, Offline and Needs attention.
-- Automatic requests never launch consent unexpectedly and stop if the Google account changes. Windows retains its refresh credential encrypted for the current Windows user; Android uses Google Play services.
-- Manual upload, restore and Local recovery remain available. Manual restore pauses automatic syncing. Tabs, views and favorite-color preferences stay local.
+Update both devices over their existing installations. Data and OAuth configuration remain in place; no new Google setup is needed. Old snapshots remain readable. Mixed older/newer app versions may conservatively show BOARD conflicts until both devices are updated.
 
-First use: export backups and update both apps over the existing installations. On Windows choose cloud → Enable automatic sync, complete consent and wait for Synced. On Android enable it with the same Google account and Join workspace for the workspace Windows created. Keep both apps open for the first test. Reuse the existing Desktop OAuth JSON; no new Google client is needed.
+Validation: shared-script syntax; snapshot/merge suites; same-BOARD property merge and delivery-order/migration tests; two-device browser sync with independent same-BOARD additions, offline conflicts and storage recovery; universal resizing/image framing/Collection/drawing browser checks; existing Windows mouse and Android touch regressions. Native Android signing and Windows installer builds run in release workflows. Physical-device checks of these new canvas tools remain for the owner.
 
-Tests cover snapshot/merge integrity, 80 delivery orders, independent offline edits, conflict restart, safe copies, tombstones, storage rollback/retry, network retry, account mismatch, raw images, manual restore and Sticky dragging. Native builds/signature verification run in release workflows.
-
-Limits: no closed-app syncing or within-BOARD automatic merge. Full immutable snapshots/conflict history count toward the 64 MB limit and consume Drive space. Snapshot pruning and asset deduplication remain future work. Additional PDF/ebook import improvements are not included.
+Google Drive syncing continues while Silverlight is open. Closed-app syncing, automatic snapshot pruning/asset deduplication and additional PDF/ebook import improvements are not included. Immutable snapshots and property history count toward the existing 64 MB transfer limit. Finished drawings are raster images, not editable vector strokes.
