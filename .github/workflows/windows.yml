@@ -63,5 +63,5 @@ jobs:
           if ("${{ github.ref_name }}" -eq "main") {
             gh release create "v0.8.${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight Windows v0.8.${{ github.run_number }}" --notes-file RELEASE_NOTES.md --latest=false --target "${{ github.sha }}"
           } else {
-            gh release create "sync-preview-windows-${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight Drive preview â€” Windows ${{ github.run_number }}" --notes-file RELEASE_NOTES.md --prerelease --latest=false --target "${{ github.sha }}"
+            gh release create "sync-preview-windows-${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight preview - Windows ${{ github.run_number }}" --notes-file RELEASE_NOTES.md --prerelease --latest=false --target "${{ github.sha }}"
           }

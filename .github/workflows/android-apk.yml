@@ -81,5 +81,5 @@ jobs:
           if [ "$GITHUB_REF_NAME" = "main" ]; then
             gh release create "v0.7.${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight v0.7.${GITHUB_RUN_NUMBER}" --notes-file RELEASE_NOTES.md --latest --target "${GITHUB_SHA}"
           else
-            gh release create "sync-preview-android-${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight Drive preview â€” Android ${GITHUB_RUN_NUMBER}" --notes-file RELEASE_NOTES.md --prerelease --latest=false --target "${GITHUB_SHA}"
+            gh release create "sync-preview-android-${GITHUB_RUN_NUMBER}" Silverlight.apk --title "Silverlight preview - Android ${GITHUB_RUN_NUMBER}" --notes-file RELEASE_NOTES.md --prerelease --latest=false --target "${GITHUB_SHA}"
           fi
