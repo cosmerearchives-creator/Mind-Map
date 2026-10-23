@@ -76,6 +76,10 @@ public class MainActivity extends Activity {
         });
         driveSync = new DriveSync(this);
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            WebViewCompat.addWebMessageListener(webView, "SilverlightClipboard", java.util.Collections.singleton("https://appassets.androidplatform.net"),
+                (view, message, origin, mainFrame, proxy) -> {
+                    if (mainFrame && "https".equals(origin.getScheme()) && "appassets.androidplatform.net".equals(origin.getHost()) && (origin.getPort() == -1 || origin.getPort() == 443)) ClipboardBridge.read(this, message.getData(), proxy);
+                });
             WebViewCompat.addWebMessageListener(webView, "SilverlightNative", java.util.Collections.singleton("https://appassets.androidplatform.net"),
                 (view, message, origin, mainFrame, proxy) -> {
                     if (mainFrame && "https".equals(origin.getScheme()) && "appassets.androidplatform.net".equals(origin.getHost()) && (origin.getPort() == -1 || origin.getPort() == 443)) driveSync.receive(message.getData(), proxy);
