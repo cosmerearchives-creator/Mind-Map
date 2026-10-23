@@ -1,16 +1,12 @@
-# Silverlight Archives — rich notes and Board navigation
+# Silverlight Archives — roomier, simpler editing
 
-- Note Stickies support rich text inline and expanded: fonts, sizes, text/highlight colors, emphasis, headings, lists, indentation, alignment, links and undo/redo.
-- Type @ or choose @ Board for searchable links to existing Boards and named Location Pins. Back restores the previous Board view. Pin links center their destination at the current zoom.
-- Board Shortcut Stickies reference existing Boards without duplicating them; optional pin destinations and independent deletion are supported.
-- Double-click/tap blank canvas to create a named, movable Location Pin.
-- Board and shortcut titles can appear inside, below artwork, or hidden while preserving background art.
-- Each Board has an Unsorted Library for explicitly pasted images, formatted text and URLs. Ctrl+V/Paste collects; clicking never reads the clipboard. Place or drag ideas onto the canvas. Image transparency is preserved.
-- Sticky menus remain fixed at top right. Viewing and resizing clip overflow without scrollbars or data loss; editing can expose the full content.
-- Backup imports preserve connections, Collection membership, library contents and pin references while remapping colliding Board IDs.
+- The card editor uses nearly the full available screen in Android landscape and on computers, with compact landscape controls and accessible Save/Cancel actions.
+- Only the rich-text editor is visible. The plain-text backing field stays hidden.
+- Formatting controls use styled B, I, U and S abbreviations. Undo, Redo and Expand buttons have been removed from the formatting toolbar; normal keyboard undo/redo remains available.
+- Tab indents and Shift+Tab outdents plain paragraphs and lists without moving keyboard focus out of the editor.
+- The on-Sticky pencil button has been removed. Open the rich-text editor through the three-dot menu or double-click/tap a Note Sticky.
+- Empty Board and Board Shortcut Stickies put their title at the top with a small raised three-dot menu alongside it, without a blank header band. Titles below artwork or hidden remain supported.
 
-Update both devices over existing installations. Legacy notes remain unchanged until explicitly saved. Rich documents use the existing atomic note-body sync property; older versions preserve the saved string but display its markup, so use the new version on both devices. Existing Drive sync and recovery formats remain in place. Concurrent library changes retain Board conflicts for review.
+Existing note content, formatting, Board IDs, background artwork and Drive sync data are preserved. Install over the existing application on both devices.
 
-Validation: shared-script and snapshot/property merge suites, rich document/library preservation, two-device automatic sync and transfer/rollback browser suites, desktop/touch Sticky and canvas regressions, plus rich editing, @ links, pin centering/Back, shortcut title placement, sanitized paste/place and reload checks. Android signing and Windows installer builds run in release workflows; consult the linked workflow results for the exact commit. Physical-device clipboard, keyboard, external-browser and upgrade checks are not established by these automated tests.
-
-See docs/rich-notes-navigation.md for storage and compatibility details.
+Validation: shared-script and snapshot/property merge suites; desktop/mobile rich formatting, plain-paragraph/list Tab indentation, rich editing and save/reload; Board/pin navigation; desktop/touch Sticky gestures, resizing and canvas regressions. Native signed Android APK and Windows installer status is available in the release workflows. Physical-device rotation, keyboard and upgrade behavior still require device checks.
