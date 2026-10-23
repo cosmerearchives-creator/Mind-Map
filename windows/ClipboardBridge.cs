@@ -37,6 +37,13 @@ internal static class ClipboardBridge
             if (payload != null) items.Add(new { type = ClipboardFormats.Milanote, text = payload });
             else if (!items.Any()) throw new InvalidOperationException("Custom clipboard data is not a supported Milanote selection. Copy the cards again.");
         }
+        var firefox = Bytes("application/x-moz-custom-clipdata");
+        if (firefox != null)
+        {
+            var payload = ClipboardFormats.ReadFirefoxMilanote(firefox);
+            if (payload != null) items.Add(new { type = ClipboardFormats.Milanote, text = payload });
+            else if (!items.Any()) throw new InvalidOperationException("Firefox clipboard data could not be read as a Milanote selection. Copy the Milanote cards again.");
+        }
         var png = Bytes("PNG");
         if (png == null && clipboard.GetDataPresent(DataFormats.Bitmap) && clipboard.GetData(DataFormats.Bitmap) is System.Drawing.Image image)
         {

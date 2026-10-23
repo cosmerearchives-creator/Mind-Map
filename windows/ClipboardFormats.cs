@@ -28,6 +28,31 @@ internal static class ClipboardFormats
         }
         return offset == data.Length ? found : null;
     }
+    // Firefox stores tagged records: big-endian tag/byte lengths, UTF-16LE strings,
+    // ending with tag zero. This is distinct from Chromium's Pickle container.
+    public static string? ReadFirefoxMilanote(byte[] data)
+    {
+        if (data.Length < 4 || data.Length > MaxBytes) return null;
+        int offset = 0; string? found = null;
+        for (int record = 0; record < 1024; record++)
+        {
+            if (offset > data.Length - 4) return null;
+            uint tag = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(offset, 4)); offset += 4;
+            if (tag == 0) return data.AsSpan(offset).IndexOfAnyExcept((byte)0) < 0 ? found : null;
+            if (tag != 1 || !ReadFirefoxString(data, ref offset, out var type) || !ReadFirefoxString(data, ref offset, out var text)) return null;
+            if (type == Milanote) found = text;
+        }
+        return null;
+    }
+    private static bool ReadFirefoxString(byte[] data, ref int offset, out string text)
+    {
+        text = "";
+        if (offset > data.Length - 4) return false;
+        uint bytes = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(offset, 4)); offset += 4;
+        if ((bytes & 1) != 0 || bytes > data.Length - offset) return false;
+        text = Encoding.Unicode.GetString(data, offset, (int)bytes); offset += (int)bytes;
+        return true;
+    }
     private static bool ReadString(byte[] data, ref int offset, out string text)
     {
         text = "";

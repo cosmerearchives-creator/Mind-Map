@@ -22,6 +22,23 @@ internal static class ClipboardTests
         var negative = Payload((ClipboardFormats.Milanote, "value")); BinaryPrimitives.WriteInt32LittleEndian(negative.AsSpan(8), -1); Check(ClipboardFormats.ReadMilanote(negative) == null);
         var overflow = Payload((ClipboardFormats.Milanote, "value")); BinaryPrimitives.WriteInt32LittleEndian(overflow.AsSpan(8), int.MaxValue); Check(ClipboardFormats.ReadMilanote(overflow) == null);
         Check(ClipboardFormats.ReadMilanote(Payload(("other", "content"))) == null);
+        byte[] Firefox(params (string Key, string Value)[] values)
+        {
+            using var stream = new MemoryStream();
+            void UInt(uint value) { var bytes = new byte[4]; BinaryPrimitives.WriteUInt32BigEndian(bytes, value); stream.Write(bytes); }
+            void Text(string text) { var bytes = Encoding.Unicode.GetBytes(text); UInt((uint)bytes.Length); stream.Write(bytes); }
+            foreach (var item in values) { UInt(1); Text(item.Key); Text(item.Value); }
+            UInt(0); return stream.ToArray();
+        }
+        var firefox = Firefox(("unrelated", "ignored"), (ClipboardFormats.Milanote, "{\"elements\":[],\"text\":\"Unicode 🐉\"}"));
+        Check(ClipboardFormats.ReadFirefoxMilanote(firefox) == "{\"elements\":[],\"text\":\"Unicode 🐉\"}");
+        Check(ClipboardFormats.ReadFirefoxMilanote(firefox.Concat(new byte[4]).ToArray()) != null);
+        Check(ClipboardFormats.ReadFirefoxMilanote(firefox[..^1]) == null);
+        Check(ClipboardFormats.ReadFirefoxMilanote(Firefox(("unrelated", "ignored"))) == null);
+        var odd = Firefox((ClipboardFormats.Milanote, "value")); BinaryPrimitives.WriteUInt32BigEndian(odd.AsSpan(4), 3); Check(ClipboardFormats.ReadFirefoxMilanote(odd) == null);
+        var huge = Firefox((ClipboardFormats.Milanote, "value")); BinaryPrimitives.WriteUInt32BigEndian(huge.AsSpan(4), uint.MaxValue); Check(ClipboardFormats.ReadFirefoxMilanote(huge) == null);
+        var invalid = Firefox((ClipboardFormats.Milanote, "value")); invalid[3] = 7; Check(ClipboardFormats.ReadFirefoxMilanote(invalid) == null);
+        Console.WriteLine("PASS: Firefox tagged big-endian UTF-16 payload, Unicode, padding and malformed/truncated data rejection.");
         Console.WriteLine("PASS: Chromium custom MIME UTF-16 payload, alignment, Unicode and malformed-length rejection.");
     }
 }
