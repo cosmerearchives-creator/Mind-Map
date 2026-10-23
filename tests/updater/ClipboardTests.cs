@@ -18,6 +18,7 @@ internal static class ClipboardTests
         var data = Payload(("text/plain", "test"), (ClipboardFormats.Milanote, "{\"elements\":[],\"title\":\"Unicode 🐉\"}"));
         Check(ClipboardFormats.ReadMilanote(data) == "{\"elements\":[],\"title\":\"Unicode 🐉\"}");
         Check(ClipboardFormats.ReadMilanote(data[..^1]) == null);
+        Check(ClipboardFormats.ReadMilanote(data.Concat(new byte[4]).ToArray()) != null);
         var negative = Payload((ClipboardFormats.Milanote, "value")); BinaryPrimitives.WriteInt32LittleEndian(negative.AsSpan(8), -1); Check(ClipboardFormats.ReadMilanote(negative) == null);
         var overflow = Payload((ClipboardFormats.Milanote, "value")); BinaryPrimitives.WriteInt32LittleEndian(overflow.AsSpan(8), int.MaxValue); Check(ClipboardFormats.ReadMilanote(overflow) == null);
         Check(ClipboardFormats.ReadMilanote(Payload(("other", "content"))) == null);

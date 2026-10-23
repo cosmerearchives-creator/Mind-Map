@@ -12,7 +12,11 @@ internal static class ClipboardFormats
     {
         if (data.Length < 8 || data.Length > MaxBytes) return null;
         uint payload = BinaryPrimitives.ReadUInt32LittleEndian(data);
-        if (payload != data.Length - 4) return null;
+        if (payload > data.Length - 4) return null;
+        // HGLOBAL storage may include zero padding beyond the Pickle payload.
+        int limit = checked((int)payload + 4);
+        if (limit < 8 || data.AsSpan(limit).IndexOfAnyExcept((byte)0) >= 0) return null;
+        if (limit != data.Length) data = data.AsSpan(0, limit).ToArray();
         int offset = 4;
         uint count = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(offset, 4)); offset += 4;
         if (count > 1024) return null;
