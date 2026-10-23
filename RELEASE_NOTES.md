@@ -1,15 +1,16 @@
-# Silverlight Archives — canvas editing and smarter syncing
+# Silverlight Archives — rich notes and Board navigation
 
-- Every STICKY has a resizable frame. Select it to reveal the corner handle. Text keeps its size and scrolls when the frame is smaller than its content. Minimum frame: 120 × 80; Collection minimum height: 150, increased when necessary to keep contained STICKY centers below the protected header.
-- Image frame resizing hides/reveals the original image without deleting pixels or changing its scale. Edit the Image STICKY to scale the image or adjust its horizontal/vertical position inside the frame. Works in Placard and transparent Raw modes.
-- Collections reserve space for their title and controls. Existing overlapping members move below the header. Choose Arranged or Free canvas in Edit STICKY. Free canvas allows side/bottom overhang while the center stays in the Collection and the whole STICKY stays below its header. Remove from Collection is available explicitly in the editor.
-- Collection and nested BOARD STICKY titles default to Center, with Left/Center/Right choices. Collection notes are removed from the editor; existing note data is retained in backups and syncing.
-- Bring forward, Send backward, Bring to front and Send to back are available in Edit STICKY. Collection members stay above their Collection background and below its protected header. Moving a Collection moves its descendants; deleting one keeps its member STICKies.
-- Edit Canvas (pencil button) provides pen, color, width, eraser, undo/redo, Finish and Cancel. Finish creates a cropped transparent PNG Raw Image STICKY at the drawing location; empty/cancelled drawings add nothing. Existing STICKies remain stationary while drawing.
-- Automatic sync compares individual STICKies and properties within the same BOARD. Separate additions and compatible edits combine automatically, including a move on one device and a text edit on another. Position coordinates are treated together. Contradictory changes and deletion-versus-edit retain BOARD versions for review and safe conflict copies. Intentional visual overlap is allowed.
+- Note Stickies support rich text inline and expanded: fonts, sizes, text/highlight colors, emphasis, headings, lists, indentation, alignment, links and undo/redo.
+- Type @ or choose @ Board for searchable links to existing Boards and named Location Pins. Back restores the previous Board view. Pin links center their destination at the current zoom.
+- Board Shortcut Stickies reference existing Boards without duplicating them; optional pin destinations and independent deletion are supported.
+- Double-click/tap blank canvas to create a named, movable Location Pin.
+- Board and shortcut titles can appear inside, below artwork, or hidden while preserving background art.
+- Each Board has an Unsorted Library for explicitly pasted images, formatted text and URLs. Ctrl+V/Paste collects; clicking never reads the clipboard. Place or drag ideas onto the canvas. Image transparency is preserved.
+- Sticky menus remain fixed at top right. Viewing and resizing clip overflow without scrollbars or data loss; editing can expose the full content.
+- Backup imports preserve connections, Collection membership, library contents and pin references while remapping colliding Board IDs.
 
-Update both devices over their existing installations. Data and OAuth configuration remain in place; no new Google setup is needed. Old snapshots remain readable. Mixed older/newer app versions may conservatively show BOARD conflicts until both devices are updated.
+Update both devices over existing installations. Legacy notes remain unchanged until explicitly saved. Rich documents use the existing atomic note-body sync property; older versions preserve the saved string but display its markup, so use the new version on both devices. Existing Drive sync and recovery formats remain in place. Concurrent library changes retain Board conflicts for review.
 
-Validation: shared-script syntax; snapshot/merge suites; same-BOARD property merge and delivery-order/migration tests; two-device browser sync with independent same-BOARD additions, offline conflicts and storage recovery; universal resizing/image framing/Collection/drawing browser checks; existing Windows mouse and Android touch regressions. Native Android signing and Windows installer builds run in release workflows. Physical-device checks of these new canvas tools remain for the owner.
+Validation: shared-script and snapshot/property merge suites, rich document/library preservation, two-device automatic sync and transfer/rollback browser suites, desktop/touch Sticky and canvas regressions, plus rich editing, @ links, pin centering/Back, shortcut title placement, sanitized paste/place and reload checks. Android signing and Windows installer builds run in release workflows; consult the linked workflow results for the exact commit. Physical-device clipboard, keyboard, external-browser and upgrade checks are not established by these automated tests.
 
-Google Drive syncing continues while Silverlight is open. Closed-app syncing, automatic snapshot pruning/asset deduplication and additional PDF/ebook import improvements are not included. Immutable snapshots and property history count toward the existing 64 MB transfer limit. Finished drawings are raster images, not editable vector strokes.
+See docs/rich-notes-navigation.md for storage and compatibility details.

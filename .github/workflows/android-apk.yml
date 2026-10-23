@@ -1,7 +1,7 @@
 name: Build and publish Mind-Map APK
 on:
   push:
-    branches: [main]
+    branches: [main, feature/rich-notes-board-navigation]
   workflow_dispatch:
 
 permissions:
