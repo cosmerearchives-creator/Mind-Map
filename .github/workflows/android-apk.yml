@@ -1,7 +1,7 @@
 name: Build and publish Mind-Map APK
 on:
   push:
-    branches: [main, sync/manual-drive-transfer]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

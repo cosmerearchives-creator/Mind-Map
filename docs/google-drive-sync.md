@@ -1,6 +1,6 @@
 # Silverlight Google Drive Sync — Implementation Contract
 
-Status: **Automatic sync while the app is open is implemented in the next preview on `sync/manual-drive-transfer`; real-account verification of this new build is required.** Manual transfers in both directions were confirmed by the owner. See [automatic-sync.md](automatic-sync.md) for current setup, protocol and limits. Closed-app syncing remains unimplemented.
+Status: **Automatic sync while the app is open is implemented and promoted to stable after owner confirmation on Windows and Android.** Manual transfers in both directions were also confirmed by the owner. See [automatic-sync.md](automatic-sync.md) for current setup, protocol and limits. Closed-app syncing remains unimplemented.
 
 ## Historical manual-transfer preview setup
 - Android uses Google Play services AuthorizationClient and the existing package/release signing identity. Tokens never enter HTML or board exports.

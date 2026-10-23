@@ -1,6 +1,6 @@
-# Silverlight Archives — automatic Google Drive sync preview
+# Silverlight Archives — automatic Google Drive sync
 
-Automatic syncing is implemented while Silverlight is open. This preview needs real-device verification before stable promotion. Syncing while the app is closed is not implemented.
+Automatic syncing is implemented while Silverlight is open. The owner confirmed syncing works on Windows and Android; this release brings the tested build to the stable update channels. Syncing while the app is closed is not implemented.
 
 - Saves, resume, restart and internet return trigger syncing; open apps also check roughly every 15 seconds.
 - Different BOARDS combine. Competing edits within one BOARD and delete-versus-edit retain all versions for review. Resolution preserves alternative content as separate conflict-copy BOARDS.

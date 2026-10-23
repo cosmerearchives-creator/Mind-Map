@@ -1,7 +1,7 @@
 name: Build Windows installer
 on:
   push:
-    branches: [main, sync/manual-drive-transfer]
+    branches: [main]
     paths:
       - 'app/src/main/assets/index.html'
       - 'app/src/main/assets/*.js'

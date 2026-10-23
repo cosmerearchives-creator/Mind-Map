@@ -1,15 +1,15 @@
-# Automatic Google Drive sync preview
+# Automatic Google Drive sync
 
-Implemented while Silverlight is open. Real-account verification of this new build remains required. The owner already confirmed manual Windows → Android → Windows transfers on the preceding preview.
+Implemented while Silverlight is open. The owner confirmed manual transfers and automatic syncing on Windows and Android before stable promotion.
 
 ## Setup and first test
-1. Export independent backups; install the new preview over each existing app. Do not uninstall or clear app data.
+1. Export independent backups; install the stable release over each existing app. Do not uninstall or clear app data.
 2. On Windows choose cloud → **Enable automatic sync**, complete Google consent, confirm Enable and wait for **Synced**.
 3. On Android enable automatic sync with the same Google account and choose **Join workspace** for the workspace Windows just created. Enable sequentially; creating two separate automatic workspaces will not combine those groups.
 4. Keep both apps open. Change one BOARD; the other device should receive it without Upload/Restore. Incoming updates wait while editing dialogs or gestures are active.
 5. For conflict testing, edit the same BOARD differently while both devices are offline, then reconnect. Open **Review conflicts** when Needs attention appears. Every resolution preserves alternative content as separate conflict-copy BOARDS.
 
-No new Google client/scopes are required. Windows reuses the existing Desktop OAuth JSON and may request consent once to retain an encrypted refresh credential. These preview tags remain outside stable update checks.
+No new Google client/scopes are required. Windows reuses the existing Desktop OAuth JSON and may request consent once to retain an encrypted refresh credential. Existing automatic-sync settings and OAuth configuration remain in place when updating over the preview. Stable releases are offered by the normal update checks.
 
 ## Behavior and data protection
 - Local saves debounce sync; open apps poll roughly every 15 seconds and retry on focus, Android resume, restart and internet return. Status includes Synced, Pending, Offline, Needs sign-in, Needs attention and Last synced. Pause and Sync now are available.
@@ -23,10 +23,10 @@ No new Google client/scopes are required. Windows reuses the existing Desktop OA
 - Tokens never enter HTML or board exports. Android uses Google Play services authorization. Windows refresh credentials use CurrentUser DPAPI encryption in `%LOCALAPPDATA%/Silverlight/google-drive-session.bin`; access tokens remain in memory. Background requests never open consent UI; a revoked grant requires Connect Google.
 
 ## Limits
-- Both devices must run this preview. No closed-app/background service, no within-BOARD STICKY-level merge.
+- Both devices must run a release supporting automatic sync. No closed-app/background service, no within-BOARD STICKY-level merge.
 - Full immutable snapshots and conflict history count toward the 64 MB transfer limit and consume Drive space. Automatic pruning and asset deduplication remain future work; listing stops safely at 10,000 snapshots.
 - A linked BOARD deleted concurrently with changes to its references requires attention. Keep the linked BOARD or remove its references; sync never silently drops those links.
-- Real-device consent, token renewal/revocation, restart, interruptions and conflict handling must pass before stable promotion. Google may require renewed consent while the OAuth project is in Testing.
+- Owner confirmation covers working syncing; long-running token renewal/revocation and every interruption scenario have not been independently verified on physical devices. Google may require renewed consent while the OAuth project is in Testing.
 - Additional PDF/ebook import improvements remain unimplemented.
 
 Automated validation: snapshot integrity, tombstones, concurrent edits/deletions, continued edits during conflicts, reference protection, safe resolution and 80 delivery orders; two-browser-device offline/reconnect, conflict restart, storage rollback/retry, network retry, account switching and raw images; manual transfer and Sticky movement regressions.
