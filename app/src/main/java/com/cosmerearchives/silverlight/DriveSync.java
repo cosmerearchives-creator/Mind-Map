@@ -93,7 +93,7 @@ final class DriveSync {
                 } else {
                     String snapshot = request.getString("snapshot");
                     byte[] content = snapshot.getBytes(StandardCharsets.UTF_8);
-                    if (content.length>LIMIT) throw new Exception("Workspace exceeds the 256 MB transfer limit.");
+                    if (content.length>LIMIT) throw new Exception("A single transfer request exceeds 256 MB. Update both devices to use multipart transfers.");
                     JSONObject envelope = new JSONObject(snapshot);
                     if (!"silverlight-snapshot-v1".equals(envelope.optString("format")) && !"silverlight-auto-v1".equals(envelope.optString("format")) && !"silverlight-transfer-v2".equals(envelope.optString("format")) && !"silverlight-part-v2".equals(envelope.optString("format"))) throw new Exception("Invalid snapshot format.");
                     JSONArray boards = envelope.getJSONObject("workspace").getJSONArray("boards");

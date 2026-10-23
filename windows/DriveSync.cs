@@ -61,7 +61,7 @@ internal sealed class DriveSync : IDisposable
                 return new { snapshot = await SendAsync(HttpMethod.Get, Api + "/" + id + "?alt=media") };
             }
             string snapshot = request.GetProperty("snapshot").GetString() ?? "";
-            if (Encoding.UTF8.GetByteCount(snapshot) > Limit) throw new InvalidOperationException("Workspace exceeds the 256 MB transfer limit.");
+            if (Encoding.UTF8.GetByteCount(snapshot) > Limit) throw new InvalidOperationException("A single transfer request exceeds 256 MB. Update both devices to use multipart transfers.");
             using var document = JsonDocument.Parse(snapshot);
             var root = document.RootElement;
             if (root.GetProperty("format").GetString() is not ("silverlight-snapshot-v1" or "silverlight-auto-v1" or "silverlight-transfer-v2" or "silverlight-part-v2")) throw new InvalidOperationException("Invalid snapshot format.");
