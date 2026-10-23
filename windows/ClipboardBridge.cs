@@ -6,8 +6,20 @@ namespace Silverlight.Windows;
 
 internal static class ClipboardBridge
 {
+    public static async Task<object> MediaAsync(JsonElement request)
+    {
+        var image = await MilanoteMedia.FetchAsync(request.GetProperty("url").GetString());
+        return new { items = new[] { new { type = image.Type, base64 = Convert.ToBase64String(image.Bytes) } } };
+    }
     public static object Read(JsonElement request)
     {
+        if (request.TryGetProperty("op", out var write) && write.GetString() == "write")
+        {
+            string text = request.GetProperty("text").GetString() ?? "";
+            if (System.Text.Encoding.UTF8.GetByteCount(text) > 16 * 1024 * 1024) throw new InvalidOperationException("Selection exceeds the clipboard limit.");
+            Clipboard.SetText(text, TextDataFormat.UnicodeText);
+            return new { items = Array.Empty<object>() };
+        }
         if (!request.TryGetProperty("op", out var op) || op.GetString() != "read") throw new InvalidOperationException("Unsupported clipboard request.");
         var items = new List<object>();
         var clipboard = Clipboard.GetDataObject();
@@ -24,7 +36,7 @@ internal static class ClipboardBridge
         {
             if (clipboard.GetDataPresent(format, false) && clipboard.GetData(format, false) is string text)
             {
-                if (text.Length > 8 * 1024 * 1024) throw new InvalidOperationException("Clipboard text exceeds the import limit. Copy fewer cards.");
+                if (System.Text.Encoding.UTF8.GetByteCount(text) > 16 * 1024 * 1024) throw new InvalidOperationException("Clipboard text exceeds the import limit. Copy fewer cards.");
                 items.Add(new { type, text = type == "text/html" ? ClipboardFormats.HtmlFragment(text) : text });
             }
         }

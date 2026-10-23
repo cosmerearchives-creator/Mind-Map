@@ -1,6 +1,7 @@
 using Silverlight.Windows;
 
 ClipboardTests.Run();
+await MediaTests.Run();
 
 var root = Path.Combine(Path.GetTempPath(), "silverlight-updater-test-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(root);

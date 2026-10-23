@@ -1,11 +1,13 @@
 name: Build Windows installer
 on:
   push:
-    branches: [main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard]
+    branches: [main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
     paths:
       - 'app/src/main/assets/index.html'
       - 'app/src/main/assets/**'
       - 'windows/**'
+      - 'tests/updater/**'
+      - 'tests/validate.cjs'
       - '.github/workflows/windows.yml'
   workflow_dispatch:
 permissions:

@@ -52,7 +52,7 @@ public sealed class MainWindow : Form
                 Directory.CreateDirectory(data);
                 await browser.EnsureCoreWebView2Async(await CoreWebView2Environment.CreateAsync(userDataFolder: data));
                 browser.CoreWebView2.SetVirtualHostNameToFolderMapping("silverlight.local", Path.Combine(AppContext.BaseDirectory, "web"), CoreWebView2HostResourceAccessKind.DenyCors);
-                await browser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"window.SilverlightClipboard={postMessage:function(text){var request=JSON.parse(text);window.chrome.webview.postMessage({channel:'silverlight-clipboard',id:request.id,op:request.op});}};window.chrome.webview.addEventListener('message',function(e){if(e.data.channel==='silverlight-clipboard'&&window.SilverlightClipboard.onmessage)window.SilverlightClipboard.onmessage({data:JSON.stringify(e.data)});});");
+                await browser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"window.SilverlightClipboard={canWrite:true,postMessage:function(text){var request=JSON.parse(text);window.chrome.webview.postMessage({channel:'silverlight-clipboard',id:request.id,op:request.op,url:request.url,text:request.text});}};window.chrome.webview.addEventListener('message',function(e){if(e.data.channel==='silverlight-clipboard'&&window.SilverlightClipboard.onmessage)window.SilverlightClipboard.onmessage({data:JSON.stringify(e.data)});});");
                 browser.CoreWebView2.NavigationStarting += (_, args) => {
                     if (Uri.TryCreate(args.Uri, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.Host == "silverlight.local" && uri.AbsolutePath == "/index.html") return;
                     args.Cancel = true;
@@ -73,13 +73,13 @@ public sealed class MainWindow : Form
                             string? clipId = request.TryGetProperty("id", out var clip) ? clip.GetString() : null;
                             try
                             {
-                                var clipboardResult = ClipboardBridge.Read(request);
+                                var clipboardResult = request.GetProperty("op").GetString() == "media" ? await ClipboardBridge.MediaAsync(request) : ClipboardBridge.Read(request);
                                 using var encoded = JsonDocument.Parse(JsonSerializer.Serialize(clipboardResult));
                                 browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel = "silverlight-clipboard", id = clipId, items = encoded.RootElement.GetProperty("items") }));
                             }
                             catch (Exception error)
                             {
-                                browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel = "silverlight-clipboard", id = clipId, error = error is InvalidOperationException ? error.Message : "Clipboard is unavailable. Copy the selection again and use Paste." }));
+                                browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel = "silverlight-clipboard", id = clipId, error = error is InvalidOperationException ? error.Message : request.GetProperty("op").GetString() == "media" ? "Milanote image could not be downloaded." : "Clipboard is unavailable. Copy the selection again and use Paste." }));
                             }
                             return;
                         }
