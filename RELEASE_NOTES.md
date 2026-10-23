@@ -1,14 +1,15 @@
-# Silverlight Archives — smoother workspace controls
+# Silverlight Archives — Milanote PDF and ZIP import
 
-- Resize the card editor on computers and in landscape using its corner grip. The solid Delete/Cancel/Save footer stays flush with the bottom; Connect and Unlink are removed from this editor.
-- Drag Collection members freely. Arranged Collections insert them at the dropped position, shifting other members. Drag outside to detach, or onto another Collection to transfer, preserving content and connections.
-- Bottom-left actions are grouped under Board actions. Canvas panning no longer selects interface labels.
-- Dismiss canvas tips with ×, and restore them through Windows Alt > View > Canvas tips or Board actions > Show canvas tips.
-- Edit Canvas adds Hand, middle-mouse dragging, and two-finger panning. Drawing strokes remain anchored to the Board; Finish includes strokes moved off-screen.
-- Windows update downloads use unique writable folders and no longer overwrite an earlier installer. Failed updates identify the stage and save diagnostics; completed downloads remain available if launch fails.
+- Import PDF / ZIP from Home or the add menu. Review objects, destinations and warnings before changing the workspace.
+- ZIP top-level folders become Home Boards. Nested folders must match Board titles exactly except capitalization and contain their matching PDF. Missing or ambiguous branches are skipped and reported.
+- Recover notes, rich formatting, colors, highlights, lists, Collections, images, Board artwork and positions where the PDF retains them. Board icons use titles below; Collection Board rows use titles beside artwork.
+- Resolve shortcut badges to unique imported or existing Boards. Unresolved shortcuts retain artwork in Unsorted instead of creating duplicate Boards.
+- Recover independent arrow endpoints and direction, then use Silverlight's existing curves and forks. Crossing arrows remain separate links. Ambiguous endpoints can be assigned in preview.
+- Fully covered recovered notes go to Unsorted; partial overlaps are flagged. Pending connections reconnect when both endpoints are placed. Intentional background images stay on canvas.
+- Board deletion offers an explicit option to include owned nested Boards, showing names and count. Shortcut destinations are excluded. Undo restores the deletion.
 
-The original access-denied screenshot does not identify its exact cause. This release removes a shared-file collision risk and improves diagnosis, but external Windows permission/security restrictions still require device investigation if the error persists. Manually installing this release once may be necessary to replace the older updater.
+Import is best effort: flattened or omitted PDF content cannot be reconstructed, OCR is not included, and source fonts may map to available fonts. Large images are bounded with warnings. Existing workspace and sync data remain compatible.
 
-Existing Board content, connections and Drive sync formats are preserved. Install over the existing application. Validation includes snapshot/merge suites, two-device sync/restore regressions, desktop/mobile editing and clipboard checks, Collection transfers, footer/resizing, nonselecting panning and drawing navigation. The Windows release workflow runs updater file-handling tests before packaging. Physical-device rotation, native menu behavior and actual updater installation remain for device verification.
+Validation includes five supplied Milanote PDFs, 251 connector paths in the dense-arrow sample, offline extraction, transparency/photo artwork, ZIP hierarchy, import/reload, shortcuts, recursive deletion/undo and shared snapshot/merge, clipboard and cross-device sync suites. Native builds run in release workflows; physical-device import remains a separate verification step.
 
-See docs/workspace-interactions.md for details and drawing export limits.
+See docs/milanote-import.md for rules and limits. Earlier workspace, drawing navigation, editor and updater improvements remain included.

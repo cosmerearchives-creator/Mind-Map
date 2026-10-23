@@ -1,10 +1,10 @@
 name: Build Windows installer
 on:
   push:
-    branches: [main, feature/rich-notes-board-navigation, feature/workspace-polish]
+    branches: [main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import]
     paths:
       - 'app/src/main/assets/index.html'
-      - 'app/src/main/assets/*.js'
+      - 'app/src/main/assets/**'
       - 'windows/**'
       - '.github/workflows/windows.yml'
   workflow_dispatch:

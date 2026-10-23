@@ -16,5 +16,6 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
     <Content Include="../app/src/main/assets/index.html" Link="web/index.html" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../app/src/main/assets/*.js" Link="web/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../app/src/main/assets/vendor/**/*" Link="web/vendor/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
