@@ -31,7 +31,7 @@ window.installDesktopSelection=function(app){
  },true);
  function end(e){if(!drag||drag.id!==e.pointerId)return;stop(e);const g=drag;drag=null;document.querySelector('#selectionBox')?.remove();
   if(e.type==='pointercancel'){if(g.kind==='move'&&g.moved){app.board().cards=g.before;app.board().junctions=g.beforeJunctions;app.dragging(null);app.draw()}sync();return}
-  if(g.kind==='move'&&g.moved){const roots=[...selected].filter(id=>!selected.has(app.board().cards.find(c=>c.id===id)?.collectionId));app.dragging(null);for(const id of roots){const c=app.board().cards.find(c=>c.id===id);app.drop(c,g)}app.commit();app.draw()}
+  if(g.kind==='move'&&g.moved){const roots=[...selected].filter(id=>{let c=app.board().cards.find(c=>c.id===id),seen=new Set();while(c?.collectionId&&!seen.has(c.collectionId)){if(selected.has(c.collectionId))return false;seen.add(c.collectionId);c=app.board().cards.find(x=>x.id===c.collectionId)}return true});for(const id of roots){const c=app.board().cards.find(c=>c.id===id);app.drop(c,g)}app.dragging(null);app.commit();app.draw()}
   if(g.kind==='pan')app.persist();
   if(g.kind==='box'&&Math.hypot(e.clientX-g.x,e.clientY-g.y)<4){const now=Date.now();if(now-lastBlank<350){app.create(e.clientX,e.clientY);lastBlank=0}else lastBlank=now}
   sync();
