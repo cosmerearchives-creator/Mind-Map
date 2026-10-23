@@ -15,7 +15,7 @@ final class MilanoteMedia {
    JSONObject result = new JSONObject();HttpURLConnection connection=null;
    try {
     result.put("id",request.optString("id"));URL url=new URL(request.optString("url"));
-    if(!"https".equals(url.getProtocol())||!"app.milanote.com".equals(url.getHost())||(url.getPort()!=-1&&url.getPort()!=443)||url.getUserInfo()!=null||!url.getPath().startsWith("/media/p/"))throw new Exception("Unsupported Milanote media address.");
+    if(!"https".equals(url.getProtocol())||(url.getPort()!=-1&&url.getPort()!=443)||url.getUserInfo()!=null||!(("app.milanote.com".equals(url.getHost())&&url.getPath().startsWith("/media/p/"))||("media.milanote.com".equals(url.getHost())&&url.getPath().startsWith("/p/resized/"))))throw new Exception("Unsupported Milanote media address.");
     connection=(HttpURLConnection)url.openConnection();connection.setInstanceFollowRedirects(false);connection.setConnectTimeout(15000);connection.setReadTimeout(20000);
     if(connection.getResponseCode()!=200)throw new Exception("Milanote image is unavailable.");
     String type=connection.getContentType();if(type==null||!type.matches("image/(png|jpeg|jpg|gif|webp)(;.*)?"))throw new Exception("Unsupported image response.");

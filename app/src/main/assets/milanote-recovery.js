@@ -1,6 +1,6 @@
 /* Browser-only recovery of visible Collection members and portable media. */
 (function(root){'use strict';
-const allowedMedia=url=>{try{const u=new URL(url);return u.protocol==='https:'&&u.hostname==='app.milanote.com'&&!u.username&&!u.password&&(!u.port||u.port==='443')&&u.pathname.startsWith('/media/p/')}catch{return false}};
+const allowedMedia=url=>{try{const u=new URL(url);return u.protocol==='https:'&&!u.username&&!u.password&&(!u.port||u.port==='443')&&((u.hostname==='app.milanote.com'&&u.pathname.startsWith('/media/p/'))||(u.hostname==='media.milanote.com'&&u.pathname.startsWith('/p/resized/')))}catch{return false}};
 function safeSVG(source){
  const doc=new DOMParser().parseFromString(source,'image/svg+xml');if(doc.querySelector('parsererror')||doc.documentElement.localName!=='svg')throw Error('Invalid drawing SVG.');
  const tags=new Set(['svg','g','path','rect','circle','ellipse','line','polyline','polygon','text','tspan']);
@@ -33,7 +33,7 @@ function recover(payload,html){
  for(const e of payload.elements.filter(e=>['BOARD','ALIAS'].includes(e.elementType))){const wrapper=[...doc.querySelectorAll('[data-element-id]')].find(el=>el.getAttribute('data-element-id')===(e.id||e._id));if(wrapper)boardVisual(wrapper,e.content||=( {}))}
  return payload;
 }
-function boardVisual(el,c){const icon=el.querySelector('.board-icon-content,.BoardIcon');if(icon?.style.backgroundColor)c.color=rgb(icon.style.backgroundColor);const svg=icon?.querySelector('svg');if(svg&&!c.icon?.svg)c.icon={...c.icon,svgSource:svg.outerHTML};const img=icon?.querySelector('img');let src=img?.getAttribute('src');if(!src)for(const node of [icon,...(icon?.querySelectorAll('[style]')||[])]){const match=node?.style.backgroundImage?.match(/url\(["']?(.*?)["']?\)/);if(match){src=match[1];break}}if(src)c.image={...c.image,original:src};}
+function boardVisual(el,c){const icon=el.querySelector('.board-icon-content')||el.querySelector('.BoardIcon');if(icon?.style.backgroundColor)c.color=rgb(icon.style.backgroundColor);const svg=icon?.querySelector('svg');if(svg&&!c.icon?.svg)c.icon={...c.icon,svgSource:svg.outerHTML};const img=icon?.querySelector('img');let src=img?.getAttribute('src');if(!src)for(const node of [icon,...(icon?.querySelectorAll('[style]')||[])]){const match=node?.style.backgroundImage?.match(/url\(["']?(.*?)["']?\)/);if(match){src=match[1];break}}if(src)c.image={...c.image,original:src};}
 function rgb(value){const m=value.match(/^rgba?\(\s*(\d+)[, ]+\s*(\d+)[, ]+\s*(\d+)/);return m?'#'+m.slice(1,4).map(x=>Number(x).toString(16).padStart(2,'0')).join(''):value}
 async function prepare(payload,request,progress=()=>{},cancelled=()=>false){
  const cache=new Map();let total=0;payload.recoveryIssues||=[];
