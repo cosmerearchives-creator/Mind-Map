@@ -72,6 +72,6 @@ function flatPlan(entries,selected={}){
  }
  return {mode:'flat',nodes,groups,roots,issues};
 }
-function deletionSet(boards,id,recursive){const set=new Set([id]);if(recursive){let changed=true;while(changed){changed=false;for(const b of boards)if(set.has(b.id))for(const c of b.cards||[])if(c.kind==='nested'&&!c.tagReference&&!set.has(c.boardId)){set.add(c.boardId);changed=true}}}return set}
+function deletionSet(boards,id,recursive){const set=new Set([id]);if(recursive){let changed=true;while(changed){changed=false;for(const b of boards)if(set.has(b.id))for(const c of [...(b.cards||[]),...(b.unsorted||[])])if(c.kind==='nested'&&!c.tagReference&&!set.has(c.boardId)){set.add(c.boardId);changed=true}}}return set}
 const api={mul,point,box,inside,hit,distance,area,decode,recognize,rich,linesOf,folderPlan,flatPlan,exportedName,canonicalName,deletionSet,esc};if(typeof module!=='undefined')module.exports=api;else root.MilanoteCore=api;
 })(globalThis);

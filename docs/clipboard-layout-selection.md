@@ -27,3 +27,11 @@ PDF/ZIP validation exceptions now show a clear message before changing the works
 ## Checks
 
 Run node tests/validate.cjs for shared parser/snapshot/selection checks. Browser suites require Playwright and Edge: tests/clipboard-recovery.cjs, tests/library-import.cjs, tests/desktop-selection.cjs, tests/milanote-clipboard-ui.cjs and the existing editing/sync suites. Native CI tests media origin restrictions, MIME and byte limits and failed redirects before packaging.
+
+## Board cleanup and clipboard visual follow-up
+
+Home screen Select boards enables checkboxes; Select all shown respects the search filter. Delete selected shows one deduplicated list of affected Boards, defaults to deleting owned descendants (including those stored in Unsorted), and can be cancelled or undone. Uncheck the nested option to preserve descendants as home-screen Boards. Shortcuts never traverse into their destinations.
+
+Unattached Milanote LINE objects are rasterized with transparent padding into raw Image Stickies; attached connectors retain native routing. A missing attached endpoint is reported instead of guessing a destination. Board HTML can supplement image references and colored icon backgrounds even when JSON already contains the Board. Collection rows use centered 48px thumbnails and adjacent titles. Earlier imports must be pasted again to recover pixels/colors that were never saved. The exact reported marketplace photo sample was not available in the current clipboard; regression fixtures verify its HTML background-image and structured photo-reference paths.
+
+Additional regression: node tests/board-bulk-and-clipboard-visuals.cjs.

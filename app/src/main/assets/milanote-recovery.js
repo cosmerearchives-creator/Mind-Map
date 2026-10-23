@@ -26,12 +26,14 @@ function recover(payload,html){
    const background=el.querySelector('.background');if(background?.style.backgroundColor)content.background={color:rgb(background.style.backgroundColor)};
    const img=el.querySelector('img');if(img)content.image={original:img.getAttribute('src')||''};
    const svg=el.querySelector('.BoardIcon svg');if(svg)content.icon={type:'svg',svgSource:svg.outerHTML};
-   const icon=el.querySelector('.BoardIcon');if(icon?.style.backgroundColor)content.color=rgb(icon.style.backgroundColor);
+   boardVisual(el,content);
    const size=wrapper.style.containIntrinsicSize?.match(/([\d.]+)px\s+([\d.]+)px/);if(payload.elements.length>=5000)throw Error('Copied Collection exceeds 5,000 elements.');payload.elements.push({id,elementType:type,content,location:{parentId,section:column.location?.section||'CANVAS',position:{index:payload.elements.length,score:payload.elements.length}},...(size?{measurements:{width:Number(size[1]),height:Number(size[2])}}:{}),recoveredFromHTML:true});ids.add(id);
   }
  }
+ for(const e of payload.elements.filter(e=>['BOARD','ALIAS'].includes(e.elementType))){const wrapper=[...doc.querySelectorAll('[data-element-id]')].find(el=>el.getAttribute('data-element-id')===(e.id||e._id));if(wrapper)boardVisual(wrapper,e.content||=( {}))}
  return payload;
 }
+function boardVisual(el,c){const icon=el.querySelector('.board-icon-content,.BoardIcon');if(icon?.style.backgroundColor)c.color=rgb(icon.style.backgroundColor);const svg=icon?.querySelector('svg');if(svg&&!c.icon?.svg)c.icon={...c.icon,svgSource:svg.outerHTML};const img=icon?.querySelector('img');let src=img?.getAttribute('src');if(!src)for(const node of [icon,...(icon?.querySelectorAll('[style]')||[])]){const match=node?.style.backgroundImage?.match(/url\(["']?(.*?)["']?\)/);if(match){src=match[1];break}}if(src)c.image={...c.image,original:src};}
 function rgb(value){const m=value.match(/^rgba?\(\s*(\d+)[, ]+\s*(\d+)[, ]+\s*(\d+)/);return m?'#'+m.slice(1,4).map(x=>Number(x).toString(16).padStart(2,'0')).join(''):value}
 async function prepare(payload,request,progress=()=>{},cancelled=()=>false){
  const cache=new Map();let total=0;payload.recoveryIssues||=[];
@@ -50,15 +52,23 @@ async function prepare(payload,request,progress=()=>{},cancelled=()=>false){
     if(!recovered)throw Error('Original image pixels could not be downloaded; the tiny color thumbnail was not substituted.');
    }
    if(['ANNOTATION','SKETCH'].includes(e.elementType)&&c.drawing?.svg){c._imageData=await raster(c.drawing.svg,c.drawing.width*2,c.drawing.height*2)}
+   if(e.elementType==='LINE'&&!c.start?.elementId&&!c.end?.elementId){const line=await lineImage(c);c._imageData=line.data;c._lineBox=line.box}
    if(['BOARD','ALIAS'].includes(e.elementType)){
-    const remote=[c.image?.original,c.image?.large,c.image?.regular].find(x=>allowedMedia(x));
+    const urls=[];function media(value,depth=0){if(depth>4)return;if(typeof value==='string'){if(allowedMedia(value))urls.push(value)}else if(value&&typeof value==='object'){for(const key of ['original','huge','large','regular'])if(value[key])media(value[key],depth+1);for(const [key,item]of Object.entries(value).slice(0,80))if(!['original','huge','large','regular','svg'].includes(key))media(item,depth+1)}}media(c.image);media(c.icon);const remote=urls[0];
     if(remote)c._iconData=await image(remote);
     else if(c.icon?.svgSource||c.icon?.svg){const source=c.icon.svgSource||decodeURIComponent(escape(atob(c.icon.svg)));const fg=MilanoteClipboard.color(c.secondaryColor)||MilanoteClipboard.contrast(c.color);c._iconData=await raster(source.replace(/<svg\b/,'<svg fill="'+fg+'"').replace(/currentColor/g,fg),160,160,35)}
     else if(c.icon?.string){const canvas=document.createElement('canvas');canvas.width=canvas.height=160;const ctx=canvas.getContext('2d');ctx.fillStyle=MilanoteClipboard.color(c.secondaryColor)||MilanoteClipboard.contrast(c.color);ctx.font='bold 45px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.icon.string.slice(0,6),80,80);c._iconData=canvas.toDataURL('image/png')}
+    if(!c._iconData){const canvas=document.createElement('canvas');canvas.width=canvas.height=160;const ctx=canvas.getContext('2d');ctx.fillStyle=MilanoteClipboard.color(c.color)||'#d1cbc6';ctx.fillRect(0,0,160,160);c._iconData=canvas.toDataURL('image/png')}
+    if(c._iconData&&!remote){const im=new Image();im.src=c._iconData;await im.decode();const canvas=document.createElement('canvas');canvas.width=canvas.height=160;const ctx=canvas.getContext('2d');ctx.fillStyle=MilanoteClipboard.color(c.color)||'#d1cbc6';ctx.fillRect(0,0,160,160);ctx.drawImage(im,0,0,160,160);c._iconData=canvas.toDataURL('image/png')}
    }
   }catch(error){if(e.elementType==='IMAGE')c._mediaFailed=true;payload.recoveryIssues.push((e.elementType==='IMAGE'?'Image':e.elementType)+' recovery: '+error.message)}
  }
  return payload;
+}
+async function lineImage(c){
+ const n=v=>Number.isFinite(Number(v))?Math.max(-100000,Math.min(100000,Number(v)))*10:0;
+ const a={x:n(c.start?.x),y:n(c.start?.y)},b={x:n(c.end?.x),y:n(c.end?.y)},weight=Math.max(1,Math.min(30,Number(c.lineWeight)||2)),pad=Math.max(12,weight*3),left=Math.min(a.x,b.x)-pad,top=Math.min(a.y,b.y)-pad,w=Math.max(20,Math.abs(a.x-b.x)+pad*2),h=Math.max(20,Math.abs(a.y-b.y)+pad*2),scale=Math.min(2,2048/w,2048/h),canvas=document.createElement('canvas');canvas.width=Math.ceil(w*scale);canvas.height=Math.ceil(h*scale);const ctx=canvas.getContext('2d');ctx.scale(scale,scale);ctx.translate(-left,-top);ctx.strokeStyle=MilanoteClipboard.color(c.color)||'#333333';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=weight;ctx.lineCap='round';if(/dash/i.test(c.lineStyle||''))ctx.setLineDash([weight*4,weight*3]);else if(/dot/i.test(c.lineStyle||''))ctx.setLineDash([weight,weight*3]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);
+ function arrow(p,q,style){if(!/arrow/i.test(style||''))return;const angle=Math.atan2(p.y-q.y,p.x-q.x),size=Math.max(9,weight*4);ctx.beginPath();ctx.moveTo(p.x-size*Math.cos(angle-.5),p.y-size*Math.sin(angle-.5));ctx.lineTo(p.x,p.y);ctx.lineTo(p.x-size*Math.cos(angle+.5),p.y-size*Math.sin(angle+.5));ctx.stroke()};arrow(a,b,c.startStyle);arrow(b,a,c.endStyle);return {data:canvas.toDataURL('image/png'),box:{x:left,y:top,width:w,height:h}};
 }
 root.MilanoteRecovery={recover,prepare,safeSVG,allowedMedia,raster};
 })(globalThis);
