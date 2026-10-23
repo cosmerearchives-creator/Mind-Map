@@ -53,6 +53,22 @@ internal static class ClipboardFormats
         text = Encoding.Unicode.GetString(data, offset, (int)bytes); offset += (int)bytes;
         return true;
     }
+    public static string HtmlFragment(string html)
+    {
+        const string startMarker = "<!--StartFragment-->", endMarker = "<!--EndFragment-->";
+        int start = html.IndexOf(startMarker, StringComparison.Ordinal), end = html.IndexOf(endMarker, StringComparison.Ordinal);
+        if (start >= 0 && end >= start + startMarker.Length) return html.Substring(start + startMarker.Length, end - start - startMarker.Length);
+        if (!html.StartsWith("Version:", StringComparison.OrdinalIgnoreCase)) return html;
+        var a = System.Text.RegularExpressions.Regex.Match(html, @"(?m)^StartFragment:\s*(\d+)");
+        var b = System.Text.RegularExpressions.Regex.Match(html, @"(?m)^EndFragment:\s*(\d+)");
+        if (int.TryParse(a.Groups[1].Value, out start) && int.TryParse(b.Groups[1].Value, out end))
+        {
+            var bytes = Encoding.UTF8.GetBytes(html);
+            if (start >= 0 && end >= start && end <= bytes.Length) return Encoding.UTF8.GetString(bytes, start, end - start);
+        }
+        int markup = html.IndexOf('<');
+        return markup >= 0 ? html.Substring(markup) : "";
+    }
     private static bool ReadString(byte[] data, ref int offset, out string text)
     {
         text = "";

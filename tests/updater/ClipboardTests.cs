@@ -38,6 +38,14 @@ internal static class ClipboardTests
         var odd = Firefox((ClipboardFormats.Milanote, "value")); BinaryPrimitives.WriteUInt32BigEndian(odd.AsSpan(4), 3); Check(ClipboardFormats.ReadFirefoxMilanote(odd) == null);
         var huge = Firefox((ClipboardFormats.Milanote, "value")); BinaryPrimitives.WriteUInt32BigEndian(huge.AsSpan(4), uint.MaxValue); Check(ClipboardFormats.ReadFirefoxMilanote(huge) == null);
         var invalid = Firefox((ClipboardFormats.Milanote, "value")); invalid[3] = 7; Check(ClipboardFormats.ReadFirefoxMilanote(invalid) == null);
+        Check(ClipboardFormats.HtmlFragment("Version:1.0\r\n<html><!--StartFragment--><b>Text</b><!--EndFragment--></html>") == "<b>Text</b>");
+        Check(ClipboardFormats.HtmlFragment("<p>Plain HTML</p>") == "<p>Plain HTML</p>");
+        var header = "Version:1.0\r\nStartFragment:0000000000\r\nEndFragment:0000000000\r\n";
+        var prefix = "<html>é", fragment = "<b>🐉</b>";
+        int start = Encoding.UTF8.GetByteCount(header + prefix), end = start + Encoding.UTF8.GetByteCount(fragment);
+        var offsets = $"Version:1.0\r\nStartFragment:{start:D10}\r\nEndFragment:{end:D10}\r\n";
+        Check(ClipboardFormats.HtmlFragment(offsets + prefix + fragment + "</html>") == fragment);
+        Console.WriteLine("PASS: native CF_HTML headers removed using fragment markers or UTF-8 byte offsets.");
         Console.WriteLine("PASS: Firefox tagged big-endian UTF-16 payload, Unicode, padding and malformed/truncated data rejection.");
         Console.WriteLine("PASS: Chromium custom MIME UTF-16 payload, alignment, Unicode and malformed-length rejection.");
     }

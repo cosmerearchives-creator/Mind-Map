@@ -25,7 +25,7 @@ internal static class ClipboardBridge
             if (clipboard.GetDataPresent(format, false) && clipboard.GetData(format, false) is string text)
             {
                 if (text.Length > 8 * 1024 * 1024) throw new InvalidOperationException("Clipboard text exceeds the import limit. Copy fewer cards.");
-                items.Add(new { type, text });
+                items.Add(new { type, text = type == "text/html" ? ClipboardFormats.HtmlFragment(text) : text });
             }
         }
         Text(DataFormats.UnicodeText, "text/plain"); Text(DataFormats.Html, "text/html");
