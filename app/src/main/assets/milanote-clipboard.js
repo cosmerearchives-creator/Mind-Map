@@ -1,6 +1,6 @@
 /* Milanote clipboard protocol adapter. Source objects are data, never executable code. */
 (function(root){'use strict';
-const MIME='application/milanote-elements',PREFIX='silverlight-rich-v1:',MAX_BYTES=16*1024*1024;
+const MIME='application/milanote-elements',PREFIX='silverlight-rich-v1:',MAX_BYTES=64*1024*1024;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const web=s=>typeof s==='string'&&/^https?:\/\//i.test(s)?s:null;
 const style=a=>Object.entries(a||{}).filter(([k,v])=>['color','background-color','font-family','font-size','text-align','margin-left'].includes(k)&&typeof v==='string'&&!/url|expression|[<>";]/i.test(v)).map(([k,v])=>k+':'+v).join(';');
@@ -33,7 +33,7 @@ function decode(data){
  }
  if(!raw){const text=data.getData('text/plain')||'';if(text.includes('"elements"')&&text.includes('"saveId"')){try{const p=JSON.parse(text);if(Array.isArray(p.elements)&&p.operation&&p.saveId){raw=text;marked=true}}catch{}}}
  if(!marked)return null;
- if(!raw||new TextEncoder().encode(raw).length>MAX_BYTES)throw Error('Milanote clipboard data is empty or exceeds 16 MB. Copy a smaller selection.');
+ if(!raw||new TextEncoder().encode(raw).length>MAX_BYTES)throw Error('Milanote clipboard data is empty or exceeds 64 MB. Copy a smaller selection.');
  let payload;try{payload=JSON.parse(raw)}catch{throw Error('Milanote clipboard data could not be decoded. Copy the cards again.')}
  if(!payload||!Array.isArray(payload.elements)||payload.elements.length>5000)throw Error('Unsupported Milanote clipboard structure. Copy up to 5,000 elements.');
  return payload;

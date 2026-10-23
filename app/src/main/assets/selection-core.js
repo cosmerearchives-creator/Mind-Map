@@ -1,14 +1,15 @@
 (function(root){'use strict';
+const assets=typeof module!=='undefined'?require('./assets-core.js'):null;
 const FORMAT='silverlight-selection-v1',MIME='application/x-silverlight-selection';
 const clone=x=>JSON.parse(JSON.stringify(x));
 function expand(board,ids){const set=new Set(ids);let changed=true;while(changed){changed=false;for(const c of board.cards)if(c.collectionId&&set.has(c.collectionId)&&!set.has(c.id)){set.add(c.id);changed=true}}return set}
 function make(board,ids,boards){const set=expand(board,ids),cards=board.cards.filter(c=>set.has(c.id)).map(clone),included=new Set();let changed=true;
- while(changed){changed=false;for(const c of [...cards,...boards.filter(b=>included.has(b.id)).flatMap(b=>b.cards)])if(c.kind==='nested'&&boards.some(b=>b.id===c.boardId)&&!included.has(c.boardId)){included.add(c.boardId);changed=true}}
+ while(changed){changed=false;for(const c of [...cards,...boards.filter(b=>included.has(b.id)).flatMap(b=>[...b.cards,...(b.unsorted||[])])])if(c.kind==='nested'&&boards.some(b=>b.id===c.boardId)&&!included.has(c.boardId)){included.add(c.boardId);changed=true}}
  return {format:FORMAT,cards,connections:(board.connections||[]).filter(e=>set.has(e.from)&&set.has(e.to)).map(clone),junctions:Object.fromEntries(Object.entries(board.junctions||{}).filter(([id])=>set.has(id)).map(([id,v])=>[id,clone(v)])),boards:boards.filter(b=>included.has(b.id)).map(clone)};
 }
 function paste(payload,uid=()=>crypto.randomUUID()){
  if(payload?.format!==FORMAT||!Array.isArray(payload.cards)||!Array.isArray(payload.boards)||!Array.isArray(payload.connections))throw Error('Invalid Silverlight selection.');
- if(new TextEncoder().encode(JSON.stringify(payload)).length>16*1024*1024)throw Error('Selection exceeds 16 MB.');
+ if((assets||root.SilverlightAssets).measure(payload)>64*1024*1024)throw Error('Selection exceeds 64 MB.');
  const result=clone(payload),boardMap=new Map(result.boards.map(b=>[b.id,uid()])),allIds=new Map(result.boards.map(b=>[b.id,new Map([...(b.cards||[]),...(b.unsorted||[])].map(c=>[c.id,uid()]))]));
  function remap(board){const ids=allIds.get(board.id)||new Map([...(board.cards||[]),...(board.unsorted||[])].map(c=>[c.id,uid()]));for(const c of [...board.cards,...(board.unsorted||[])]){c.id=ids.get(c.id);if(c.source?.originalCollectionId&&ids.has(c.source.originalCollectionId))c.source.originalCollectionId=ids.get(c.source.originalCollectionId);if(c.collectionId){if(ids.has(c.collectionId))c.collectionId=ids.get(c.collectionId);else delete c.collectionId}if(boardMap.has(c.boardId)){if(c.pinId&&allIds.get(c.boardId)?.has(c.pinId))c.pinId=allIds.get(c.boardId).get(c.pinId);c.boardId=boardMap.get(c.boardId);}if(c.body)c.body=c.body.replace(/silverlight:\/\/board\/([^?"'\s<>]+)/g,(all,id)=>{try{const mapped=boardMap.get(decodeURIComponent(id));return mapped?'silverlight://board/'+encodeURIComponent(mapped):all}catch{return all}})}
  for(const key of ['connections','importPendingLinks'])board[key]=(board[key]||[]).filter(e=>ids.has(e.from)&&ids.has(e.to)).map(e=>({...e,id:uid(),from:ids.get(e.from),to:ids.get(e.to)}));

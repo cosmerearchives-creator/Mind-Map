@@ -27,7 +27,7 @@ async function cycle(){
   await persist(next,incoming&&core.canonical(current.boards)!==core.canonical(incoming.boards)?incoming:null,expected);
   const digest=await core.revision(meta.records);
   if(cloudHashes.includes(digest)&&meta.published!==digest){next=clone(meta);next.published=digest;await persist(next)}
-  if(meta.published!==digest){const snapshot=await crdt.envelope(meta,app.getState());const result=await call('upload',{snapshot:JSON.stringify(snapshot)});next=clone(meta);next.published=digest;if(result.id&&!next.files.includes(result.id))next.files.push(result.id);await persist(next)}
+  if(meta.published!==digest){const snapshot=await crdt.envelope(meta,app.getState());const result=await call('upload',{snapshot});next=clone(meta);next.published=digest;if(result.id&&!next.files.includes(result.id))next.files.push(result.id);await persist(next)}
   expected=state();next=await crdt.capture(meta,app.getState());const stillPending=await core.revision(next.records)!==meta.published;next.lastSynced=new Date().toISOString();await persist(next,null,expected);retry=5000;
   if(meta.missing?.length||meta.conflicts?.length)status('Needs attention','Conflicting BOARD versions are preserved; open the cloud menu');else if(stillPending)status('Pending');else status('Synced',new Date(meta.lastSynced).toLocaleTimeString());
   schedule(stillPending?2000:15000);

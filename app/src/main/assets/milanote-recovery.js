@@ -10,7 +10,7 @@ function safeSVG(source){
 }
 async function raster(source,width,height,padding=0){const image=new Image();image.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(safeSVG(source))));await image.decode();const canvas=document.createElement('canvas');canvas.width=Math.min(2048,Math.max(1,Math.ceil(width)));canvas.height=Math.min(2048,Math.max(1,Math.ceil(height)));const w=canvas.width-2*padding,h=canvas.height-2*padding,scale=Math.min(w/image.naturalWidth,h/image.naturalHeight);canvas.getContext('2d').drawImage(image,(canvas.width-image.naturalWidth*scale)/2,(canvas.height-image.naturalHeight*scale)/2,image.naturalWidth*scale,image.naturalHeight*scale);return canvas.toDataURL('image/png')}
 function recover(payload,html){
- if(!html)return payload;if(html.length>16*1024*1024)throw Error('Collection HTML exceeds 16 MB. Copy a smaller selection.');
+ if(!html)return payload;if(html.length>64*1024*1024)throw Error('Collection HTML exceeds 64 MB. Copy a smaller selection.');
  const template=document.createElement('template');template.innerHTML=html;const doc=template.content,ids=new Set(payload.elements.map(e=>e.id||e._id));payload.recoveryIssues=[];
  for(const column of [...payload.elements].filter(e=>e.elementType==='COLUMN')){
   const cid=column.id||column._id;if(payload.elements.some(e=>e.location?.parentId===cid))continue;
@@ -41,7 +41,7 @@ async function prepare(payload,request,progress=()=>{},cancelled=()=>false){
   if(!allowedMedia(url))throw Error('Image reference is unavailable or outside Milanote public media.');
   if(cache.has(url))return cache.get(url);
   const job=(async()=>{let data;if(request){const items=await request('media',null,url);data=items[0];if(!data?.base64)throw Error('Image was not returned.');data='data:'+data.type+';base64,'+data.base64}else{const r=await fetch(url,{credentials:'omit',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('Image download failed.');const blob=await r.blob();if(blob.size>8*1024*1024)throw Error('Image exceeds 8 MB.');data=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(blob)})}
-   total+=data.length;if(total>48*1024*1024)throw Error('Copied images exceed the paste memory limit.');const im=new Image();im.src=data;await im.decode();if(im.naturalWidth<2||im.naturalHeight<2||im.naturalWidth*im.naturalHeight>64*1024*1024)throw Error('Image dimensions are unsupported.');return data})();cache.set(url,job);return job;
+   total+=data.length;if(total>128*1024*1024)throw Error('Copied images exceed the paste memory limit.');const im=new Image();im.src=data;await im.decode();if(im.naturalWidth<2||im.naturalHeight<2||im.naturalWidth*im.naturalHeight>64*1024*1024)throw Error('Image dimensions are unsupported.');return data})();cache.set(url,job);return job;
  }
  for(let i=0;i<payload.elements.length;i++){
   if(cancelled())throw Error('Paste cancelled.');const e=payload.elements[i],c=e.content||{};progress('Recovering item '+(i+1)+' / '+payload.elements.length);

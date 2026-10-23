@@ -12,7 +12,7 @@ namespace Silverlight.Windows;
 // Access tokens stay in memory. Refresh credentials use Windows user-bound DPAPI, never HTML or exports.
 internal sealed class DriveSync : IDisposable
 {
-    private const int Limit = 64 * 1024 * 1024;
+    private const int Limit = 256 * 1024 * 1024;
     private const string Api = "https://www.googleapis.com/drive/v3/files";
     private const string Scope = "https://www.googleapis.com/auth/drive.appdata";
     private readonly HttpClient http = new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(3) };
@@ -61,15 +61,16 @@ internal sealed class DriveSync : IDisposable
                 return new { snapshot = await SendAsync(HttpMethod.Get, Api + "/" + id + "?alt=media") };
             }
             string snapshot = request.GetProperty("snapshot").GetString() ?? "";
-            if (Encoding.UTF8.GetByteCount(snapshot) > Limit) throw new InvalidOperationException("Workspace exceeds the 64 MB transfer limit.");
+            if (Encoding.UTF8.GetByteCount(snapshot) > Limit) throw new InvalidOperationException("Workspace exceeds the 256 MB transfer limit.");
             using var document = JsonDocument.Parse(snapshot);
             var root = document.RootElement;
-            if (root.GetProperty("format").GetString() is not ("silverlight-snapshot-v1" or "silverlight-auto-v1")) throw new InvalidOperationException("Invalid snapshot format.");
-            bool automatic = root.GetProperty("format").GetString() == "silverlight-auto-v1";
+            if (root.GetProperty("format").GetString() is not ("silverlight-snapshot-v1" or "silverlight-auto-v1" or "silverlight-transfer-v2" or "silverlight-part-v2")) throw new InvalidOperationException("Invalid snapshot format.");
+            bool part = root.GetProperty("format").GetString() == "silverlight-part-v2";
+            bool automatic = root.GetProperty("format").GetString() == "silverlight-auto-v1" || (root.TryGetProperty("originalFormat", out var original) && original.GetString() == "silverlight-auto-v1");
             var metadata = new {
                 name = "silverlight-snapshot-" + Guid.NewGuid() + ".json",
                 parents = new[] { "appDataFolder" },
-                appProperties = new { silverlightSnapshot = "1", platform = "Windows", boards = root.GetProperty("workspace").GetProperty("boards").GetArrayLength().ToString(), revision = root.GetProperty("revision").GetString(), protocol = automatic ? "auto-v1" : "manual-v1", dataset = automatic ? root.GetProperty("auto").GetProperty("dataset").GetString() : "" }
+                appProperties = new { silverlightSnapshot = "1", platform = "Windows", boards = root.GetProperty("workspace").GetProperty("boards").GetArrayLength().ToString(), revision = root.GetProperty("revision").GetString(), protocol = part ? "part-v2" : automatic ? "auto-v1" : "manual-v1", dataset = automatic ? root.GetProperty("auto").GetProperty("dataset").GetString() : "" }
             };
             using var body = new MultipartContent("related", "silverlight_" + Guid.NewGuid().ToString("N"));
             body.Add(new StringContent(JsonSerializer.Serialize(metadata), Encoding.UTF8, "application/json"));

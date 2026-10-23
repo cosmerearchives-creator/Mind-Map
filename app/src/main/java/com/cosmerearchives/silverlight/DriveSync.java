@@ -28,7 +28,7 @@ final class DriveSync {
     static final int AUTHORIZE = 504;
     private static final String SCOPE = "https://www.googleapis.com/auth/drive.appdata";
     private static final String API = "https://www.googleapis.com/drive/v3/files";
-    private static final int LIMIT = 64 * 1024 * 1024;
+    private static final int LIMIT = 256 * 1024 * 1024;
     private final Activity activity;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Set<String> listed = new HashSet<>();
@@ -93,13 +93,14 @@ final class DriveSync {
                 } else {
                     String snapshot = request.getString("snapshot");
                     byte[] content = snapshot.getBytes(StandardCharsets.UTF_8);
-                    if (content.length>LIMIT) throw new Exception("Workspace exceeds the 64 MB transfer limit.");
+                    if (content.length>LIMIT) throw new Exception("Workspace exceeds the 256 MB transfer limit.");
                     JSONObject envelope = new JSONObject(snapshot);
-                    if (!"silverlight-snapshot-v1".equals(envelope.optString("format")) && !"silverlight-auto-v1".equals(envelope.optString("format"))) throw new Exception("Invalid snapshot format.");
+                    if (!"silverlight-snapshot-v1".equals(envelope.optString("format")) && !"silverlight-auto-v1".equals(envelope.optString("format")) && !"silverlight-transfer-v2".equals(envelope.optString("format")) && !"silverlight-part-v2".equals(envelope.optString("format"))) throw new Exception("Invalid snapshot format.");
                     JSONArray boards = envelope.getJSONObject("workspace").getJSONArray("boards");
                     JSONObject properties = new JSONObject().put("silverlightSnapshot","1").put("platform","Android").put("boards",String.valueOf(boards.length())).put("revision",envelope.getString("revision"));
-                    boolean automatic = "silverlight-auto-v1".equals(envelope.optString("format"));
-                    properties.put("protocol",automatic?"auto-v1":"manual-v1").put("dataset",automatic?envelope.getJSONObject("auto").getString("dataset"):"");
+                    boolean part = "silverlight-part-v2".equals(envelope.optString("format"));
+                    boolean automatic = "silverlight-auto-v1".equals(envelope.optString("format")) || "silverlight-auto-v1".equals(envelope.optString("originalFormat"));
+                    properties.put("protocol",part?"part-v2":automatic?"auto-v1":"manual-v1").put("dataset",automatic?envelope.getJSONObject("auto").getString("dataset"):"");
                     JSONObject metadata = new JSONObject().put("name","silverlight-snapshot-"+UUID.randomUUID()+".json").put("parents",new JSONArray().put("appDataFolder")).put("appProperties",properties);
                     String boundary = "silverlight_"+UUID.randomUUID();
                     byte[] head = ("--"+boundary+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+metadata+"\r\n--"+boundary+"\r\nContent-Type: application/json\r\n\r\n").getBytes(StandardCharsets.UTF_8);

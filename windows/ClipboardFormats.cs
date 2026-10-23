@@ -7,7 +7,7 @@ namespace Silverlight.Windows;
 internal static class ClipboardFormats
 {
     public const string Milanote = "application/milanote-elements";
-    public const int MaxBytes = 32 * 1024 * 1024;
+    public const int MaxBytes = 128 * 1024 * 1024;
     public static string? ReadMilanote(byte[] data)
     {
         if (data.Length < 8 || data.Length > MaxBytes) return null;
