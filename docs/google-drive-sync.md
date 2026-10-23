@@ -1,6 +1,25 @@
 # Silverlight Google Drive Sync — Implementation Contract
 
-Status: **OAuth setup required; synchronization is NOT enabled yet.**
+Status: **Automatic sync while the app is open is implemented and promoted to stable after owner confirmation on Windows and Android.** Manual transfers in both directions were also confirmed by the owner. See [automatic-sync.md](automatic-sync.md) for current setup, protocol and limits. Closed-app syncing remains unimplemented.
+
+## Historical manual-transfer preview setup
+- Android uses Google Play services AuthorizationClient and the existing package/release signing identity. Tokens never enter HTML or board exports.
+- Windows uses system-browser OAuth, loopback redirect, state validation and PKCE. On first Connect Google, select the JSON downloaded for a **Desktop app** OAuth client in the **same Google Cloud project as Android**, currently `silverlight-512321`. It is copied to `%LOCALAPPDATA%/Silverlight/google-desktop-oauth.json`; tokens are session-only. To replace a mistakenly selected Desktop configuration, close Silverlight and remove just that configuration file, then connect again. Never remove the WebView2 data folder.
+- Enable Drive API and include the Google account in the consent screen's testing audience when applicable. Use the same account on both devices.
+- The cloud button offers manual upload, snapshot listing, reviewed restore and local recovery. Snapshots use immutable unique filenames and `appProperties.silverlightSnapshot=1`; listing is paginated. No shared mutable manifest is written in this milestone, so concurrent uploads retain both copies.
+- Restore requires working IndexedDB, validates schema, hash, stable IDs and references, detects changes made during review, and stores recovery plus replacement in one transaction. Cancel, download errors, checksum failure and storage abort leave the active workspace intact.
+- No cloud files are overwritten or deleted. Transfers have a 64 MB limit. Recovery copies are local and are lost if application data is cleared; export independent backups too.
+- Preview releases use separate `sync-preview-*` tags so stable update checks do not offer them. Do not merge/promote until real-account testing passes.
+
+### First test
+1. Export a backup on both devices; install the preview over the existing app without clearing app data.
+2. On Windows, create/download the Desktop OAuth client JSON if needed and select it through Connect Google. Complete system-browser consent.
+3. Upload this device, then on Android Connect Google with the same account and choose View cloud copies.
+4. Review and restore the Windows copy. Confirm Selish, nested BOARDS, images, connections, tags and Collections.
+5. Make a small identifiable change on Android, upload, then review/restore that copy on Windows. Confirm Local recovery can restore the previous workspace.
+6. Report any Google error text and which step failed. Do not send tokens, passwords or board contents.
+
+The sections below are the original design contract. The immutable protocol in automatic-sync.md replaces the proposed mutable manifest.
 
 ## Authorization
 - Use Google Play services AuthorizationClient with `https://www.googleapis.com/auth/drive.appdata`.
