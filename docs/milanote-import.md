@@ -4,13 +4,25 @@ Use **Import PDF / ZIP** on Home or in the add menu. Parsing runs locally with b
 
 ## ZIP structure
 
+The default mode is **One folder per main Board**:
+
     archive.zip
       Root Board/
         canvas_Root Board-261023_0509.pdf
-        Child Board/
-          canvas_Child Board-261023_0509.pdf
+        canvas_Child Board-261023_0509.pdf
+        canvas_Grandchild Board-261023_0509.pdf
 
-Each top-level folder becomes a Home Board. The PDF can use the exact Board name or Milanote's canvas_NAME-DDMMYY_HHMM.pdf naming. Each owned child needs a folder matching the nested tile title exactly except capitalization, plus its matching PDF. Whitespace and punctuation are significant. Missing folders, duplicate case variants, ambiguous PDFs, unsafe paths and unused branches are reported. A standalone PDF imports its current Board; unavailable child branches are omitted.
+Choose the main Board PDF for each top-level folder. The importer follows nested Board titles recursively through the PDFs in that folder. No descendant folder arrangement is required. PDFs at the ZIP root can also form one group; select its main Board. Each folder is independent, so different main Boards can have children with the same name.
+
+Filenames can use the exact Board name or Milanote's canvas_NAME-DDMMYY_HHMM.pdf naming. Matching ignores capitalization, export prefix and timestamp; whitespace and punctuation remain significant. Duplicate matches must be assigned explicitly in the preview. Conflicting owners and cycles block confirmation until you choose another PDF, change a tile to a shortcut, keep it as an empty Board Note, or skip it. Unreached PDFs are reported instead of silently added to Home.
+
+**Existing nested folder structure** remains available in the organization selector. Each folder must contain its matching PDF, with nested Board folders matching the tile title except capitalization.
+
+In both modes, and for standalone PDFs, an owned nested Board with no associated PDF becomes a normal Note. Its title is the Board name and its body is exactly:
+
+    (EMPTY BOARD ON IMPORT - CHANGE TO NESTED TO USE AS NEW BOARD)
+
+The Note keeps its position, Collection membership and connections. Original tile artwork is retained in source metadata. The normal editor's Nested board checkbox can turn it into a new Board; no empty Board is created automatically.
 
 Shortcuts resolve to unique imported or existing Board titles. They do not own the destination or require duplicate folders. Unresolved shortcut artwork goes to Unsorted. Preview allows selecting an existing destination or changing an owned tile to a shortcut. Ambiguous targets require review.
 
@@ -30,6 +42,6 @@ Delete Board defaults to deleting only that Board. The nested deletion checkbox 
 
 ## Validation
 
-Run node tests/validate.cjs for hierarchy, shortcuts, pending connections, schema and deletion checks. Browser suites tests/milanote-ui.cjs and tests/milanote-pdfs.cjs require Playwright and Microsoft Edge. Set MILANOTE_PDF_DIR to the local sample directory. Personal PDFs are not distributed in the repository.
+Run node tests/validate.cjs for hierarchy, shortcuts, pending connections, schema and deletion checks. Browser suites tests/milanote-ui.cjs, tests/milanote-flat-ui.cjs and tests/milanote-pdfs.cjs require Playwright and Microsoft Edge. Set MILANOTE_PDF_DIR to the local sample directory. Personal PDFs are not distributed in the repository.
 
-PDF tests verify object types, 251 dense-sample connector paths, lists/colors, transparent pixels and photographic Board artwork. UI tests exercise ZIP selection, preview, commit, reload, omitted branches, shortcuts and deletion/undo. Automated geometry checks do not replace final visual review of endpoint intent. GitHub Actions verifies platform packaging; physical-device installation and import require device verification.
+PDF tests verify object types, 251 dense-sample connector paths, lists/colors, transparent pixels and photographic Board artwork. UI tests exercise ZIP selection, preview, commit, reload, empty Board Notes, shortcuts and deletion/undo. Automated geometry checks do not replace final visual review of endpoint intent. GitHub Actions verifies platform packaging; physical-device installation and import require device verification.

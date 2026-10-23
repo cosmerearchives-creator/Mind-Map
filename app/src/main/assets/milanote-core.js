@@ -52,6 +52,26 @@ function folderPlan(entries){const nodes=new Map(),issues=[];for(const path of e
  for(const n of nodes.values()){n.children=[...nodes.values()].filter(c=>c.parent===n.path);const peers=[...nodes.values()].filter(c=>c.parent===n.parent&&canonicalName(c.title)===canonicalName(n.title));if(peers.length>1){n.invalid=true;issues.push({type:'folder',message:'Ambiguous folder capitalization: '+n.path})}const matches=n.pdfs.filter(p=>canonicalName(exportedName(p.split('/').at(-1)))===canonicalName(n.title));if(matches.length===1)n.pdf=matches[0];else{n.invalid=true;issues.push({type:'folder',message:(matches.length?'Multiple matching PDFs: ':'Missing matching PDF: ')+n.path})}}
  return {nodes,roots:[...nodes.values()].filter(n=>!n.parent),issues};
 }
+// Flat groups stay independent: equal names in different main Board folders are safe.
+function flatPlan(entries,selected={}){
+ const nodes=new Map(),groups=new Map(),issues=[];
+ for(const path of entries){
+  if(path.includes('\\')||path.startsWith('/')||/^[a-z]:/i.test(path)||path.split('/').some(x=>['.','..'].includes(x)))throw Error('Unsafe ZIP path: '+path);
+  const parts=path.split('/').filter(Boolean);if(!/\.pdf$/i.test(path)||parts[0]==='__MACOSX')continue;
+  const group=parts.length>1?parts[0]:'';
+  const node={path,pdf:path,title:exportedName(parts.at(-1)),group,children:[]};nodes.set(path,node);
+  if(!groups.has(group))groups.set(group,{id:group,title:group||'PDFs at ZIP root',nodes:[]});groups.get(group).nodes.push(node);
+ }
+ const roots=[];
+ for(const g of groups.values()){
+  const matches=g.nodes.filter(n=>canonicalName(n.title)===canonicalName(g.id));
+  const choice=Object.hasOwn(selected,g.id)?selected[g.id]:(matches.length===1?matches[0].path:g.nodes.length===1?g.nodes[0].path:'');
+  g.root=choice;
+  if(choice&&g.nodes.some(n=>n.path===choice))roots.push(nodes.get(choice));
+  else issues.push({type:'root',blocking:true,message:'Choose the main Board PDF for '+g.title+'.'});
+ }
+ return {mode:'flat',nodes,groups,roots,issues};
+}
 function deletionSet(boards,id,recursive){const set=new Set([id]);if(recursive){let changed=true;while(changed){changed=false;for(const b of boards)if(set.has(b.id))for(const c of b.cards||[])if(c.kind==='nested'&&!c.tagReference&&!set.has(c.boardId)){set.add(c.boardId);changed=true}}}return set}
-const api={mul,point,box,inside,hit,distance,area,decode,recognize,rich,linesOf,folderPlan,exportedName,canonicalName,deletionSet,esc};if(typeof module!=='undefined')module.exports=api;else root.MilanoteCore=api;
+const api={mul,point,box,inside,hit,distance,area,decode,recognize,rich,linesOf,folderPlan,flatPlan,exportedName,canonicalName,deletionSet,esc};if(typeof module!=='undefined')module.exports=api;else root.MilanoteCore=api;
 })(globalThis);
