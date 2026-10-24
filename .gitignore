@@ -5,3 +5,10 @@ local.properties
 .idea/
 
 /tmp/
+
+**/bin/
+**/obj/
+/windows/app.ico
+/windows/publish/
+/windows/output/
+/windows/google-oauth-client.local.json

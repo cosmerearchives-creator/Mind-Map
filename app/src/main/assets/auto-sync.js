@@ -24,7 +24,7 @@ async function cycle(){
   const unseen=files.filter(f=>!meta.files.includes(f.id));if(!unseen.length&&generation===cleanGeneration&&recordDigest&&meta.published===recordDigest){markPoll(files,repair);settled();schedule(LIVE_POLL);return}
   status('Syncing','Live sync · checking saved changes');let current=clone(app.getState()),expected=state(),next=await crdt.capture(meta,current);await persist(next,null,expected);
   const known=new Set(meta.files),remote=[];let cloudHashes=[];
-  for(const file of files){if(known.has(file.id))continue;const result=await call('download',{fileId:file.id});const snapshot=JSON.parse(result.snapshot),records=await crdt.verify(snapshot,meta.dataset);remote.push(...records);cloudHashes.push(await core.revision(records));known.add(file.id)}
+  for(const file of files){if(known.has(file.id))continue;const result=await call('download',{fileId:file.id,objectResult:true});const snapshot=(typeof result.snapshot==='string'?JSON.parse(result.snapshot):result.snapshot),records=await crdt.verify(snapshot,meta.dataset);remote.push(...records);cloudHashes.push(await core.revision(records));known.add(file.id)}
   if(!available()||!meta.enabled){schedule(1000);return}
   // Capture intervening edits before learning remote clocks; they are concurrent, not overwrites.
   current=clone(app.getState());expected=state();next=await crdt.capture(meta,current);next.records=await crdt.merge(next.records,remote);next.files=[...known];
