@@ -38,6 +38,9 @@ jobs:
             node "tests/$test.cjs"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
+      - name: Verify live Google Desktop client configuration
+        shell: pwsh
+        run: ./tests/check-google-desktop-config.ps1
       - name: Generate Windows icon from tower artwork
         shell: pwsh
         run: |

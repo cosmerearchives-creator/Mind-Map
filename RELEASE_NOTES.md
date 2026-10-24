@@ -1,3 +1,5 @@
+> AUTHENTICATION RELEASE BLOCKED: Google rejects this Desktop client without client_secret. Simulated OAuth tests are not real-provider validation. The build now fails its live configuration gate; sync reliability remains independently validated.
+
 # Large workspace sync and Windows Google sign-in
 
 - Fix Pending · Invalid string length from whole-history cloning, canonical hashing and aggregate asset serialization. Stream hashes and document parts; preserve existing v1/v2 datasets and checksums. No destructive migration or cloud deletion.

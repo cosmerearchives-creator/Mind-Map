@@ -1,3 +1,9 @@
+# Release blocker discovered in live Google validation
+
+On October 24, 2026 a deliberately invalid authorization-code exchange using the configured public Desktop client, loopback redirect and PKCE parameters returned HTTP 400 invalid_request: client_secret is missing. Google documentation labels this field optional, but this actual client requires it. The no-secret native implementation passes simulated tests but is NOT validated against real Google. The preview workflow was cancelled before publication and now includes tests/check-google-desktop-config.ps1 as a blocking live configuration gate. Do not promote this authentication phase until the conflict is resolved.
+
+Options: retain the strict no-secret-in-client requirement using an owner-hosted token-exchange/refresh service, or obtain explicit owner authorization to distribute the installed-app client value Google calls client_secret as public configuration. Never substitute a confidential web/server credential. The sync repair is independently validated and can ship separately with the previous authentication behavior.
+
 # Windows Google authorization
 
 The installer ships windows/google-oauth-client.json containing only the public Desktop OAuth ID 854143772698-9naba6nl7itjhinav1abu32kbnrd0kj1.apps.googleusercontent.com. The client is Silverlight Archives Windows in project silverlight-512321, shared with Android. No client secret is shipped or sent. Existing installed configuration is read only as a fallback; no config, dataset, local workspace or old cloud copy is migrated/deleted. A cached refresh credential is used only with its matching client ID.
