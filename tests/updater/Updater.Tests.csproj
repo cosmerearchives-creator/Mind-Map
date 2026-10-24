@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
-  <ItemGroup><Compile Include="../../windows/UpdateFiles.cs" Link="UpdateFiles.cs" /><Compile Include="../../windows/ClipboardFormats.cs" Link="ClipboardFormats.cs" /><Compile Include="../../windows/MilanoteMedia.cs" Link="MilanoteMedia.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../windows/UpdateFiles.cs" Link="UpdateFiles.cs" /><Compile Include="../../windows/ClipboardFormats.cs" Link="ClipboardFormats.cs" /><Compile Include="../../windows/MilanoteMedia.cs" Link="MilanoteMedia.cs" /><Compile Include="../../windows/WebPreview.cs" Link="WebPreview.cs" /></ItemGroup>
 </Project>

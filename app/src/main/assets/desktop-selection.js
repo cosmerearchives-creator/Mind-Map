@@ -1,15 +1,15 @@
 window.installDesktopSelection=function(app){
- 'use strict';let selected=new Set(),active=null,drag=null,lastBlank=0,localCopy=null,desktopUsed=false;
+ 'use strict';let selected=new Set(),active=null,drag=null,lastBlank=0,localCopy=null,desktopUsed=false,suppressClick=false;
  const canvas=()=>document.querySelector('#canvas'),editing=e=>!!document.querySelector('#modalRoot').firstChild||e.target.closest?.('input,textarea,select,[contenteditable="true"]');
  function sync(){if(active!==app.board()?.id){active=app.board()?.id;selected.clear()}selected=new Set([...selected].filter(id=>app.card?app.card(id):app.board()?.cards.some(c=>c.id===id)));for(const el of document.querySelectorAll('[data-card]')){el.classList.toggle('multiSelected',selected.has(el.dataset.card));if(desktopUsed)el.classList.toggle('selected',selected.has(el.dataset.card));if(el.getAttribute('aria-selected')!==String(selected.has(el.dataset.card)))el.setAttribute('aria-selected',String(selected.has(el.dataset.card)))}const hint=document.querySelector('#canvas .hint');if(hint&&(desktopUsed||matchMedia('(pointer:fine)').matches))hint.firstChild.textContent='Middle mouse: pan · Left drag: select · Shift-click: add/remove · Drag selection: move';}
  function stop(e){e.preventDefault();e.stopImmediatePropagation()}
  function point(e){const r=canvas().getBoundingClientRect(),v=app.view();return {x:(e.clientX-r.left-v.x)/v.scale,y:(e.clientY-r.top-v.y)/v.scale}}
  document.addEventListener('pointerdown',e=>{
-  if(e.pointerType!=='mouse'){desktopUsed=false;return}desktopUsed=true;
+  const touchGroup=e.pointerType!=='mouse'&&selected.size>1&&selected.has(e.target.closest('[data-card]')?.dataset.card);if(e.pointerType!=='mouse'&&!touchGroup){desktopUsed=false;return}desktopUsed=true;
   if(!canvas()||!e.target.closest('#canvas')||app.busy()||editing(e))return;
   sync();if(!e.target.closest('.tagToolbar')){const popup=document.querySelector('#boardActionsMenu');if(popup)popup.hidden=true;document.querySelector('#boardActionsToggle')?.setAttribute('aria-expanded','false')}
   if(e.button===1){stop(e);canvas().setPointerCapture(e.pointerId);drag={kind:'pan',id:e.pointerId,x:e.clientX,y:e.clientY,v:{...app.view()}};return}
-  if(e.button!==0||e.target.closest('button,a,.wireHit,.wireLabel,[data-junction]'))return;
+  if(e.button!==0||e.target.closest('button:not(.nestedFullButton),.wireHit,.wireLabel,[data-junction]'))return;if(e.target.closest('a')&&!selected.has(e.target.closest('[data-card]')?.dataset.card))return;
   const el=e.target.closest('[data-card]');
   if(el){const id=el.dataset.card;if(e.shiftKey){stop(e);selected.has(id)?selected.delete(id):selected.add(id);sync();return}
    if(!selected.has(id)){selected=new Set([id]);sync();return}
@@ -31,15 +31,16 @@ window.installDesktopSelection=function(app){
  },true);
  function end(e){if(!drag||drag.id!==e.pointerId)return;stop(e);const g=drag;drag=null;document.querySelector('#selectionBox')?.remove();
   if(e.type==='pointercancel'){if(g.kind==='move'&&g.moved){app.board().cards=g.before;app.board().junctions=g.beforeJunctions;app.dragging(null);app.draw()}sync();return}
-  if(g.kind==='move'&&g.moved){const roots=[...selected].filter(id=>{let c=app.board().cards.find(c=>c.id===id),seen=new Set();while(c?.collectionId&&!seen.has(c.collectionId)){if(selected.has(c.collectionId))return false;seen.add(c.collectionId);c=app.board().cards.find(x=>x.id===c.collectionId)}return true});for(const id of roots){const c=app.board().cards.find(c=>c.id===id);app.drop(c,g)}app.dragging(null);app.commit();app.draw()}
+  if(g.kind==='move'&&g.moved){suppressClick=true;setTimeout(()=>suppressClick=false,400);const roots=[...selected].filter(id=>{let c=app.board().cards.find(c=>c.id===id),seen=new Set();while(c?.collectionId&&!seen.has(c.collectionId)){if(selected.has(c.collectionId))return false;seen.add(c.collectionId);c=app.board().cards.find(x=>x.id===c.collectionId)}return true});if(app.dropMany)app.dropMany(roots.map(id=>app.card(id)),g);else for(const id of roots){const c=app.board().cards.find(c=>c.id===id);app.drop(c,g)}app.dragging(null);app.commit();app.draw()}
   if(g.kind==='pan')app.persist();
   if(g.kind==='box'&&Math.hypot(e.clientX-g.x,e.clientY-g.y)<4){const now=Date.now();if(now-lastBlank<350){app.create(e.clientX,e.clientY);lastBlank=0}else lastBlank=now}
   sync();
  }
+ document.addEventListener('click',e=>{if(e.shiftKey&&e.target.closest('#canvas [data-card]')){stop(e);return}if(suppressClick){suppressClick=false;if(e.target.closest('#canvas [data-card]'))stop(e)}},true);
  document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);
  document.addEventListener('auxclick',e=>{if(e.button===1&&e.target.closest('#canvas'))e.preventDefault()});
  async function copy(e){if(editing(e)||!canvas()||!selected.size)return;stop(e);try{localCopy=SelectionCore.make(app.board(),selected,app.boards());const bundle=await SilverlightTasks.run('pack',localCopy);const text=JSON.stringify(Object.keys(bundle.assets).length?bundle:localCopy);if(new TextEncoder().encode(text).length>64*1024*1024)throw Error('Selection exceeds 64 MB.');if(window.SilverlightClipboard?.canWrite)await app.clipboard('write',null,null,text);else if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);else throw Error('Clipboard is unavailable.')}catch(error){alert(error.message)}}
- document.addEventListener('keydown',e=>{if(editing(e)||!canvas())return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='c'){copy(e)}if(e.key==='Delete'&&!e.repeat&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!app.busy()&&!drag&&selected.size){stop(e);const ids=new Set(selected),b=app.board();app.mutate(()=>{b.cards=b.cards.filter(c=>!ids.has(c.id));for(const c of b.cards)if(ids.has(c.collectionId)){delete c.collectionId;c.collectionHidden=false}b.connections=(b.connections||[]).filter(e=>!ids.has(e.from)&&!ids.has(e.to));b.importPendingLinks=(b.importPendingLinks||[]).filter(e=>!ids.has(e.from)&&!ids.has(e.to));for(const id of ids)if(b.junctions)delete b.junctions[id];b.updated=Date.now()});selected.clear();sync()}if(e.key==='Escape'){selected.clear();sync()}},true);
+ document.addEventListener('keydown',e=>{if(editing(e)||!canvas())return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='c'){copy(e)}if(e.key==='Delete'&&!e.repeat&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!app.busy()&&!drag&&selected.size){stop(e);const ids=new Set(selected),b=app.board();if(app.deleteOwned?.(ids))return;app.mutate(()=>{b.cards=b.cards.filter(c=>!ids.has(c.id));for(const c of b.cards)if(ids.has(c.collectionId)){delete c.collectionId;c.collectionHidden=false}b.connections=(b.connections||[]).filter(e=>!ids.has(e.from)&&!ids.has(e.to));b.importPendingLinks=(b.importPendingLinks||[]).filter(e=>!ids.has(e.from)&&!ids.has(e.to));for(const id of ids)if(b.junctions)delete b.junctions[id];b.updated=Date.now()});selected.clear();sync()}if(e.key==='Escape'){selected.clear();sync()}},true);
  document.addEventListener('copy',e=>{if(editing(e)||!canvas()||!selected.size)return;copy(e)},true);
  document.addEventListener('paste',async e=>{
   if(editing(e)||!canvas())return;const raw=e.clipboardData?.getData(SelectionCore.MIME)||e.clipboardData?.getData('text/plain');if(!raw?.includes('silverlight-selection-v1'))return;
@@ -50,5 +51,5 @@ window.installDesktopSelection=function(app){
   }catch(error){alert('Selection paste failed: '+error.message)}
  },true);
  const css=document.createElement('style');css.textContent='.transparentSticky{background:transparent!important;border-color:transparent;box-shadow:none}.clipboardSticky .richBody h1{font-size:22px;line-height:1.2;margin:0 0 .4em}.clipboardSticky .richBody h2{font-size:20px;line-height:1.2;margin:0 0 .4em}.clipboardSticky .richBody h3{font-size:18px;line-height:1.2;margin:0 0 .4em}.note.multiSelected{outline:2px solid #796b96;outline-offset:2px}.selectionBox{position:absolute;border:1px solid #796b96;background:#796b9622;pointer-events:none;z-index:10000}.importedSticky .noteBody,.importedSticky .nestedFullButton{color:inherit}.importedSticky .noteTitle{color:inherit}';document.head.append(css);
- return {sync,ids:()=>[...selected]};
+ return {sync,ids:()=>[...selected],movingClick:()=>suppressClick};
 };

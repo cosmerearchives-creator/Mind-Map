@@ -1,9 +1,9 @@
-# Silverlight Archives — storage-aware workspaces
+# Silverlight Archives — link previews, group movement and nested Board fixes
 
-- Remove the fixed 256 MiB total workspace/import cap. Paste and import check estimated device storage; low-space warnings explain when storage is getting tight. Atomic saves remain authoritative if quota estimates are unavailable or change.
-- Open saved Board models on demand and release previously opened models during navigation. The home screen uses lightweight summaries.
-- Load original images from IndexedDB when needed with a bounded original-image cache. Backups, copying and sync include unopened Boards and preserve original image bytes and transparency.
-- Accept multipart cloud workspaces larger than 256 MiB. Older snapshot checksums remain compatible; large snapshots use content-addressed checksums. Update both devices before syncing workspaces above the previous limit.
-- Keep single-selection clipboard, individual image and individual native network-request safeguards. These are separate from total workspace size.
+- Pasting a web address on the canvas creates a Library link card with a downloaded thumbnail, site icon/name and clickable page title when metadata is available. Video previews include a play indicator; links open through the system browser. Saved previews work offline. Unavailable metadata leaves a usable link.
+- Dragging a mixed selection from card or linked content moves the group together, including Collection descendants. Collection drops are applied as a batch; drag completion does not open a clicked shortcut or link. Undo restores the group.
+- Milanote shortcuts without a matching destination create blank nested Boards without placeholder messages. Repeated references share the same destination; valid shortcuts remain shortcuts. Images/icons, membership and connections are retained where available.
+- Deleting an owned nested-board Sticky now confirms deletion of its destination Board and, by default, owned descendants. Keyboard multi-selection uses the same behavior. Cancel and Undo preserve/restore contents; shortcut deletion leaves its destination intact. Previously orphaned Boards are retained for manual review.
+- Home-screen bulk selection preserves scroll position as Boards are selected or deselected.
 
-Validated with an actual 272 MiB unique-image workspace and lossless simulated multipart upload/download; on-demand loading, quota rejection/rollback, full backups, migration, editing, clipboard and two-device sync regressions passed. Device memory, available storage and large export/sync operations still impose practical limits. Physical Android behavior and real signed-in Drive transport remain unverified.
+Validation includes isolated browser checks for previews/fallback/reload, mixed group movement/Undo, nested deletion/Cancel/Undo, bulk selection scrolling, imports, storage and sync. Native release builds validate both integrations. Actual website metadata availability and physical Android behavior vary and require device testing.

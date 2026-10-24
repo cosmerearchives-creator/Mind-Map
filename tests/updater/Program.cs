@@ -1,5 +1,7 @@
 using Silverlight.Windows;
 
+foreach(var address in new[]{"127.0.0.1","10.0.0.1","192.168.1.2","169.254.169.254","100.100.100.200","::1","fc00::1","::ffff:127.0.0.1"})if(WebPreview.PublicAddress(System.Net.IPAddress.Parse(address)))throw new Exception("Private preview address accepted.");
+if(!WebPreview.PublicAddress(System.Net.IPAddress.Parse("8.8.8.8")))throw new Exception("Public preview address rejected.");
 ClipboardTests.Run();
 await MediaTests.Run();
 

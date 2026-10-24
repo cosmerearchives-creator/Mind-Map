@@ -17,6 +17,7 @@ final class ClipboardBridge {
     static void read(Activity activity, String message, JavaScriptReplyProxy proxy) {
         final JSONObject request;
         try { request = new JSONObject(message); } catch (Exception ignored) { return; }
+        if ("preview".equals(request.optString("op"))||"previewImage".equals(request.optString("op"))) { WebPreview.read(request, proxy); return; }
         if ("media".equals(request.optString("op"))) { MilanoteMedia.read(request, proxy); return; }
         if (!"read".equals(request.optString("op"))) return;
         final String id = request.optString("id");
