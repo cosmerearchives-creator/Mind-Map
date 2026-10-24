@@ -1,4 +1,17 @@
-# Silverlight Archives — selection, navigation and duplicate Board review
+# Silverlight Archives — image regions and freeform home
+
+- Image Stickies support clickable regions. Edit an image and choose **Clickable image regions**, draw a preset shape or freeform outline, then use the standard Sticky creation menu with Nested Board enabled by default. Borders start hidden; show an outline, redraw, edit the linked Sticky or detach it onto the canvas from the region manager.
+- Regions follow image scaling and offsets, are cropped by the image frame, survive saving/sync and copy with their image. Nested targets open their Board; other targets open their editor. Removing an image preserves region targets as ordinary canvas Stickies, with Undo restoring the image and regions.
+- The home screen retains project previews, search, imports, New board and bulk selection while allowing project tiles to be dragged into a saved freeform layout. Alt plus arrow keys also moves a focused tile. It remains a project landing page, without Sticky editing or connections.
+- Tabs are shorter with the close button to the left of the title.
+- Scroll pans vertically, Shift-scroll horizontally, Ctrl-scroll zooms around the pointer. Horizontal trackpad deltas are respected; editor/menu scrolling stays normal. Zoom-out now reaches 5% instead of 25%.
+- Auto-arrange connected cards places separate groups in a compact, approximately square layout with generous spacing and actual Sticky dimensions. Collections retain their contents; manual junction positions reset to automatic routing after arrangement.
+- New Sticky titles start blank. Existing titles remain unchanged. Shortcuts retain the selected destination's name.
+- Introduction Boards use Silverlight Archives branding and current tips. Recognized legacy starter text is refreshed once while preserving user-edited tips.
+
+This update adds shared model tests and browser checks for shapes/freeform/copy/navigation/redraw/scaling/deletion/Undo/reload, home drag/reload, tab and wheel controls. Existing selection/navigation/bulk deletion scroll and 3,000-card performance checks pass. Physical Android touch and Windows installation interactions remain device checks.
+
+## Previous release
 
 - Ctrl+A on the canvas selects every Sticky on the current Board, including offscreen and Collection members, for group copy, deletion and movement. Text editors retain normal select-all. Non-editable app text is unselectable.
 - Connection + handles appear only on selected Stickies, including multi-selections.
