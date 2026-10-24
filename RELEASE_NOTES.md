@@ -1,4 +1,13 @@
-# Silverlight Archives — scoped controls, cut/paste and precise image regions
+# Silverlight Archives — live Google Drive sync
+
+- Saved changes synchronize between open devices through the existing Google Drive workspace. Enabled automatic sync upgrades to the faster schedule automatically. New devices use cloud → Enable live sync, then Join workspace with the same Google account.
+- Local saved edits request a send after about 600 ms; remote checks run about every 2.5 seconds. An edit cannot indefinitely postpone its send, and transfers never overlap. Actual delivery time depends on the network, Drive and transfer size.
+- Idle polls skip workspace processing and uploads. Workspace/time-filtered Drive queries reduce listing overhead; overlap and periodic full scans recover late-visible snapshots.
+- Editors, drawing and dragging remain protected from incoming changes. Explicit conflict-review actions still apply normally. Offline edits, restart, deletion tombstones, safe conflict copies and atomic recovery are retained. Hidden/closed apps catch up when reopened; this does not add a background service or per-keystroke shared editing.
+
+Validation: production-timer simulated-Drive two-device latency, idle-work/upload suppression, draft-safe delivery, late-file repair, bounded scheduling, single-flight transfers, existing offline/conflict/restart/storage-failure/account checks, and shared snapshot/import/selection suites. Native builds compile both Drive filters. Real Google Drive latency on physical Windows/Android devices remains a device check.
+
+## Previous release — scoped controls, cut/paste and precise image regions
 
 - Ctrl+wheel over a Board canvas, the home canvas or the image-region viewport affects only that surface. Over headers and controls it changes UI scale. Windows disables WebView2's automatic Ctrl+wheel zoom and applies UI scaling explicitly.
 - The home page has a clipped pan/zoom viewport without horizontal or vertical scrollbars. Drag empty space to pan; project controls remain fixed. Fit projects and Reset view make offscreen projects reachable, and bulk selection retains the current view.

@@ -1,18 +1,21 @@
-# Automatic Google Drive sync
+# Live Google Drive sync
 
-Implemented while Silverlight is open. The owner confirmed manual transfers and automatic syncing on Windows and Android before stable promotion.
+Live sync uses the existing Google Drive account, automatic workspace and conflict-safe snapshot protocol. It runs while Silverlight is open and visible. Existing enabled automatic sync upgrades to the faster schedule without making a new workspace. This is polling-based saved-edit synchronization, not a shared-cursor or per-keystroke collaboration service.
 
 ## Setup and first test
 1. Export independent backups; install the stable release over each existing app. Do not uninstall or clear app data.
-2. On Windows choose cloud → **Enable automatic sync**, complete Google consent, confirm Enable and wait for **Synced**.
-3. On Android enable automatic sync with the same Google account and choose **Join workspace** for the workspace Windows just created. Enable sequentially; creating two separate automatic workspaces will not combine those groups.
+2. On Windows choose cloud → **Enable live sync**, complete Google consent, confirm Enable and wait for **Synced**.
+3. On Android enable live sync with the same Google account and choose **Join workspace** for the workspace Windows just created. Enable sequentially; creating two separate workspaces will not combine those groups. Update both devices for the faster polling schedule.
 4. Keep both apps open. Change one BOARD; the other device should receive it without Upload/Restore. Incoming updates wait while editing dialogs or gestures are active.
 5. For conflict testing, edit the same BOARD differently while both devices are offline, then reconnect. Open **Review conflicts** when Needs attention appears. Every resolution preserves alternative content as separate conflict-copy BOARDS.
 
 No new Google client/scopes are required. Windows reuses the existing Desktop OAuth JSON and may request consent once to retain an encrypted refresh credential. Existing automatic-sync settings and OAuth configuration remain in place when updating over the preview. Stable releases are offered by the normal update checks.
 
 ## Behavior and data protection
-- Local saves debounce sync; open apps poll roughly every 15 seconds and retry on focus, Android resume, restart and internet return. Status includes Synced, Pending, Offline, Needs sign-in, Needs attention and Last synced. Pause and Sync now are available.
+- Saved edits request a sync after about 600 ms; further edits cannot postpone that deadline indefinitely. Visible apps check Drive about every 2.5 seconds. Transfers never overlap; edits during a transfer queue another pass. Delivery time includes network, Drive visibility and transfer size, so a few seconds is a target, not a guarantee. Focus, Android resume, restart and internet return request immediate checks. Hidden apps stop scheduling polls and catch up on return.
+- Idle checks list metadata without re-capturing, merging, hashing, writing or uploading the workspace when no local or remote changes exist. Poll queries are restricted to the selected workspace and automatic snapshots. Recent checks overlap by two minutes; a complete workspace scan every minute and on focus/start repairs late file visibility. The cursor is only an optimization: it never decides edit causality or discards a snapshot. Native query arguments are validated before building Drive filters. Multipart asset/recovery listing remains complete.
+- Status includes Synced/Live, Pending, Offline, Needs sign-in, Needs attention and Last synced. Pause and Sync now are available. Errors use exponential backoff rather than fast polling; background sync never opens consent UI.
+- Incoming changes wait while an editor, drawing session or drag is active. The apply boundary checks this again after asynchronous processing, protecting open drafts. Explicit conflict-review actions are allowed to apply their chosen resolution. Unconfirmed editor text is not sent; saving/finishing commits it for sync.
 - Different BOARDS and compatible STICKY/property edits within one BOARD combine. Separate additions, independent STICKY edits, and movement plus text edits merge without a prompt. Contradictory properties or deletion-versus-edit retain competing BOARD versions for review. Timestamps never silently select a winner.
 - Persistent deletion tombstones prevent stale devices from resurrecting deleted BOARDS. BOARD/STICKY IDs, images, connections, nested links, tags, Collections and BOARD appearance are preserved. Tabs, views and favorite-color preferences stay local.
 - Manual copies/recovery remain available; manual restore pauses automatic sync. Resume explicitly confirms propagation of changes made while paused, including deletions.
@@ -24,9 +27,9 @@ No new Google client/scopes are required. Windows reuses the existing Desktop OA
 
 ## Limits
 - Both devices must run a release supporting automatic sync. No closed-app/background service. Update both devices for within-BOARD STICKY/property merging. Conflicting properties still use the existing BOARD-version review and safe-copy resolution.
-- Full immutable snapshots and conflict history count toward the 64 MB transfer limit and consume Drive space. Automatic pruning and asset deduplication remain future work; listing stops safely at 10,000 snapshots.
+- Immutable snapshots and conflict history consume Drive space. Large transfers use existing checksummed multipart parts and asset reuse, with limits from part count, device memory and available storage. Automatic snapshot pruning is not implemented; listing stops safely at 10,000 matching files. Live sync does not upload on an unchanged poll.
 - A linked BOARD deleted concurrently with changes to its references requires attention. Keep the linked BOARD or remove its references; sync never silently drops those links.
 - Owner confirmation covers working syncing; long-running token renewal/revocation and every interruption scenario have not been independently verified on physical devices. Google may require renewed consent while the OAuth project is in Testing.
 - Additional PDF/ebook import improvements remain unimplemented.
 
-Automated validation: snapshot integrity, tombstones, concurrent edits/deletions, continued edits during conflicts, reference protection, safe resolution and 80 delivery orders; two-browser-device offline/reconnect, conflict restart, storage rollback/retry, network retry, account switching and raw images; manual transfer and Sticky movement regressions.
+Automated validation: snapshot integrity, tombstones, concurrent edits/deletions, continued edits during conflicts, reference protection, safe resolution and 80 delivery orders; two-browser-device offline/reconnect, conflict restart, storage rollback/retry, network retry, account switching and raw images; manual transfer and Sticky movement regressions. The live test uses production timers with a simulated Drive server to measure both directions, asserts zero idle snapshot work/uploads, preserves an active draft, and advances the repair clock to recover a file outside the incremental cursor. Physical-device Google Drive latency has not been measured by this test.

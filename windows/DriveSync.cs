@@ -49,6 +49,16 @@ internal sealed class DriveSync : IDisposable
                 string page = request.TryGetProperty("pageToken", out var p) ? p.GetString() ?? "" : "";
                 if (page.Length == 0) listed.Clear();
                 var query = "trashed = false and appProperties has { key='silverlightSnapshot' and value='1' }";
+                if (request.TryGetProperty("dataset", out var datasetElement)) {
+                    var dataset = datasetElement.GetString() ?? "";
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(dataset, @"\A[A-Za-z0-9_-]{1,300}\z")) throw new InvalidOperationException("Invalid sync workspace ID.");
+                    query += " and appProperties has { key='protocol' and value='auto-v1' } and appProperties has { key='dataset' and value='" + dataset + "' }";
+                    if (request.TryGetProperty("after", out var afterElement)) {
+                        var after = afterElement.GetString() ?? "";
+                        if (!System.Text.RegularExpressions.Regex.IsMatch(after, @"\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\z") || !DateTimeOffset.TryParse(after, out _)) throw new InvalidOperationException("Invalid sync poll cursor.");
+                        query += " and createdTime >= '" + after + "'";
+                    }
+                }
                 var result = JsonNode.Parse(await SendAsync(HttpMethod.Get, Api + "?spaces=appDataFolder&pageSize=100&fields=" + Uri.EscapeDataString("files(id,name,createdTime,appProperties),nextPageToken") + "&q=" + Uri.EscapeDataString(query) + (page.Length == 0 ? "" : "&pageToken=" + Uri.EscapeDataString(page))))!.AsObject();
                 result["files"] ??= new JsonArray();
                 foreach (var file in result["files"]!.AsArray()) listed.Add(file!["id"]!.GetValue<string>());

@@ -82,6 +82,16 @@ final class DriveSync {
                     String page = request.optString("pageToken");
                     if (page.isEmpty()) listed.clear();
                     String query = "trashed = false and appProperties has { key='silverlightSnapshot' and value='1' }";
+                    if (request.has("dataset")) {
+                        String dataset = request.getString("dataset");
+                        if (!dataset.matches("[A-Za-z0-9_-]{1,300}")) throw new Exception("Invalid sync workspace ID.");
+                        query += " and appProperties has { key='protocol' and value='auto-v1' } and appProperties has { key='dataset' and value='" + dataset + "' }";
+                        if (request.has("after")) {
+                            String after = request.getString("after");
+                            if (!after.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z")) throw new Exception("Invalid sync poll cursor.");
+                            query += " and createdTime >= '" + after + "'";
+                        }
+                    }
                     result = new JSONObject(call("GET", API + "?spaces=appDataFolder&pageSize=100&fields=" + enc("files(id,name,createdTime,appProperties),nextPageToken") + "&q=" + enc(query) + (page.isEmpty()?"":"&pageToken="+enc(page)), null, null));
                     JSONArray files = result.optJSONArray("files");
                     if (files == null) { files = new JSONArray(); result.put("files",files); }
