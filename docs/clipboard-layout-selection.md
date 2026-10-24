@@ -37,3 +37,5 @@ Unattached Milanote LINE objects are rasterized with transparent padding into ra
 Additional regression: node tests/board-bulk-and-clipboard-visuals.cjs.
 
 Update: missing Milanote shortcut destinations become blank owned nested Boards; repeated aliases share a destination. Group dragging handles linked content and applies Collection drops together. Owned nested Sticky deletion confirms actual destination/subtree removal, while shortcut deletion only removes the reference. Home bulk selection retains its scroll position.
+
+Collection image recovery also retries https://app.milanote.com/media/p/images/... failures using the matching https://media.milanote.com/p/images/... URL. Paths and query parameters are preserved; credentials/cookies are not copied and no arbitrary redirect is followed. The original image bytes are validated and retained. Test: collection-image-cdn.cjs.

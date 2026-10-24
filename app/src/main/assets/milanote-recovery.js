@@ -1,6 +1,6 @@
 /* Browser-only recovery of visible Collection members and portable media. */
 (function(root){'use strict';
-const allowedMedia=url=>{try{const u=new URL(url);return u.protocol==='https:'&&!u.username&&!u.password&&(!u.port||u.port==='443')&&((u.hostname==='app.milanote.com'&&u.pathname.startsWith('/media/p/'))||(u.hostname==='media.milanote.com'&&u.pathname.startsWith('/p/resized/')))}catch{return false}};
+const allowedMedia=url=>{try{const u=new URL(url);return u.protocol==='https:'&&!u.username&&!u.password&&(!u.port||u.port==='443')&&((u.hostname==='app.milanote.com'&&u.pathname.startsWith('/media/p/'))||(u.hostname==='media.milanote.com'&&(u.pathname.startsWith('/p/resized/')||u.pathname.startsWith('/p/images/'))))}catch{return false}};
 function safeSVG(source){
  const doc=new DOMParser().parseFromString(source,'image/svg+xml');if(doc.querySelector('parsererror')||doc.documentElement.localName!=='svg')throw Error('Invalid drawing SVG.');
  const tags=new Set(['svg','g','path','rect','circle','ellipse','line','polyline','polygon','text','tspan']);
@@ -40,9 +40,12 @@ async function prepare(payload,request,progress=()=>{},cancelled=()=>false){
  async function image(url){
   if(!allowedMedia(url))throw Error('Image reference is unavailable or outside Milanote public media.');
   if(cache.has(url))return cache.get(url);
-  const job=(async()=>{let data;if(request){const items=await request('media',null,url);data=items[0];if(!data?.base64)throw Error('Image was not returned.');data='data:'+data.type+';base64,'+data.base64}else{const r=await fetch(url,{credentials:'omit',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('Image download failed.');const blob=await r.blob();if(blob.size>8*1024*1024)throw Error('Image exceeds 8 MB.');data=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(blob)})}
-   total+=data.length;if(total>128*1024*1024)throw Error('Copied images exceed the paste memory limit.');const im=new Image();im.src=data;await im.decode();if(im.naturalWidth<2||im.naturalHeight<2||im.naturalWidth*im.naturalHeight>64*1024*1024)throw Error('Image dimensions are unsupported.');return data})();cache.set(url,job);return job;
+  const job=(async()=>{const candidates=[url],original=new URL(url);if(original.hostname==='app.milanote.com'&&/^\/media\/p\/(images|resized)\//.test(original.pathname)){const cdn=new URL(original);cdn.hostname='media.milanote.com';cdn.pathname=cdn.pathname.replace(/^\/media/,'');candidates.push(cdn.href)}let failure;
+   for(const address of candidates){if(cancelled())throw Error('Paste cancelled.');try{let data;if(request){const items=await request('media',null,address);data=items[0];if(!data?.base64)throw Error('Image was not returned.');data='data:'+data.type+';base64,'+data.base64}else{const r=await fetch(address,{credentials:'omit',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('Image download failed.');const blob=await r.blob();if(blob.size>8*1024*1024)throw Error('Image exceeds 8 MB.');data=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(blob)})}
+    const im=new Image();im.src=data;await im.decode();if(im.naturalWidth<2||im.naturalHeight<2||im.naturalWidth*im.naturalHeight>64*1024*1024)throw Error('Image dimensions are unsupported.');if(total+data.length>128*1024*1024)throw Error('Copied images exceed the paste memory limit.');total+=data.length;return data;
+   }catch(error){failure=error}}throw failure||Error('Original image is unavailable.');})();cache.set(url,job);return job;
  }
+
  for(let i=0;i<payload.elements.length;i++){
   if(cancelled())throw Error('Paste cancelled.');const e=payload.elements[i],c=e.content||{};progress('Recovering item '+(i+1)+' / '+payload.elements.length);
   try{

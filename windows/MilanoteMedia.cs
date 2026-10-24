@@ -2,7 +2,7 @@ using System.Net.Http;
 namespace Silverlight.Windows;
 internal static class MilanoteMedia
 {
-    public static bool Allowed(string? value, out Uri? uri) => Uri.TryCreate(value, UriKind.Absolute, out uri) && uri.Scheme == "https" && uri.IsDefaultPort && uri.UserInfo.Length == 0 && ((uri.Host == "app.milanote.com" && uri.AbsolutePath.StartsWith("/media/p/")) || (uri.Host == "media.milanote.com" && uri.AbsolutePath.StartsWith("/p/resized/")));
+    public static bool Allowed(string? value, out Uri? uri) => Uri.TryCreate(value, UriKind.Absolute, out uri) && uri.Scheme == "https" && uri.IsDefaultPort && uri.UserInfo.Length == 0 && ((uri.Host == "app.milanote.com" && uri.AbsolutePath.StartsWith("/media/p/")) || (uri.Host == "media.milanote.com" && (uri.AbsolutePath.StartsWith("/p/resized/") || uri.AbsolutePath.StartsWith("/p/images/"))));
     public static async Task<(string Type, byte[] Bytes)> FetchAsync(string? value, HttpMessageHandler? transport = null)
     {
         if (!Allowed(value, out var uri)) throw new InvalidOperationException("Unsupported Milanote media address.");
