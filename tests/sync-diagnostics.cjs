@@ -1,0 +1,8 @@
+const assert=require('node:assert/strict'),D=require('../app/src/main/assets/sync-diagnostics.js');
+let time=0,saved='',renders=0;const storage={getItem:()=>saved,setItem:(_,v)=>saved=v},d=D.create({now:()=>time,wall:()=>1700000000000+time,storage,render:()=>renders++});
+d.begin();d.stage('images',{completed:2,secret:'TOKEN-CANARY',title:'BOARD-CANARY'});time=61000;d.tick();assert.equal(d.snapshot().stalled,true);assert.ok(d.report().events.some(e=>e.event==='stall'));
+d.stage('images',{completed:3});assert.equal(d.snapshot().stalled,false);assert.equal(d.snapshot().stageMs,61000,'advancement does not reset stage duration');
+d.stage('uploading',{completed:2,total:5,reused:1});assert.equal(d.snapshot().completed,2);time+=1000;d.finish('retry',new Error('HTTP 503 TOKEN-CANARY BOARD-CANARY'),3000);assert.equal(d.snapshot().retryMs,3000);assert.equal(d.report().events.at(-1).error,'network');assert.equal(d.snapshot().active,false);assert.ok(!JSON.stringify(d.report()).includes('CANARY'));
+for(let i=0;i<200;i++){d.begin();d.stage('hash');d.finish()}assert.ok(d.report().events.length<=256);assert.ok(saved.length<65000);assert.ok(renders>0);
+const restarted=D.create({now:()=>time,storage});assert.ok(restarted.report().events.length>0);const hostile=D.create({storage:{getItem:()=>JSON.stringify([{stage:'hash',title:'BOARD-CANARY',error:'TOKEN-CANARY',at:1}]),setItem:()=>{throw Error('quota')}},render:()=>{throw Error('UI failure')}});hostile.begin();hostile.stage('hash');hostile.finish();assert.ok(!JSON.stringify(hostile.report()).includes('CANARY'));
+console.log('PASS: stage timing, one-minute stall notice, real advancement, retry countdown, bounded persisted diagnostics, allowlisted privacy and storage/UI failure isolation.');

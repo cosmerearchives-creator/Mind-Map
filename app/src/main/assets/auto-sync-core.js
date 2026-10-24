@@ -2,10 +2,11 @@
 (function(root){
 'use strict';
 const core=typeof module!=='undefined'?require('./sync-core.js'):root.SilverlightSync;
-const FORMAT='silverlight-auto-v1',copy=x=>JSON.parse(JSON.stringify(x));
+const FORMAT='silverlight-auto-v1',copy=x=>(typeof module!=='undefined'?require('./assets-core.js'):root.SilverlightAssets).clone(x);
 function semantic(b){if(b===null)return null;const value=copy(b);delete value.updated;for(const c of value.cards||[])delete c.collectionHidden;value.cards=(value.cards||[]).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);value.connections=(value.connections||[]).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);value.junctions=value.junctions||{};return value}
 const compare=(a,b)=>a<b?-1:a>b?1:0;
-const same=(a,b)=>core.canonical(semantic(a))===core.canonical(semantic(b));
+function equal(a,b){if(a===b)return true;if(!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b))return false;const keys=Object.keys(a).filter(k=>a[k]!==undefined),other=Object.keys(b).filter(k=>b[k]!==undefined);return keys.length===other.length&&keys.every(k=>Object.hasOwn(b,k)&&equal(a[k],b[k]))}
+const same=(a,b)=>equal(semantic(a),semantic(b));
 function clockJoin(...clocks){const m=new Map();for(const c of clocks)for(const [id,n]of c||[])m.set(id,Math.max(n,m.get(id)||0));return [...m].sort(([a],[b])=>compare(a,b))}
 function dominates(a,b){const am=new Map(a);return b.every(([id,n])=>(am.get(id)||0)>=n)}
 function tick(clock,device){const m=new Map(clock);m.set(device,(m.get(device)||0)+1);return clockJoin([...m])}
@@ -17,7 +18,7 @@ function flatten(board){const out={};if(!board)return out;
  for(const group of ['cards','connections'])for(const entity of board[group]||[]){put([group,entity.id,'exists'],true);for(const [k,v]of Object.entries(entity))if(!['id','collectionHidden','x','y'].includes(k))put([group,entity.id,k],v);if(group==='cards')put([group,entity.id,'position'],{x:entity.x,y:entity.y});}
  for(const [k,v]of Object.entries(board.junctions||{}))put(['junctions',k],v);return out;
 }
-function cellJoin(...maps){const out={};for(const map of maps)for(const [key,values]of Object.entries(map||{})){let vals=[...(out[key]||[]),...copy(values)],live=[];for(const v of vals){if(live.some(o=>dominates(o.clock,v.clock)&&dominates(v.clock,o.clock)&&(o.present!==v.present||core.canonical(o.value)!==core.canonical(v.value))))throw Error('Conflicting property revision. Local data was kept.');if(live.some(o=>dominates(o.clock,v.clock)))continue;live=live.filter(o=>!dominates(v.clock,o.clock));live.push(v)}const groups=[];for(const v of live){const old=groups.find(o=>o.present===v.present&&core.canonical(o.value)===core.canonical(v.value));if(old)old.clock=clockJoin(old.clock,v.clock);else groups.push(v)}out[key]=groups.sort((a,b)=>compare(core.canonical(a.clock),core.canonical(b.clock)));}return out;}
+function cellJoin(...maps){const out={};for(const map of maps)for(const [key,values]of Object.entries(map||{})){let vals=[...(out[key]||[]),...copy(values)],live=[];for(const v of vals){if(live.some(o=>dominates(o.clock,v.clock)&&dominates(v.clock,o.clock)&&(o.present!==v.present||!equal(o.value,v.value))))throw Error('Conflicting property revision. Local data was kept.');if(live.some(o=>dominates(o.clock,v.clock)))continue;live=live.filter(o=>!dominates(v.clock,o.clock));live.push(v)}const groups=[];for(const v of live){const old=groups.find(o=>o.present===v.present&&equal(o.value,v.value));if(old)old.clock=clockJoin(old.clock,v.clock);else groups.push(v)}out[key]=groups.sort((a,b)=>compare(core.canonical(a.clock),core.canonical(b.clock)));}return out;}
 function cellsFor(board,clock){return Object.fromEntries(Object.entries(flatten(board)).map(([k,value])=>[k,[{clock,present:true,value}]]));}
 function materialize(versions){if(!versions.length||versions.some(v=>!v.board||!v.cells))return null;const cells=cellJoin(...versions.map(v=>v.cells));if(Object.values(cells).some(values=>values.length!==1))return null;
  const board={},entities={cards:new Map(),connections:new Map()},junctions={};
@@ -26,7 +27,7 @@ function materialize(versions){if(!versions.length||versions.some(v=>!v.board||!
  try{const refs=new Set(board.cards.filter(c=>c.kind==='nested').map(c=>c.boardId));core.workspace({boards:[board,...[...refs].filter(id=>id!==board.id).map(id=>({id,title:'Reference',cards:[]}))]})}catch{return null}return {board,cells,clock:clockJoin(...versions.map(v=>v.clock))};
 }
 function updateCells(versions,previous,board,clock){const projected=materialize(versions),matching=versions.find(v=>same(v.board,previous));let cells=copy(projected&&same(projected.board,previous)?projected.cells:matching?.cells||cellsFor(previous,matching?.clock||[]));const before=flatten(previous),after=flatten(board),changedEntities=new Set();
- for(const key of new Set([...Object.keys(before),...Object.keys(after)])){if(core.canonical(before[key])===core.canonical(after[key]))continue;const path=JSON.parse(key);if(path[0]==='cards'||path[0]==='connections')changedEntities.add(JSON.stringify(path.slice(0,2)));cells[key]=[{clock,present:Object.hasOwn(after,key),value:Object.hasOwn(after,key)?after[key]:null}];}
+ for(const key of new Set([...Object.keys(before),...Object.keys(after)])){if(equal(before[key],after[key]))continue;const path=JSON.parse(key);if(path[0]==='cards'||path[0]==='connections')changedEntities.add(JSON.stringify(path.slice(0,2)));cells[key]=[{clock,present:Object.hasOwn(after,key),value:Object.hasOwn(after,key)?after[key]:null}];}
  for(const entity of changedEntities){const path=JSON.parse(entity),key=JSON.stringify([...path,'exists']);cells[key]=[{clock,present:true,value:Object.hasOwn(after,key)}];}return cells;
 }
 function normalize(versions){
@@ -39,7 +40,7 @@ function normalize(versions){
   if(!consumed)result.push(v);
  }
  // Equal concurrent content is a safe join, not a user-facing conflict.
- const grouped=[];for(const v of result){const match=grouped.find(x=>same(x.board,v.board));if(match){match.clock=clockJoin(match.clock,v.clock);if(match.cells&&v.cells)match.cells=cellJoin(match.cells,v.cells);if(v.previous&&(!match.previous||core.canonical(v.previous)<core.canonical(match.previous)))match.previous=v.previous;}else grouped.push(v)}
+ const grouped=[];for(const v of result){const match=grouped.find(x=>same(x.board,v.board));if(match){match.clock=clockJoin(match.clock,v.clock);if(match.cells&&v.cells)match.cells=cellJoin(match.cells,v.cells);if(v.previous&&(!match.previous||core.compareCanonical(v.previous,match.previous)<0))match.previous=v.previous;}else grouped.push(v)}
  return grouped.sort((a,b)=>compare(core.canonical(a.clock),core.canonical(b.clock)));
 }
 function merge(a,b){const m=new Map();for(const record of [...a,...b])m.set(record.id,normalize([...(m.get(record.id)||[]),...record.versions]));return [...m].sort(([a],[b])=>compare(a,b)).map(([id,versions])=>({id,versions}))}

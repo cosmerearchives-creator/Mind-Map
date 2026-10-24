@@ -15,14 +15,24 @@ internal sealed class DriveSync : IDisposable
     private const int Limit = 256 * 1024 * 1024;
     private const string Api = "https://www.googleapis.com/drive/v3/files";
     private const string Scope = "https://www.googleapis.com/auth/drive.appdata";
-    private readonly HttpClient http = new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(3) };
+    private readonly HttpClient http;
+    private readonly Action<string> openBrowser;
+    private readonly string dataFolder;
+    private readonly string clientConfig;
+    internal DriveSync(HttpMessageHandler? transport = null, string? dataFolder = null, Action<string>? openBrowser = null, string? clientConfig = null)
+    {
+        http = new HttpClient(transport ?? new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(3) };
+        this.dataFolder = dataFolder ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Silverlight");
+        this.clientConfig = clientConfig ?? Path.Combine(AppContext.BaseDirectory, "google-oauth-client.json");
+        this.openBrowser = openBrowser ?? (url => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }));
+    }
     private readonly HashSet<string> listed = new();
     private readonly CancellationTokenSource lifetime = new();
     private string? token;
     private DateTime expires;
     private bool busy;
-    private static string DataFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Silverlight");
-    private static string RefreshFile => Path.Combine(DataFolder, "google-drive-session.bin");
+    private string DataFolder => dataFolder;
+    private string RefreshFile => Path.Combine(DataFolder, "google-drive-session.bin");
 
     public async Task<object> ExecuteAsync(JsonElement request, IWin32Window owner)
     {
@@ -31,7 +41,14 @@ internal sealed class DriveSync : IDisposable
         try
         {
             string op = request.GetProperty("op").GetString() ?? "";
-            if (op is not ("connect" or "session" or "list" or "upload" or "download")) throw new InvalidOperationException("Unsupported Drive operation.");
+            if (op is not ("disconnect" or "connect" or "session" or "list" or "upload" or "download")) throw new InvalidOperationException("Unsupported Drive operation.");
+            if (op == "disconnect") {
+                // Forget this machine only. Never revoke other devices or touch workspace storage.
+                if (File.Exists(RefreshFile)) File.Delete(RefreshFile);
+                if (File.Exists(RefreshFile + ".tmp")) File.Delete(RefreshFile + ".tmp");
+                token = null; expires = default; listed.Clear();
+                return new { connected = false };
+            }
             if (op == "connect") await AuthorizeAsync(owner);
             else if (token is null || DateTime.UtcNow >= expires) {
                 if (!await RefreshAsync()) {
@@ -114,22 +131,8 @@ internal sealed class DriveSync : IDisposable
     private static string Base64Url(byte[] bytes) => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     private async Task AuthorizeAsync(IWin32Window owner)
     {
-        var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Silverlight");
-        var config = Path.Combine(folder, "google-desktop-oauth.json");
-        if (!File.Exists(config))
-        {
-            MessageBox.Show(owner, "Select the OAuth JSON downloaded for a Desktop app client in the SAME Google Cloud project as Silverlight Android (silverlight-512321). In Google Cloud: Google Auth Platform → Clients → Create client → Desktop app → Download JSON. Your boards and passwords are not included in this file.", "Set up Windows Google Drive");
-            using var picker = new OpenFileDialog { Title = "Select Google Desktop app OAuth JSON", Filter = "Google OAuth JSON (*.json)|*.json" };
-            if (picker.ShowDialog(owner) != DialogResult.OK) throw new InvalidOperationException("Windows Google setup is waiting for its Desktop app OAuth JSON. Local BOARDS are unchanged.");
-            using var candidate = JsonDocument.Parse(await File.ReadAllTextAsync(picker.FileName));
-            ValidateClient(candidate.RootElement);
-            Directory.CreateDirectory(folder);
-            File.Copy(picker.FileName, config, false);
-        }
-        using var settings = JsonDocument.Parse(await File.ReadAllTextAsync(config));
-        var client = ValidateClient(settings.RootElement);
-        string clientId = client.GetProperty("client_id").GetString()!;
-        string secret = client.TryGetProperty("client_secret", out var cs) ? cs.GetString() ?? "" : "";
+        var client = await ReadClientAsync();
+        string clientId = client.Id;
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         timeout.CancelAfter(TimeSpan.FromMinutes(3));
         using var listener = new TcpListener(IPAddress.Loopback, 0);
@@ -140,7 +143,7 @@ internal sealed class DriveSync : IDisposable
         string challenge = Base64Url(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
         string Query(Dictionary<string,string> parameters) => string.Join("&", parameters.Select(p => Uri.EscapeDataString(p.Key)+"="+Uri.EscapeDataString(p.Value)));
         var parameters = new Dictionary<string,string> { ["client_id"]=clientId, ["redirect_uri"]=redirect, ["response_type"]="code", ["scope"]=Scope, ["state"]=state, ["code_challenge"]=challenge, ["code_challenge_method"]="S256", ["prompt"]="consent select_account", ["access_type"]="offline" };
-        Process.Start(new ProcessStartInfo("https://accounts.google.com/o/oauth2/v2/auth?"+Query(parameters)) { UseShellExecute = true });
+        openBrowser("https://accounts.google.com/o/oauth2/v2/auth?"+Query(parameters));
         string? code = null;
         while (code is null)
         {
@@ -169,50 +172,73 @@ internal sealed class DriveSync : IDisposable
         }
         listener.Stop();
         var exchange = new Dictionary<string,string> { ["client_id"]=clientId, ["code"]=code, ["code_verifier"]=verifier, ["grant_type"]="authorization_code", ["redirect_uri"]=redirect };
-        if (secret.Length > 0) exchange["client_secret"] = secret;
+        if (!string.IsNullOrEmpty(client.Value)) exchange["client_secret"] = client.Value;
         using var content = new FormUrlEncodedContent(exchange);
         using var result = await http.PostAsync("https://oauth2.googleapis.com/token", content, timeout.Token);
         if (!result.IsSuccessStatusCode) throw new InvalidOperationException("Google could not complete Windows sign-in. Check the Desktop OAuth client and consent configuration.");
         using var credentials = JsonDocument.Parse(await result.Content.ReadAsStringAsync(timeout.Token));
+        ValidateScope(credentials.RootElement);
+        if (!credentials.RootElement.TryGetProperty("refresh_token", out var refreshToken) || string.IsNullOrEmpty(refreshToken.GetString())) throw new InvalidOperationException("Google did not return offline authorization. Reconnect Google to remember sign-in on this PC.");
+        await SaveRefreshAsync(credentials.RootElement, clientId, timeout.Token);
         token = credentials.RootElement.GetProperty("access_token").GetString();
         if (string.IsNullOrEmpty(token)) throw new InvalidOperationException("Google did not grant Drive access.");
         expires = DateTime.UtcNow.AddSeconds(Math.Max(0, credentials.RootElement.GetProperty("expires_in").GetInt32()-60));
-        if (credentials.RootElement.TryGetProperty("refresh_token", out var refresh)) {
-            Directory.CreateDirectory(DataFolder);
-            byte[] encrypted = ProtectedData.Protect(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { clientId, refreshToken = refresh.GetString() })), null, DataProtectionScope.CurrentUser);
-            var temp = RefreshFile + ".tmp";
-            await File.WriteAllBytesAsync(temp, encrypted, timeout.Token);
-            File.Move(temp, RefreshFile, true);
-        }
         listed.Clear();
     }
     private async Task<bool> RefreshAsync()
     {
-        if (!File.Exists(RefreshFile) || !File.Exists(Path.Combine(DataFolder, "google-desktop-oauth.json"))) return false;
+        if (!File.Exists(RefreshFile)) return false;
         JsonDocument cached;
         try { cached = JsonDocument.Parse(ProtectedData.Unprotect(await File.ReadAllBytesAsync(RefreshFile, lifetime.Token), null, DataProtectionScope.CurrentUser)); }
-        catch (CryptographicException) { return false; }
+        catch (Exception ex) when (ex is CryptographicException or JsonException or IOException) { return false; }
         using (cached) {
-            using var settings = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(DataFolder, "google-desktop-oauth.json"), lifetime.Token));
-            var client = ValidateClient(settings.RootElement);
-            string clientId = client.GetProperty("client_id").GetString()!;
-            if (cached.RootElement.GetProperty("clientId").GetString() != clientId) return false;
-            var parameters = new Dictionary<string,string> { ["client_id"] = clientId, ["refresh_token"] = cached.RootElement.GetProperty("refreshToken").GetString()!, ["grant_type"] = "refresh_token" };
-            if (client.TryGetProperty("client_secret", out var secret)) parameters["client_secret"] = secret.GetString()!;
+            var client = await ReadClientAsync();
+            string clientId = client.Id;
+            if (!cached.RootElement.TryGetProperty("clientId", out var cachedClient) || cachedClient.GetString() != clientId || !cached.RootElement.TryGetProperty("refreshToken", out var cachedRefresh) || string.IsNullOrEmpty(cachedRefresh.GetString())) return false;
+            var parameters = new Dictionary<string,string> { ["client_id"] = clientId, ["refresh_token"] = cachedRefresh.GetString()!, ["grant_type"] = "refresh_token" };
+            if (!string.IsNullOrEmpty(client.Value)) parameters["client_secret"] = client.Value;
             using var body = new FormUrlEncodedContent(parameters);
             using var response = await http.PostAsync("https://oauth2.googleapis.com/token", body, lifetime.Token);
             if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Unauthorized) return false;
             response.EnsureSuccessStatusCode();
             using var credentials = JsonDocument.Parse(await response.Content.ReadAsStringAsync(lifetime.Token));
+            ValidateScope(credentials.RootElement);
+            await SaveRefreshAsync(credentials.RootElement, clientId, lifetime.Token);
             token = credentials.RootElement.GetProperty("access_token").GetString();
             expires = DateTime.UtcNow.AddSeconds(Math.Max(0, credentials.RootElement.GetProperty("expires_in").GetInt32()-60));
             return !string.IsNullOrEmpty(token);
         }
     }
-    private static JsonElement ValidateClient(JsonElement root)
+    private async Task SaveRefreshAsync(JsonElement credentials, string clientId, CancellationToken cancellation)
     {
-        if (!root.TryGetProperty("installed", out var client) || !client.TryGetProperty("client_id",out var id) || !(id.GetString() ?? "").EndsWith(".apps.googleusercontent.com",StringComparison.Ordinal)) throw new InvalidOperationException("Choose an OAuth JSON for a Desktop app client, not an Android or Web client.");
-        return client;
+        if (!credentials.TryGetProperty("refresh_token", out var refresh) || string.IsNullOrEmpty(refresh.GetString())) return;
+        Directory.CreateDirectory(DataFolder);
+        byte[] plaintext = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { clientId, refreshToken = refresh.GetString() }));
+        try {
+            byte[] encrypted = ProtectedData.Protect(plaintext, null, DataProtectionScope.CurrentUser);
+            var temp = RefreshFile + ".tmp";
+            await File.WriteAllBytesAsync(temp, encrypted, cancellation);
+            File.Move(temp, RefreshFile, true);
+        } finally { CryptographicOperations.ZeroMemory(plaintext); }
+    }
+    private async Task<(string Id, string? Value)> ReadClientAsync()
+    {
+        // Installed desktop metadata is public in the binary, not an account credential.
+        // The owner-approved Google desktop value is injected by CI, never committed.
+        // Legacy config stays intact for existing installations.
+        var path = File.Exists(clientConfig) ? clientConfig : Path.Combine(DataFolder, "google-desktop-oauth.json");
+        if (!File.Exists(path)) throw new InvalidOperationException("This build has no Google Desktop client ID. Install a configured Silverlight release. Local data is unchanged.");
+        using var settings = JsonDocument.Parse(await File.ReadAllTextAsync(path, lifetime.Token));
+        var root = settings.RootElement;
+        var client = root.TryGetProperty("installed", out var legacy) ? legacy : root;
+        string id = client.GetProperty("client_id").GetString() ?? "";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(id, @"\A[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com\z")) throw new InvalidOperationException("Invalid Google Desktop OAuth client ID.");
+        var value = client.TryGetProperty("desktop_client_value", out var desktopValue) ? desktopValue.GetString() : client.TryGetProperty("client_secret", out var legacyValue) ? legacyValue.GetString() : null;
+        return (id, value);
+    }
+    private static void ValidateScope(JsonElement credentials)
+    {
+        if (credentials.TryGetProperty("scope", out var granted) && !(granted.GetString() ?? "").Split(' ').Contains(Scope)) throw new InvalidOperationException("Google did not grant Silverlight's Drive app-data scope. Reconnect Google. Local data is unchanged.");
     }
     public void Dispose() { lifetime.Cancel(); lifetime.Dispose(); http.Dispose(); token = null; }
 }
