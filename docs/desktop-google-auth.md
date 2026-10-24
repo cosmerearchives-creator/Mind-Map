@@ -1,0 +1,13 @@
+# Windows Google authorization
+
+The installer ships windows/google-oauth-client.json containing only the public Desktop OAuth ID 854143772698-9naba6nl7itjhinav1abu32kbnrd0kj1.apps.googleusercontent.com. The client is Silverlight Archives Windows in project silverlight-512321, shared with Android. No client secret is shipped or sent. Existing installed configuration is read only as a fallback; no config, dataset, local workspace or old cloud copy is migrated/deleted. A cached refresh credential is used only with its matching client ID.
+
+Connect Google opens the system browser using S256 PKCE, random state and a random loopback port on 127.0.0.1. The only requested scope is https://www.googleapis.com/auth/drive.appdata. Access tokens remain in native memory. Refresh credentials are encrypted with Windows CurrentUser DPAPI and atomically replaced in %LOCALAPPDATA%/Silverlight/google-drive-session.bin. They are bound to that Windows user/machine and are not portable backups. Refresh runs before expiry and after restart; rotated refresh tokens are saved. Scope denial or revocation requires reconnect; background sync does not launch consent.
+
+Sign out on this PC pauses live sync before deleting its credential. It preserves all pending local edits, causal history, account/workspace selection and cloud copies; it does not revoke other PCs. Connect Google again with the same account, then resume live sync. Account mismatches remain blocked by native and JS checks.
+
+Production configuration inspected on October 24, 2026: client type Desktop, project audience External, publishing status In production, and Google Drive API Enabled. The owner approved adding the existing appdata scope to the consent configuration, and Google confirmed it saved. This scope is non-sensitive and accesses only the app's hidden Drive data. See https://developers.google.com/identity/protocols/oauth2/native-app and https://developers.google.com/workspace/drive/api/guides/appdata.
+
+Validation: tests/auth/Auth.Tests.csproj drives the actual native class against fake HTTPS endpoints, exercising the real loopback listener, wrong-state rejection, PKCE verifier, no-secret exchange, DPAPI encryption/decryption, restart refresh, refresh rotation, sign-out, legacy config, revoked grants and missing scope. It does not replace a real-account sign-in test on a second PC.
+
+Install over the existing app without uninstalling or clearing WebView2/app data. On the existing PC, retain the original local workspace and let Pending finish. On a new PC, Connect Google once, then join the existing live workspace; do not create an unrelated group or restore an older cloud copy over unsynced local edits.

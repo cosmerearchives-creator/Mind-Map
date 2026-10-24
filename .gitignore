@@ -5,3 +5,9 @@ local.properties
 .idea/
 
 /tmp/
+
+**/bin/
+**/obj/
+/windows/app.ico
+/windows/publish/
+/windows/output/
