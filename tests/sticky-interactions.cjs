@@ -15,7 +15,7 @@ const path=require('node:path');
  async function position(id){return page.locator(`[data-card="${id}"]`).evaluate(el=>({x:parseFloat(el.style.left),y:parseFloat(el.style.top)}));}
  async function drag(id){const loc=page.locator(`[data-card="${id}"]`),box=await loc.boundingBox(),before=await position(id);await page.mouse.move(box.x+70,box.y+65);await page.mouse.down();await page.mouse.move(box.x+95,box.y+80);const during=await position(id);assert.equal(during.x,before.x+25,id+' moves before hold delay');assert.equal(during.y,before.y+15);await page.mouse.up();}
  for(const c of cards)await drag(c.id);
- await page.locator('[data-card="nested"] .nestedFullButton').dblclick();
+ await page.locator('[data-card="nested"] .nestedFullButton').click({modifiers:['Control']});
  await page.locator('.tab.active').filter({hasText:'Selish BOARD'}).waitFor();
  await page.locator('[data-tab="main"] .tabName').click();
  await page.locator('[data-cardmenu="image"]').click();
@@ -29,6 +29,6 @@ const path=require('node:path');
  const before=await position('text');await touch('pointerdown',100,100);await page.waitForTimeout(270);await touch('pointermove',130,120);await touch('pointerup',130,120);assert.equal((await position('text')).x,before.x+30,'touch hold moves Sticky');
  const prePan=await position('text');await touch('pointerdown',100,100);await touch('pointermove',130,120);await touch('pointerup',130,120);assert.deepEqual(await position('text'),prePan,'touch before hold pans instead');
  await page.waitForTimeout(300);await page.reload();await page.locator('.rawImage').waitFor();assert.deepEqual(await position('text'),prePan,'saved coordinates survive reload');
- assert.deepEqual(errors,[]);console.log('PASS: six Sticky types drag immediately; Selish double-click opens; Raw mode edits, drags and persists; touch hold and pan preserved; no page errors.');
+ assert.deepEqual(errors,[]);console.log('PASS: six Sticky types drag immediately; Selish Ctrl-click opens a new tab; Raw mode edits, drags and persists; touch hold and pan preserved; no page errors.');
  } finally {await browser.close()}
 })().catch(e=>{console.error(e);process.exit(1)});

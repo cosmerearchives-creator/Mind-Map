@@ -19,6 +19,9 @@ public sealed class MainWindow : Form
     private readonly ToolStripMenuItem updates = new("Check for updates");
     private readonly HttpClient http = new() { Timeout = TimeSpan.FromMinutes(5) };
     private bool checking;
+    private IMessageFilter? menuKeys;
+    private long lastMenuToggle;
+    private readonly MenuStrip menu = new() { Visible = false };
     private readonly DriveSync driveSync = new();
 
     public MainWindow()
@@ -29,7 +32,6 @@ public sealed class MainWindow : Form
         MinimumSize = new(420, 350);
         Controls.Add(browser);
 
-        var menu = new MenuStrip();
         var file = new ToolStripMenuItem("&Silverlight");
         updates.Click += async (_, _) => await CheckUpdatesAsync(true);
         file.DropDownItems.Add(updates);
@@ -42,6 +44,12 @@ public sealed class MainWindow : Form
         menu.Items.Add(viewMenu);
         MainMenuStrip = menu;
         Controls.Add(menu);
+        KeyPreview = true;
+        menuKeys = new AltMenuFilter(this);
+        Application.AddMessageFilter(menuKeys);
+        menu.MenuDeactivate += (_, _) => { menu.Visible = false; };
+        Deactivate += (_, _) => menu.Visible = false;
+        browser.Enter += (_, _) => menu.Visible = false;
 
         http.DefaultRequestHeaders.UserAgent.ParseAdd("Silverlight-Windows/0.8");
         Shown += async (_, _) =>
@@ -83,7 +91,7 @@ public sealed class MainWindow : Form
                             }
                             return;
                         }
-                        if (request.GetProperty("channel").GetString() == "silverlight-ui") { if (request.TryGetProperty("hints", out var shown)) hintsMenu.Checked = shown.GetBoolean(); return; }
+                        if (request.GetProperty("channel").GetString() == "silverlight-ui") { if (request.TryGetProperty("toggleMenu", out var toggleMenu) && toggleMenu.GetBoolean()) ToggleMenu(); if (request.TryGetProperty("menu", out var menuShown) && !menuShown.GetBoolean()) menu.Visible = false; if (request.TryGetProperty("hints", out var shown)) hintsMenu.Checked = shown.GetBoolean(); return; }
                         if (request.GetProperty("channel").GetString() != "silverlight-drive") return;
                         requestId = request.GetProperty("id").GetString();
                         var result = await driveSync.ExecuteAsync(request, this);
@@ -238,9 +246,45 @@ public sealed class MainWindow : Form
         }
     }
 
+    private sealed class AltMenuFilter(MainWindow owner) : IMessageFilter
+    {
+        private bool altOnly;
+        public bool PreFilterMessage(ref Message message)
+        {
+            if (Form.ActiveForm != owner) { altOnly = false; return false; }
+            const int KeyDown = 0x100, KeyUp = 0x101, SysKeyDown = 0x104, SysKeyUp = 0x105;
+            bool down = message.Msg == KeyDown || message.Msg == SysKeyDown;
+            bool up = message.Msg == KeyUp || message.Msg == SysKeyUp;
+            if (!down && !up) return false;
+            int key = message.WParam.ToInt32();
+            if (key == (int)Keys.Menu)
+            {
+                if (down) altOnly = true;
+                else if (altOnly) { altOnly = false; owner.BeginInvoke(new Action(owner.ToggleMenu)); }
+                return true;
+            }
+            if (down) altOnly = false;
+            if (down && key == (int)Keys.Escape && owner.menu.Visible) { owner.menu.Visible = false; owner.browser.Focus(); return true; }
+            return false;
+        }
+    }
+
+    private void ToggleMenu()
+    {
+        long now = Environment.TickCount64; if (now - lastMenuToggle < 120) return; lastMenuToggle = now;
+        menu.Visible = !menu.Visible;
+        if (menu.Visible) { menu.Focus(); menu.Items[0].Select(); } else browser.Focus();
+    }
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        if (keyData == Keys.Menu || keyData == (Keys.Alt | Keys.Menu)) return true;
+        if (keyData == Keys.Escape && menu.Visible) { menu.Visible = false; browser.Focus(); return true; }
+        return base.ProcessCmdKey(ref msg, keyData);
+    }
+
     protected override void Dispose(bool disposing)
     {
-        if (disposing) { driveSync.Dispose(); browser.Dispose(); http.Dispose(); }
+        if (disposing) { if (menuKeys is not null) Application.RemoveMessageFilter(menuKeys); driveSync.Dispose(); browser.Dispose(); http.Dispose(); }
         base.Dispose(disposing);
     }
 }
