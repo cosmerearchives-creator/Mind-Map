@@ -1,7 +1,8 @@
 /* Content-addressed image storage. Original bytes can stay on disk until requested. */
 (function(root){'use strict';
 const FORMAT='silverlight-assets-v1',MAX_BYTES=Number.MAX_SAFE_INTEGER,cache=new Map(),encoder=new TextEncoder();
-async function hash(text){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(text))),b=>b.toString(16).padStart(2,'0')).join('')}
+const stream=typeof module!=='undefined'?require('./stream-json.js'):root.SilverlightStream;
+async function hash(text){return stream.hashText(text)}
 const image=v=>typeof v==='string'&&v.startsWith('data:image/');
 const resident=new Map(),residentIds=new Map();let residentCount=0;
 const lazy=new Map(),lazyCache=new Map(),lazyPending=new Map();let lazyBytes=0;
@@ -36,5 +37,5 @@ function pruneHistory(records){const keep=new Set();for(const text of records)fo
 function clone(value){if(deferredBoards.has(value))return deferBoard(boardJSON(value),boardInfo(value));if(Array.isArray(value))return value.map(v=>v===undefined?null:clone(v));if(value&&typeof value==='object'){const out={};for(const [k,v]of Object.entries(value))if(v!==undefined)out[k]=clone(v);return out}return typeof value==='number'&&!Number.isFinite(value)?null:value}
 function fingerprint(value){const compact=JSON.parse(historyEncode(value));const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v);return canonical(compact)}
 function pruneResident(roots){const keep=new Set(historyImages.values());function visit(v){if(deferredBoards.has(v)){const d=deferredBoards.get(v);if(d.parsed)visit(d.parsed);return}if(typeof v==='string'&&v.startsWith('silverlight-image:')){if(resident.has(v))keep.add(resident.get(v))}else if(Array.isArray(v))v.forEach(visit);else if(v&&typeof v==='object')Object.values(v).forEach(visit)}roots.forEach(visit);for(const [id,data]of resident)if(!keep.has(data)){resident.delete(id);residentIds.delete(data)}}
-const api={releaseBoards,deferBoard,boardInfo,boardSummary,boardJSON,markStored,registerAsset,load,materialize,storageValue,lazyDocument,residency,diskRef,pruneResident,intern,resolve,clone,fingerprint,historyEncode,historyDecode,pruneHistory,FORMAT,MAX_BYTES,hash,measure,logicalSize,assertSize,pack,unpack,refs};if(typeof module!=='undefined')module.exports=api;else root.SilverlightAssets=api;
+const api={stream,releaseBoards,deferBoard,boardInfo,boardSummary,boardJSON,markStored,registerAsset,load,materialize,storageValue,lazyDocument,residency,diskRef,pruneResident,intern,resolve,clone,fingerprint,historyEncode,historyDecode,pruneHistory,FORMAT,MAX_BYTES,hash,measure,logicalSize,assertSize,pack,unpack,refs};if(typeof module!=='undefined')module.exports=api;else root.SilverlightAssets=api;
 })(globalThis);
