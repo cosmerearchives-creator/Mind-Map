@@ -1,4 +1,12 @@
-# Silverlight Archives — live Google Drive sync
+# Silverlight Archives — workspace upload progress
+
+- Upload workspace copy now shows an accessible progress bar during preparation, checking reusable parts, uploading and finishing.
+- Multipart percentages count confirmed/reused parts plus the final workspace-copy step. They are upload-step progress, not estimated network-byte percentages. Small single-request uploads remain indeterminate until Drive responds.
+- 100% appears only after Drive confirms the final copy. Failures retain an error state instead of showing completion. Progress remains available when reopening the cloud dialog, and duplicate upload actions stay disabled while busy.
+
+Validation covers progress phases and reused parts, monotonic step counts, final-confirmation gating, small transfers, failures, reopening the cloud dialog, manual restore/recovery, automatic sync and the shared transfer/storage suites. Native packages are built by CI; physical-device uploads remain a device check.
+
+## Previous release — live Google Drive sync
 
 - Saved changes synchronize between open devices through the existing Google Drive workspace. Enabled automatic sync upgrades to the faster schedule automatically. New devices use cloud → Enable live sync, then Join workspace with the same Google account.
 - Local saved edits request a send after about 600 ms; remote checks run about every 2.5 seconds. An edit cannot indefinitely postpone its send, and transfers never overlap. Actual delivery time depends on the network, Drive and transfer size.
