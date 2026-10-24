@@ -131,7 +131,8 @@ internal sealed class DriveSync : IDisposable
     private static string Base64Url(byte[] bytes) => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     private async Task AuthorizeAsync(IWin32Window owner)
     {
-        string clientId = await ReadClientIdAsync();
+        var client = await ReadClientAsync();
+        string clientId = client.Id;
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         timeout.CancelAfter(TimeSpan.FromMinutes(3));
         using var listener = new TcpListener(IPAddress.Loopback, 0);
@@ -171,6 +172,7 @@ internal sealed class DriveSync : IDisposable
         }
         listener.Stop();
         var exchange = new Dictionary<string,string> { ["client_id"]=clientId, ["code"]=code, ["code_verifier"]=verifier, ["grant_type"]="authorization_code", ["redirect_uri"]=redirect };
+        if (!string.IsNullOrEmpty(client.Value)) exchange["client_secret"] = client.Value;
         using var content = new FormUrlEncodedContent(exchange);
         using var result = await http.PostAsync("https://oauth2.googleapis.com/token", content, timeout.Token);
         if (!result.IsSuccessStatusCode) throw new InvalidOperationException("Google could not complete Windows sign-in. Check the Desktop OAuth client and consent configuration.");
@@ -190,9 +192,11 @@ internal sealed class DriveSync : IDisposable
         try { cached = JsonDocument.Parse(ProtectedData.Unprotect(await File.ReadAllBytesAsync(RefreshFile, lifetime.Token), null, DataProtectionScope.CurrentUser)); }
         catch (Exception ex) when (ex is CryptographicException or JsonException or IOException) { return false; }
         using (cached) {
-            string clientId = await ReadClientIdAsync();
+            var client = await ReadClientAsync();
+            string clientId = client.Id;
             if (!cached.RootElement.TryGetProperty("clientId", out var cachedClient) || cachedClient.GetString() != clientId || !cached.RootElement.TryGetProperty("refreshToken", out var cachedRefresh) || string.IsNullOrEmpty(cachedRefresh.GetString())) return false;
             var parameters = new Dictionary<string,string> { ["client_id"] = clientId, ["refresh_token"] = cachedRefresh.GetString()!, ["grant_type"] = "refresh_token" };
+            if (!string.IsNullOrEmpty(client.Value)) parameters["client_secret"] = client.Value;
             using var body = new FormUrlEncodedContent(parameters);
             using var response = await http.PostAsync("https://oauth2.googleapis.com/token", body, lifetime.Token);
             if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Unauthorized) return false;
@@ -217,9 +221,11 @@ internal sealed class DriveSync : IDisposable
             File.Move(temp, RefreshFile, true);
         } finally { CryptographicOperations.ZeroMemory(plaintext); }
     }
-    private async Task<string> ReadClientIdAsync()
+    private async Task<(string Id, string? Value)> ReadClientAsync()
     {
-        // Public desktop ID shipped centrally. Legacy config stays intact for existing installations.
+        // Installed desktop metadata is public in the binary, not an account credential.
+        // The owner-approved Google desktop value is injected by CI, never committed.
+        // Legacy config stays intact for existing installations.
         var path = File.Exists(clientConfig) ? clientConfig : Path.Combine(DataFolder, "google-desktop-oauth.json");
         if (!File.Exists(path)) throw new InvalidOperationException("This build has no Google Desktop client ID. Install a configured Silverlight release. Local data is unchanged.");
         using var settings = JsonDocument.Parse(await File.ReadAllTextAsync(path, lifetime.Token));
@@ -227,7 +233,8 @@ internal sealed class DriveSync : IDisposable
         var client = root.TryGetProperty("installed", out var legacy) ? legacy : root;
         string id = client.GetProperty("client_id").GetString() ?? "";
         if (!System.Text.RegularExpressions.Regex.IsMatch(id, @"\A[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com\z")) throw new InvalidOperationException("Invalid Google Desktop OAuth client ID.");
-        return id;
+        var value = client.TryGetProperty("desktop_client_value", out var desktopValue) ? desktopValue.GetString() : client.TryGetProperty("client_secret", out var legacyValue) ? legacyValue.GetString() : null;
+        return (id, value);
     }
     private static void ValidateScope(JsonElement credentials)
     {

@@ -38,6 +38,15 @@ jobs:
             node "tests/$test.cjs"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
+      - name: Configure public installed-app metadata
+        shell: pwsh
+        env:
+          DESKTOP_CLIENT_VALUE: ${{ secrets.SILVERLIGHT_DESKTOP_CLIENT_VALUE }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:DESKTOP_CLIENT_VALUE)) { throw "Desktop client build configuration is missing" }
+          $config = Get-Content -Raw windows/google-oauth-client.json | ConvertFrom-Json
+          $config | Add-Member -NotePropertyName desktop_client_value -NotePropertyValue $env:DESKTOP_CLIENT_VALUE
+          $config | ConvertTo-Json | Set-Content -Encoding utf8 windows/google-oauth-client.json
       - name: Verify live Google Desktop client configuration
         shell: pwsh
         run: ./tests/check-google-desktop-config.ps1

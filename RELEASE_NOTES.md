@@ -1,10 +1,8 @@
-> AUTHENTICATION RELEASE BLOCKED: Google rejects this Desktop client without client_secret. Simulated OAuth tests are not real-provider validation. The build now fails its live configuration gate; sync reliability remains independently validated.
-
 # Large workspace sync and Windows Google sign-in
 
 - Fix Pending · Invalid string length from whole-history cloning, canonical hashing and aggregate asset serialization. Stream hashes and document parts; preserve existing v1/v2 datasets and checksums. No destructive migration or cloud deletion.
 - Keep unopened boards unloaded when arranging the home screen.
-- Ship the public Windows Desktop OAuth client ID. Connect Google through the system browser once per PC, remember authorization with DPAPI, refresh automatically, and sign out/reconnect from the cloud menu. No client secrets or copied tokens.
+- Ship the public Windows Desktop OAuth client ID. Connect Google through the system browser once per PC, remember authorization with DPAPI, refresh automatically, and sign out/reconnect from the cloud menu. The owner-approved installed-app client value is supplied by protected build configuration; account tokens are never copied or bundled.
 - Add >512 MiB logical-workspace worker/database/transfer regression coverage, interruption and corruption checks, and native PKCE/DPAPI/session tests before installer creation.
 
 Install over the current application; do not uninstall or clear application data. Existing pending local edits and live-workspace membership are retained. On new PCs, sign in and join the existing workspace. Full details and remaining limits: docs/large-sync-reliability.md and docs/desktop-google-auth.md. Preview builds require real-account/second-PC confirmation before stable promotion.

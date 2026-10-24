@@ -11,3 +11,4 @@ local.properties
 /windows/app.ico
 /windows/publish/
 /windows/output/
+/windows/google-oauth-client.local.json
