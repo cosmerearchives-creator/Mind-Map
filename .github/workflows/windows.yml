@@ -1,12 +1,12 @@
 name: Build Windows installer
 on:
   push:
-    branches: [main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
+    branches: [fix/large-drive-sync-desktop-auth, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
     paths:
       - 'app/src/main/assets/index.html'
       - 'app/src/main/assets/**'
       - 'windows/**'
-      - 'tests/updater/**'
+      - 'tests/**'
       - 'tests/validate.cjs'
       - '.github/workflows/windows.yml'
   workflow_dispatch:
@@ -27,6 +27,17 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Verify updater file handling
         run: dotnet run --project tests/updater/Updater.Tests.csproj -c Release
+      - name: Verify Windows desktop OAuth and encrypted sessions
+        run: dotnet run --project tests/auth/Auth.Tests.csproj -c Release
+      - name: Verify large-workspace persistence and two-device transfers
+        shell: pwsh
+        run: |
+          npm install --prefix tmp/browser-tests --no-save playwright@1.62.1
+          $env:NODE_PATH = "$PWD/tmp/browser-tests/node_modules"
+          foreach ($test in @('desktop-auth-ui','large-sync-ui','automatic-sync','drive-transfer','live-sync-ui','on-demand-storage')) {
+            node "tests/$test.cjs"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
       - name: Generate Windows icon from tower artwork
         shell: pwsh
         run: |
