@@ -19,6 +19,7 @@ public sealed class MainWindow : Form
     private readonly ToolStripMenuItem updates = new("Check for updates");
     private readonly HttpClient http = new() { Timeout = TimeSpan.FromMinutes(5) };
     private bool checking;
+    private bool modalOpen;
     private IMessageFilter? menuKeys;
     private long lastMenuToggle;
     private readonly MenuStrip menu = new() { Visible = false };
@@ -59,6 +60,7 @@ public sealed class MainWindow : Form
                 var data = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Silverlight", "WebView2");
                 Directory.CreateDirectory(data);
                 await browser.EnsureCoreWebView2Async(await CoreWebView2Environment.CreateAsync(userDataFolder: data));
+                browser.CoreWebView2.Settings.IsZoomControlEnabled = false;
                 browser.CoreWebView2.SetVirtualHostNameToFolderMapping("silverlight.local", Path.Combine(AppContext.BaseDirectory, "web"), CoreWebView2HostResourceAccessKind.DenyCors);
                 await browser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"window.SilverlightClipboard={canWrite:true,postMessage:function(text){var request=JSON.parse(text);window.chrome.webview.postMessage({channel:'silverlight-clipboard',id:request.id,op:request.op,url:request.url,text:request.text});}};window.chrome.webview.addEventListener('message',function(e){if(e.data.channel==='silverlight-clipboard'&&window.SilverlightClipboard.onmessage)window.SilverlightClipboard.onmessage({data:JSON.stringify(e.data)});});");
                 browser.CoreWebView2.NavigationStarting += (_, args) => {
@@ -91,7 +93,7 @@ public sealed class MainWindow : Form
                             }
                             return;
                         }
-                        if (request.GetProperty("channel").GetString() == "silverlight-ui") { if (request.TryGetProperty("toggleMenu", out var toggleMenu) && toggleMenu.GetBoolean()) ToggleMenu(); if (request.TryGetProperty("menu", out var menuShown) && !menuShown.GetBoolean()) menu.Visible = false; if (request.TryGetProperty("hints", out var shown)) hintsMenu.Checked = shown.GetBoolean(); return; }
+                        if (request.GetProperty("channel").GetString() == "silverlight-ui") { if (request.TryGetProperty("modal", out var modalState)) { modalOpen = modalState.GetBoolean(); if (modalOpen) menu.Visible = false; } if (request.TryGetProperty("zoomFactor", out var zoom) && zoom.TryGetDouble(out var factor) && double.IsFinite(factor) && factor > 0) browser.ZoomFactor = Math.Clamp(browser.ZoomFactor * factor, 0.5, 2.5); if (request.TryGetProperty("toggleMenu", out var toggleMenu) && toggleMenu.GetBoolean()) ToggleMenu(); if (request.TryGetProperty("menu", out var menuShown) && !menuShown.GetBoolean()) menu.Visible = false; if (request.TryGetProperty("hints", out var shown)) hintsMenu.Checked = shown.GetBoolean(); return; }
                         if (request.GetProperty("channel").GetString() != "silverlight-drive") return;
                         requestId = request.GetProperty("id").GetString();
                         var result = await driveSync.ExecuteAsync(request, this);
@@ -271,6 +273,7 @@ public sealed class MainWindow : Form
 
     private void ToggleMenu()
     {
+        if (modalOpen) return;
         long now = Environment.TickCount64; if (now - lastMenuToggle < 120) return; lastMenuToggle = now;
         menu.Visible = !menu.Visible;
         if (menu.Visible) { menu.Focus(); menu.Items[0].Select(); } else browser.Focus();

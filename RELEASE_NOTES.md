@@ -1,4 +1,15 @@
-# Silverlight Archives — image regions and freeform home
+# Silverlight Archives — scoped controls, cut/paste and precise image regions
+
+- Ctrl+wheel over a Board canvas, the home canvas or the image-region viewport affects only that surface. Over headers and controls it changes UI scale. Windows disables WebView2's automatic Ctrl+wheel zoom and applies UI scaling explicitly.
+- The home page has a clipped pan/zoom viewport without horizontal or vertical scrollbars. Drag empty space to pan; project controls remain fixed. Fit projects and Reset view make offscreen projects reachable, and bulk selection retains the current view.
+- Ctrl+X picks up selected Stickies; successful Ctrl+V moves them to another Board or the selected Collection while preserving IDs, nested Boards, image regions and internal connections. The source remains until paste succeeds. Escape cancels pickup. External connections cannot span different Boards and are removed on a cross-Board move. Undo restores the move in one action. Text editors retain normal Cut.
+- Image-region editing adds zoom controls, Fit image, Ctrl+wheel zoom, a Hand tool/middle-drag pan and two-finger pan/pinch. Region points stay in image coordinates through view changes.
+- Ctrl+Z removes the last freeform point, Ctrl+Y/Ctrl+Shift+Z restores it, and toolbar Undo/Redo is available. Open dialogs isolate their keyboard and clipboard interactions from the background canvas. The background is inert until the dialog closes.
+- Region hover/clicks use explicit shape geometry, including concave freeform outlines. Empty parts of an image and corners outside a shape no longer activate its region; keyboard focus retains an accessible outline.
+
+Validation includes atomic cut/move/cycle/stale-source tests, hover geometry, end-to-end cross-Board/Collection moves and Undo, modal keyboard isolation, image point Undo/Redo, zoom/pan with a simulated two-finger gesture, fixed home controls, bulk-selection view preservation, and existing selection/navigation/storage/performance regressions. Native compilation and packaging run in CI; physical Windows wheel behavior and Android touch/install behavior remain device checks.
+
+## Previous release — image regions and freeform home
 
 - Image Stickies support clickable regions. Edit an image and choose **Clickable image regions**, draw a preset shape or freeform outline, then use the standard Sticky creation menu with Nested Board enabled by default. Borders start hidden; show an outline, redraw, edit the linked Sticky or detach it onto the canvas from the region manager.
 - Regions follow image scaling and offsets, are cropped by the image frame, survive saving/sync and copy with their image. Nested targets open their Board; other targets open their editor. Removing an image preserves region targets as ordinary canvas Stickies, with Undo restoring the image and regions.
