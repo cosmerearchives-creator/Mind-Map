@@ -1,3 +1,13 @@
+# Live sync progress and local diagnostics
+
+- Automatic sync now shows its current stage, confirmed/reused transfer steps, received payload size, total/stage elapsed time and time since the last reported progress. Processing stages remain indeterminate.
+- The sync window can remain open while changes are sent and received. Editors, restore reviews and gestures still protect incoming changes. Sync now keeps the monitor open.
+- A one-minute lack of reported progress is flagged without cancelling work. Retry countdowns and error categories help distinguish processing from stalled requests.
+- Download sync diagnostics exports a bounded local log of stages, timings, counts and error categories. Board contents, titles, images, account IDs, file IDs, tokens and raw error messages are excluded. Nothing is sent automatically.
+- Regular Windows releases appear in automatic updates. Preview releases are not published without an explicit request.
+
+If sync remains slow, leave the monitor open and use Download sync diagnostics to share the resulting JSON for investigation. This release adds visibility; it does not claim to resolve the hour-long stall on the original workspace. Install over the current version without uninstalling or clearing local data.
+
 # Large workspace sync and Windows Google sign-in
 
 - Fix Pending · Invalid string length from whole-history cloning, canonical hashing and aggregate asset serialization. Stream hashes and document parts; preserve existing v1/v2 datasets and checksums. No destructive migration or cloud deletion.
@@ -5,7 +15,7 @@
 - Ship the public Windows Desktop OAuth client ID. Connect Google through the system browser once per PC, remember authorization with DPAPI, refresh automatically, and sign out/reconnect from the cloud menu. The owner-approved installed-app client value is supplied by protected build configuration; account tokens are never copied or bundled.
 - Add >512 MiB logical-workspace worker/database/transfer regression coverage, interruption and corruption checks, and native PKCE/DPAPI/session tests before installer creation.
 
-Install over the current application; do not uninstall or clear application data. Existing pending local edits and live-workspace membership are retained. On new PCs, sign in and join the existing workspace. Full details and remaining limits: docs/large-sync-reliability.md and docs/desktop-google-auth.md. Preview builds require real-account/second-PC confirmation before stable promotion.
+Install over the current application; do not uninstall or clear application data. Existing pending local edits and live-workspace membership are retained. On new PCs, sign in and join the existing workspace. Full details and remaining limits: docs/large-sync-reliability.md and docs/desktop-google-auth.md. Regular releases are published after automated validation; preview releases require an explicit owner request.
 
 # Silverlight Archives — workspace upload progress
 
