@@ -1,3 +1,11 @@
+## Tab-specific editors and Family Tree Stickies
+
+- Creation and editing windows sit below the header and tabs. Switch to another tab, check a Board, then return to the same live editor with its draft, formatting and scroll position. Each tab keeps its own editor; opening the header's Board picker temporarily suspends the current editor. Closing a tab with an open editor asks you to finish or cancel it first.
+- Drafts remain in memory while the app is open. Save commits to the project; Cancel discards that editor's draft. Unsaved editors warn before browser reload/close. Incoming cloud replacements and workspace undo/redo wait while drafts are open, including editors parked in another tab.
+- Create a Family Tree Sticky with people, owned portraits, rich notes, optional free-form dates and links to Boards, Stickies or cited Codex passages. Supports biological, adoptive, step-parent, guardian, partner/spouse, chosen-family and custom relationships; multiple parents and partners are allowed.
+- Open the tree for pan/zoom, automatic generational layout, manual placement, relationship labels and a color/style key. Edit or remove relationships independently. Deleting a person confirms removal of their lines while keeping everyone else. Cyclic ancestry is rejected; peer relationships remain unrestricted.
+- Family data uses existing project persistence, backup, sync, clipboard and undo/redo. Existing Boards and Codex source content are unchanged. Update all devices before editing the new Sticky type. Trees support up to 2,000 people and 10,000 relationships.
+
 ## Spreadsheet Stickies, fictional timelines and Codex source links
 
 - Create a Spreadsheet Sticky with editable canvas cells and an expanded editor. Includes arithmetic, cell/range references, SUM, AVERAGE, MIN, MAX, COUNT, ROUND, ABS and IF; text styles, colors, alignment, row/column sizes and insertion/deletion. Same-app range copying preserves formatting and adjusts relative formulas. Sheets are stored inside the project and follow normal backup, sync, copy and undo/redo paths.
