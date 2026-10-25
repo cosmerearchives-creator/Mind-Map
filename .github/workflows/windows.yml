@@ -1,7 +1,7 @@
 name: Build Windows installer
 on:
   push:
-    branches: [fix/epub-toc-chapter-titles, feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, fix/large-drive-sync-desktop-auth, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
+    branches: [feature/codex-chapter-artwork-tiles, fix/epub-toc-chapter-titles, feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, fix/large-drive-sync-desktop-auth, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
     paths:
       - 'app/src/main/assets/index.html'
       - 'app/src/main/assets/**'

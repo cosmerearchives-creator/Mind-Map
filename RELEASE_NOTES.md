@@ -1,8 +1,8 @@
-# Silverlight — EPUB chapter names and boundaries
+# Silverlight — illustrated Codex chapter Stickies
 
-- Codex imports now use the ebook’s table of contents for chapter titles: EPUB 3 navigation and EPUB 2 NCX are both supported.
-- Chapters linked to anchors inside a single file become separate entries. Chapter continuations across multiple files are combined in reading order, with artwork kept at the correct source positions.
-- Nested duplicate contents links do not create duplicate chapters. Broken or missing contents fall back to visible headings and meaningful page titles; placeholder titles such as Onbekend are replaced by numbered sections.
-- Cover and identified front matter remain separate. The import review labels these as entries rather than assuming every section is a numbered chapter.
+- Imported chapter Stickies now show their titles below the tile rather than over its contents, including chapters without artwork.
+- An illustration at the chapter opening becomes its Sticky background. The complete image is fitted without cropping or a white overlay, and the original artwork asset is reused.
+- Opening images just before EPUB contents anchors now stay with the following chapter. Later story illustrations are not selected as chapter backgrounds.
+- Chapter rows leave room for their labels below the tiles.
 
-Install over the existing app without clearing data. This correction applies to new imports. Existing Codex books, chapter IDs and annotations remain unchanged; import the original EPUB as a new Codex to use the corrected structure. Publisher layouts, DRM and external resources remain excluded. No cloud-data migration or credential changes are required. Regular releases only.
+Install over the existing app without clearing data. These defaults apply to new imports; existing books, annotations and custom chapter backgrounds are unchanged. Import the EPUB as a new Codex to use the illustrated chapter layout. No saved-data migration or credential changes are required. Regular releases only.
