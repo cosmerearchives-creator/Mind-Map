@@ -1,7 +1,7 @@
 name: Build Windows installer
 on:
   push:
-    branches: [feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, fix/large-drive-sync-desktop-auth, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
+    branches: [fix/epub-toc-chapter-titles, feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, fix/large-drive-sync-desktop-auth, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
     paths:
       - 'app/src/main/assets/index.html'
       - 'app/src/main/assets/**'
@@ -34,7 +34,7 @@ jobs:
         run: |
           npm install --prefix tmp/browser-tests --no-save playwright@1.62.1
           $env:NODE_PATH = "$PWD/tmp/browser-tests/node_modules"
-          foreach ($test in @('context-menus-ui','codex-artwork-ui','codex-import-ui','codex-ui','codex-mobile','release-polish-ui','canvas-editing','image-regions-ui','rich-formatting','sync-diagnostics-ui','desktop-auth-ui','large-sync-ui','automatic-sync','drive-transfer','live-sync-ui','on-demand-storage')) {
+          foreach ($test in @('codex-toc-ui','context-menus-ui','codex-artwork-ui','codex-import-ui','codex-ui','codex-mobile','release-polish-ui','canvas-editing','image-regions-ui','rich-formatting','sync-diagnostics-ui','desktop-auth-ui','large-sync-ui','automatic-sync','drive-transfer','live-sync-ui','on-demand-storage')) {
             node "tests/$test.cjs"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }

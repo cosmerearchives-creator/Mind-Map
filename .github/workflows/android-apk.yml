@@ -1,7 +1,7 @@
 name: Build and publish Mind-Map APK
 on:
   push:
-    branches: [feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
+    branches: [fix/epub-toc-chapter-titles, feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
   workflow_dispatch:
 
 permissions:
