@@ -18,12 +18,12 @@ const path=require('node:path');
  await page.locator('[data-card="nested"] .nestedFullButton').click({modifiers:['Control']});
  await page.locator('.tab.active').filter({hasText:'Selish BOARD'}).waitFor();
  await page.locator('[data-tab="main"] .tabName').click();
- await page.locator('[data-cardmenu="image"]').click();
+ await page.locator('[data-card="image"]').dispatchEvent('contextmenu',{clientX:400,clientY:300});await page.getByRole('menuitem',{name:'Edit note',exact:true}).click();
  await page.locator('#imageMode').selectOption('raw');await page.locator('#confirm').click();
  assert.equal(await page.locator('.rawImage').count(),1);
  assert.equal(await page.locator('.rawImage').evaluate(e=>getComputedStyle(e).backgroundColor),'rgba(0, 0, 0, 0)');
  await drag('image');
- await page.locator('[data-cardmenu="image"]').click();assert.equal(await page.locator('#imageMode').inputValue(),'raw');await page.locator('#cancel').click();
+ await page.locator('[data-card="image"]').dispatchEvent('contextmenu',{clientX:400,clientY:300});await page.getByRole('menuitem',{name:'Edit note',exact:true}).click();assert.equal(await page.locator('#imageMode').inputValue(),'raw');await page.locator('#cancel').click();
  // Synthetic touch events exercise the same application handlers as Android WebView.
  const cdp=await page.context().newCDPSession(page);const touchBox=await page.locator('[data-card="text"]').boundingBox();async function touch(type,x,y){await cdp.send('Input.dispatchTouchEvent',{type:{pointerdown:'touchStart',pointermove:'touchMove',pointerup:'touchEnd'}[type],touchPoints:type==='pointerup'?[]:[{x:touchBox.x+x-80,y:touchBox.y+y-80}]});}
  const before=await position('text');await touch('pointerdown',100,100);await page.waitForTimeout(270);await touch('pointermove',130,120);await touch('pointerup',130,120);assert.equal((await position('text')).x,before.x+30,'touch hold moves Sticky');

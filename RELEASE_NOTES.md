@@ -1,13 +1,10 @@
-# Silverlight — Codex reading and research
+# Silverlight — artwork annotations and cleaner Sticky controls
 
-Import a DRM-free EPUB, TXT or Markdown book as a Codex. Its overview contains one Board per chapter, with read-only source text and an independent research canvas.
+- EPUB imports now include embedded illustrations in chapter order. Annotate a whole image, click a point, or drag a region; notes appear in source order and copied notes include the complete image, marked region and book/chapter citation. SVG artwork is sanitized and rasterized; original publisher layouts are not reproduced.
+- Resize selected Stickies from their borders and corners. Dedicated resize buttons and Sticky three-dot buttons are removed. The smaller connection handle peeks out from the edge.
+- Right-click a Sticky for Edit, Copy, Cut, Delete and relevant actions. Right-click the canvas for Create (including Codex), Paste, Undo and Redo. New Stickies begin where you clicked.
+- Ctrl+Y and Ctrl+Shift+Z redo, alongside Ctrl+Z undo. Resizing now updates undo availability immediately; text editing keeps its own undo/redo.
 
-- Switch between chapter reading and a three-column Codex view. Reorder/resize columns and choose warm, white or night paper, text size, scrolling or reading pages. Each entry remembers its view on this device.
-- Create colored notes from selected passages, including multiple overlapping colors, or insert a distinctive superscript-style ᵛ marker. Notes stay in source order; nearby notes can cross chapters while distant future notes stay hidden.
-- Edit note headings/rich text, or delete a note and only its own highlight/marker. Imported book text stays read-only.
-- Copy an annotation to a normal Board or the chapter's canvas with its selected phrase as the title, chosen heading, rich text and an author/book/chapter citation. Marker notes use Book Title / Chapter / Random Note. Missing citation metadata is requested during creation.
-- Codex sources, annotations and research canvases use existing backup, recovery and Google Drive sync. Concurrent annotations merge independently. No existing dataset migration or credential change is required.
+Install over the existing app without clearing data. Update both computers for artwork display. Old text-only Codex books and annotations remain intact; import the original EPUB as a new Codex to include its artwork. No automatic source migration, cloud-format migration or credential change is required. Regular releases only.
 
-Install over the existing app without clearing data. Use Home → Import Codex, or Add → Codex on a canvas. Update both computers for Codex display. No preview releases are published.
-
-This initial importer extracts text/paragraphs; it does not preserve EPUB images or publisher typography, read DRM content, or invent printed page numbers. Import limits and complete behavior are documented in docs/codex.md. Separate ebook research-app integration remains a later phase; PDF development remains excluded.
+Artwork import remains bounded: 32 MiB input, 8 MiB per expanded resource, 64 MiB total expanded resources, and 5,000 illustration occurrences. DRM and external resources are excluded. Larger books require splitting. Separate ebook research-app integration and further PDF development remain outside this release.
