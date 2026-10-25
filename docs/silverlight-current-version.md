@@ -90,3 +90,7 @@ Preserve the HOME PAGE / BOARD / STICKY vocabulary in issue reports, discussions
 - Image creation and editing offer Placard (default for old images) and Raw. Raw hides the placard background/frame, preserves source alpha transparency and retains standard Sticky operations. Selecting Raw reveals its title/menu and tags.
 - Automated browser checks cover six Sticky types, BOARD opening, Raw editing and persistence, and touch hold versus pan. Platform build workflows validate packaging; real-device installation and touch verification remain outstanding.
 - Google Drive sync/conflict resolution and additional PDF/ebook import improvements remain unimplemented.
+
+## October 24 — current status
+
+The October 22 planned-sync statements above are historical. Google browser sign-in, live Drive sync, conflict review, large-workspace streaming, progress and diagnostics have shipped. See release-polish.md for the next canvas/key/retention release. Ebook importing and potential ebook research-app integration remain planned for later; further PDF import development has been dropped.

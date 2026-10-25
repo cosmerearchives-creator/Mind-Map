@@ -44,7 +44,7 @@ final class DriveSync {
         if (current != null) { respond(proxy, request.optString("id"), null, "Another Drive request is still running."); return; }
         current = request; reply = proxy;
         String op = request.optString("op");
-        if (!java.util.Arrays.asList("connect", "session", "list", "upload", "download").contains(op)) { finish(null, "Unsupported Drive operation."); return; }
+        if (!java.util.Arrays.asList("connect", "session", "list", "upload", "download", "prune").contains(op)) { finish(null, "Unsupported Drive operation."); return; }
         if (token == null || "connect".equals(op) || "session".equals(op)) authorize(); else execute();
     }
     private void authorize() {
@@ -100,6 +100,19 @@ final class DriveSync {
                     String file = request.getString("fileId");
                     if (!listed.contains(file) || !file.matches("[A-Za-z0-9_-]+")) throw new Exception("Choose a snapshot from View cloud copies first.");
                     result = new JSONObject().put("snapshot",call("GET", API+"/"+file+"?alt=media",null,null));
+                } else if ("prune".equals(op)) {
+                    String file = request.getString("fileId"), replacementId = request.getString("replacementId");
+                    if(file.equals(replacementId) || !listed.contains(file) || !listed.contains(replacementId) || !(file+replacementId).matches("[A-Za-z0-9_-]+")) throw new Exception("Cleanup requires listed automatic copies.");
+                    JSONObject old = new JSONObject(call("GET",API+"/"+file+"?fields=id,createdTime,appProperties,spaces",null,null));
+                    JSONObject replacement = new JSONObject(call("GET",API+"/"+replacementId+"?fields=id,createdTime,appProperties,spaces",null,null));
+                    for(JSONObject item: new JSONObject[]{old,replacement}) {
+                        JSONObject props=item.getJSONObject("appProperties"); boolean appdata=false;
+                        JSONArray parents=item.optJSONArray("spaces");if(parents!=null)for(int i=0;i<parents.length();i++)if("appDataFolder".equals(parents.getString(i)))appdata=true;
+                        if(!appdata || !"1".equals(props.optString("silverlightSnapshot")) || !"auto-v1".equals(props.optString("protocol")) || !request.getString("dataset").equals(props.optString("dataset")) || !request.getString("device").equals(props.optString("device")))throw new Exception("Cleanup cannot remove this cloud file.");
+                    }
+                    long oldTime=java.time.Instant.parse(old.getString("createdTime")).toEpochMilli(),newTime=java.time.Instant.parse(replacement.getString("createdTime")).toEpochMilli(),now=System.currentTimeMillis();
+                    if(now-oldTime<=30L*86400000 || newTime<=oldTime || now-newTime>86400000 || !request.getString("revision").equals(replacement.getJSONObject("appProperties").optString("revision")))throw new Exception("Cleanup replacement is not confirmed.");
+                    call("DELETE",API+"/"+file,null,null);listed.remove(file);result=new JSONObject().put("removed",true);
                 } else {
                     String snapshot = request.getString("snapshot");
                     byte[] content = snapshot.getBytes(StandardCharsets.UTF_8);
@@ -110,7 +123,7 @@ final class DriveSync {
                     JSONObject properties = new JSONObject().put("silverlightSnapshot","1").put("platform","Android").put("boards",String.valueOf(boards.length())).put("revision",envelope.getString("revision"));
                     boolean part = "silverlight-part-v2".equals(envelope.optString("format"));
                     boolean automatic = "silverlight-auto-v1".equals(envelope.optString("format")) || "silverlight-auto-v1".equals(envelope.optString("originalFormat"));
-                    properties.put("protocol",part?"part-v2":automatic?"auto-v1":"manual-v1").put("dataset",automatic?envelope.getJSONObject("auto").getString("dataset"):"");
+                    properties.put("protocol",part?"part-v2":automatic?"auto-v1":"manual-v1").put("dataset",automatic?envelope.getJSONObject("auto").getString("dataset"):"").put("device",automatic?envelope.getJSONObject("auto").optString("device"):"");
                     JSONObject metadata = new JSONObject().put("name","silverlight-snapshot-"+UUID.randomUUID()+".json").put("parents",new JSONArray().put("appDataFolder")).put("appProperties",properties);
                     String boundary = "silverlight_"+UUID.randomUUID();
                     byte[] head = ("--"+boundary+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+metadata+"\r\n--"+boundary+"\r\nContent-Type: application/json\r\n\r\n").getBytes(StandardCharsets.UTF_8);
