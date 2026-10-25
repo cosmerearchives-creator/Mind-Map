@@ -23,7 +23,7 @@ Copy… → Copy to Board creates an independent normal Sticky on any non-Codex 
 - Highlight note title: exact selected word/phrase.
 - Marker note title: `Book Title / Chapter / Random Note`.
 - Rich body: the chosen note heading, formatted note contents, then an author/book/chapter citation with available publication details and a stable paragraph/character locator.
-- Structured citation data retains the metadata, selected quote, chapter ordinal, source hash and offsets even if the original Codex is later removed. Copies do not depend on a live Board reference.
+- Structured citation data retains the metadata, selected quote, chapter ordinal, source hash and offsets even if the original Codex is later removed. Copies do not depend on a live Board reference. Android uses its native foreground clipboard bridge with a 512 KiB selection limit to stay below the system transaction budget; larger selections can use Copy to Board directly.
 
 There are no invented printed page numbers. These are readable source citations, not an automatic academic citation-style formatter.
 

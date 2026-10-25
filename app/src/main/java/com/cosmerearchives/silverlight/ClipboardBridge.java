@@ -12,13 +12,34 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
-/** Called only by the explicit Paste action through a main-frame, origin-restricted bridge. */
+/** Explicit clipboard actions through the main-frame, origin-restricted bridge. */
 final class ClipboardBridge {
     static void read(Activity activity, String message, JavaScriptReplyProxy proxy) {
         final JSONObject request;
         try { request = new JSONObject(message); } catch (Exception ignored) { return; }
         if ("preview".equals(request.optString("op"))||"previewImage".equals(request.optString("op"))) { WebPreview.read(request, proxy); return; }
         if ("media".equals(request.optString("op"))) { MilanoteMedia.read(request, proxy); return; }
+        if ("write".equals(request.optString("op"))) {
+            activity.runOnUiThread(() -> {
+                JSONObject response = new JSONObject();
+                try {
+                    response.put("id", request.optString("id"));
+                    String text = request.getString("text");
+                    // Stay below Android's Binder transaction budget. Large selections
+                    // can still be copied directly between Boards without the clipboard.
+                    if (text.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 512 * 1024) throw new Exception("This clipboard selection is too large. Use Copy to Board instead.");
+                    JSONObject selection = new JSONObject(text);
+                    if (!"silverlight-selection-v1".equals(selection.optString("format")) && !("silverlight-assets-v1".equals(selection.optString("format")) && "silverlight-selection-v1".equals(selection.getJSONObject("document").optString("format")))) throw new Exception("Invalid Silverlight clipboard selection.");
+                    ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+                    clipboard.setPrimaryClip(ClipData.newPlainText("Silverlight selection", text));
+                    response.put("items", new JSONArray());
+                } catch (Exception error) {
+                    try { response.put("error", error.getMessage() == null ? "Clipboard is unavailable. Use Copy to Board instead." : error.getMessage()); } catch (Exception ignored) { }
+                }
+                try { proxy.postMessage(response.toString()); } catch (Exception ignored) { }
+            });
+            return;
+        }
         if (!"read".equals(request.optString("op"))) return;
         final String id = request.optString("id");
         activity.runOnUiThread(() -> {
