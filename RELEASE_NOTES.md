@@ -1,3 +1,15 @@
+## Navigation responsiveness and Codex import polish
+
+- Canvas panning no longer redraws every Sticky each frame. Offscreen culling now includes chapter overviews with 40 or more Stickies; redraws happen when leaving the buffered viewport or changing scale.
+- Pan, zoom and Board navigation save a small local view record instead of serializing the workspace or marking cloud content pending. Board edits retain the existing durable save and sync paths. Wheel easing settles more promptly; precise trackpad input and reduced-motion behavior are preserved.
+- Discard obsolete queued image decodes after switching Boards and bound unused thumbnail cache to 64 items / 12 megapixels. Original artwork is unchanged.
+- Canvas context menu includes Reset view. Left-click outside closes menus without starting canvas selection.
+- New EPUB imports retain internal contents/chapter links, including fragment destinations. Links keep source offsets and annotation/citation text intact, survive backup/sync and remap when a whole Codex is copied.
+- Citation import asks for an optional ISBN, accepts ISBN-10/13 with checksum validation, and omits UUIDs. Existing citation metadata remains unchanged.
+- Recognize front-matter names from semantic types, guide references, visible headings, contents links and conservative copyright/dedication cues. Unidentified sections keep their fallback titles.
+
+Import improvements apply to new Codices. Existing book source text and annotations are never rewritten. Import a separate copy to obtain links/titles that older imports discarded.
+
 # Silverlight — Codex covers, smooth scrolling and safer editing
 
 - Main Codex Stickies import the book cover as their background, with the book title below. EPUB declared cover images and recognized cover pages are supported; books without cover art keep a plain tile. Clicking the cover resumes the remembered chapter.
