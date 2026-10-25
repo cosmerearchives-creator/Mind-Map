@@ -1,3 +1,12 @@
+## Spreadsheet Stickies, fictional timelines and Codex source links
+
+- Create a Spreadsheet Sticky with editable canvas cells and an expanded editor. Includes arithmetic, cell/range references, SUM, AVERAGE, MIN, MAX, COUNT, ROUND, ABS and IF; text styles, colors, alignment, row/column sizes and insertion/deletion. Same-app range copying preserves formatting and adjusts relative formulas. Sheets are stored inside the project and follow normal backup, sync, copy and undo/redo paths.
+- Create a Timeline Sticky and open its interactive timeline. Choose custom units and a reference epoch, negative or positive positions, approximate dates and ranges. Undated events can have before/after relationships without inventing dates. Switch between elapsed-time and even spacing, zoom around the pointer, collapse nested eras, search events and link related Boards, Stickies or Codex passages.
+- Copied Codex notes now have Go to source. It opens the original chapter and briefly marks the cited passage. Verified older citations can resolve without reimport; ambiguous copies ask which source to open, and missing sources leave the copied note intact.
+- New data is additive: existing Boards, Codex source text and citations are preserved. Earlier app versions cannot edit the new document types; update both computers before editing them.
+
+Spreadsheet support is intentionally a basic internal sheet, not full Excel compatibility: maximum 2,000 rows by 100 columns; range operations are bounded. Timeline zoom is adaptive within finite numeric precision, with positions limited to ±1 trillion base units. Use unit multipliers for long fictional histories. Unknown dates remain unknown.
+
 ## Codex library, scoped search and highlight editing
 
 - Codex library defaults to Creator / World / Codex / Chapters. Imports create or reuse Creator and World layers; choose an existing layer or library root when needed. Existing Codices appear at the library root until organized.
