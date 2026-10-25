@@ -41,7 +41,7 @@ internal sealed class DriveSync : IDisposable
         try
         {
             string op = request.GetProperty("op").GetString() ?? "";
-            if (op is not ("disconnect" or "connect" or "session" or "list" or "upload" or "download")) throw new InvalidOperationException("Unsupported Drive operation.");
+            if (op is not ("disconnect" or "connect" or "session" or "list" or "upload" or "download" or "prune")) throw new InvalidOperationException("Unsupported Drive operation.");
             if (op == "disconnect") {
                 // Forget this machine only. Never revoke other devices or touch workspace storage.
                 if (File.Exists(RefreshFile)) File.Delete(RefreshFile);
@@ -87,6 +87,20 @@ internal sealed class DriveSync : IDisposable
                 if (!listed.Contains(id) || !System.Text.RegularExpressions.Regex.IsMatch(id, @"\A[A-Za-z0-9_-]+\z")) throw new InvalidOperationException("Choose a snapshot from View cloud copies first.");
                 return new { snapshot = await SendAsync(HttpMethod.Get, Api + "/" + id + "?alt=media") };
             }
+            if (op == "prune")
+            {
+                string fileId = request.GetProperty("fileId").GetString() ?? "", replacementId = request.GetProperty("replacementId").GetString() ?? "";
+                if (fileId == replacementId || !listed.Contains(fileId) || !listed.Contains(replacementId) || !System.Text.RegularExpressions.Regex.IsMatch(fileId + replacementId, @"\A[A-Za-z0-9_-]+\z")) throw new InvalidOperationException("Cleanup requires listed automatic copies.");
+                async Task<JsonNode> Metadata(string id) => JsonNode.Parse(await SendAsync(HttpMethod.Get, Api + "/" + id + "?fields=id,createdTime,appProperties,spaces"))!;
+                var old = await Metadata(fileId); var replacement = await Metadata(replacementId);
+                foreach (var file in new[] { old, replacement }) {
+                    var props = file["appProperties"]!;
+                    if (file["spaces"] is not JsonArray spaces || !spaces.Any(p => p?.GetValue<string>() == "appDataFolder") || props["silverlightSnapshot"]?.GetValue<string>() != "1" || props["protocol"]?.GetValue<string>() != "auto-v1" || props["dataset"]?.GetValue<string>() != request.GetProperty("dataset").GetString() || props["device"]?.GetValue<string>() != request.GetProperty("device").GetString()) throw new InvalidOperationException("Cleanup cannot remove this cloud file.");
+                }
+                var oldTime = DateTimeOffset.Parse(old["createdTime"]!.GetValue<string>()); var newTime = DateTimeOffset.Parse(replacement["createdTime"]!.GetValue<string>());
+                if (DateTimeOffset.UtcNow-oldTime <= TimeSpan.FromDays(30) || newTime <= oldTime || DateTimeOffset.UtcNow-newTime > TimeSpan.FromDays(1) || replacement["appProperties"]!["revision"]?.GetValue<string>() != request.GetProperty("revision").GetString()) throw new InvalidOperationException("Cleanup replacement is not confirmed.");
+                await SendAsync(HttpMethod.Delete, Api + "/" + fileId); listed.Remove(fileId); return new { removed = true };
+            }
             string snapshot = request.GetProperty("snapshot").GetString() ?? "";
             if (Encoding.UTF8.GetByteCount(snapshot) > Limit) throw new InvalidOperationException("A single transfer request exceeds 256 MB. Update both devices to use multipart transfers.");
             using var document = JsonDocument.Parse(snapshot);
@@ -97,7 +111,7 @@ internal sealed class DriveSync : IDisposable
             var metadata = new {
                 name = "silverlight-snapshot-" + Guid.NewGuid() + ".json",
                 parents = new[] { "appDataFolder" },
-                appProperties = new { silverlightSnapshot = "1", platform = "Windows", boards = root.GetProperty("workspace").GetProperty("boards").GetArrayLength().ToString(), revision = root.GetProperty("revision").GetString(), protocol = part ? "part-v2" : automatic ? "auto-v1" : "manual-v1", dataset = automatic ? root.GetProperty("auto").GetProperty("dataset").GetString() : "" }
+                appProperties = new { silverlightSnapshot = "1", platform = "Windows", boards = root.GetProperty("workspace").GetProperty("boards").GetArrayLength().ToString(), revision = root.GetProperty("revision").GetString(), protocol = part ? "part-v2" : automatic ? "auto-v1" : "manual-v1", dataset = automatic ? root.GetProperty("auto").GetProperty("dataset").GetString() : "", device = automatic && root.GetProperty("auto").TryGetProperty("device", out var sourceDevice) ? sourceDevice.GetString() : "" }
             };
             using var body = new MultipartContent("related", "silverlight_" + Guid.NewGuid().ToString("N"));
             body.Add(new StringContent(JsonSerializer.Serialize(metadata), Encoding.UTF8, "application/json"));

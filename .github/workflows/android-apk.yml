@@ -1,7 +1,7 @@
 name: Build and publish Mind-Map APK
 on:
   push:
-    branches: [main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
+    branches: [feature/next-release-polish, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
   workflow_dispatch:
 
 permissions:
@@ -39,7 +39,9 @@ jobs:
           done
           printf '%s' "$SIGNING_KEY" | base64 --decode > "$RUNNER_TEMP/silverlight-release.jks"
           keytool -list -keystore "$RUNNER_TEMP/silverlight-release.jks" -alias "$KEY_ALIAS" -storepass "$KEYSTORE_PASSWORD" >/dev/null
-          keytool -list -v -keystore "$RUNNER_TEMP/silverlight-release.jks" -alias "$KEY_ALIAS" -storepass "$KEYSTORE_PASSWORD" | grep 'SHA1:'
+          certificate=$(keytool -list -v -keystore "$RUNNER_TEMP/silverlight-release.jks" -alias "$KEY_ALIAS" -storepass "$KEYSTORE_PASSWORD" | sed -n 's/.*SHA1: //p' | tr -d '\r')
+          test "$certificate" = '9F:2F:5C:1E:80:A8:57:99:97:25:E4:F9:80:E5:25:A8:D7:6E:11:E1' || { echo "::error::Signing identity changed; refusing an incompatible Android update"; exit 1; }
+          echo "Verified existing Android release signing identity"
       - name: Generate Silverlight tower launcher icon
         run: |
           python -m pip install --quiet Pillow

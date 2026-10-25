@@ -85,11 +85,24 @@ try {
   try { await drive.ExecuteAsync(Request("session"), null!); throw new Exception("Missing Drive scope accepted"); }
   catch (InvalidOperationException e) when (e.Message.Contains("scope")) { }
  }
+ // Cleanup uses fake app-data files only; no real Drive requests occur.
+ foreach (var mode in new[] { "valid", "part", "manual", "foreign", "young", "wrong-revision" }) {
+  await File.WriteAllBytesAsync(session, encrypted);
+  var fake = new FakeGoogle { RetentionMode = mode };
+  using var cleanupDrive = new DriveSync(fake, folder, _ => throw new Exception("Unexpected consent"), config);
+  await cleanupDrive.ExecuteAsync(Request("list"), null!);
+  var prune = JsonSerializer.SerializeToElement(new { op="prune", silent=true, fileId="old", replacementId="new", dataset="d", device="pc", revision="replacement" });
+  try { await cleanupDrive.ExecuteAsync(prune, null!); Check(mode=="valid", "Unsafe cleanup accepted: "+mode); }
+  catch (InvalidOperationException) { Check(mode!="valid", "Valid cleanup refused"); }
+  Check(fake.Deletions==(mode=="valid"?1:0), "Cleanup deletion guard: "+mode);
+ }
+ Console.WriteLine("PASS: native cleanup refuses parts/manual/foreign/recent copies and mismatched replacements.");
  Console.WriteLine("PASS: browser PKCE/loopback, state rejection, installed-app public configuration, DPAPI, restart refresh and rotation, local sign-out, legacy config, revoked grant and scope rejection.");
 } finally { Directory.Delete(folder, true); }
 
 sealed class FakeGoogle : HttpMessageHandler {
  public string Challenge = "";
+ public string? RetentionMode; public int Deletions;
  public bool Revoked, BadScope;
  protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellation) {
   if (request.RequestUri!.Host == "oauth2.googleapis.com") {
@@ -104,6 +117,14 @@ sealed class FakeGoogle : HttpMessageHandler {
    return new(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(new { access_token = "fake-access", expires_in = 3600, refresh_token = refresh ? "refresh-two" : "refresh-one", scope = BadScope ? "openid" : "https://www.googleapis.com/auth/drive.appdata" })) };
   }
   if (request.RequestUri.Host != "www.googleapis.com" || request.Headers.Authorization?.Parameter != "fake-access") throw new Exception("Unexpected request");
+  if (RetentionMode is not null && request.RequestUri.AbsolutePath.Contains("/files")) {
+   string content;
+   if (request.Method == HttpMethod.Delete) { Deletions++; return new(HttpStatusCode.NoContent) { Content = new StringContent("") }; }
+   bool old = request.RequestUri.AbsolutePath.EndsWith("/old");
+   if (request.RequestUri.AbsolutePath.EndsWith("/files")) content = "{\"files\":[{\"id\":\"old\"},{\"id\":\"new\"}]}";
+   else content = JsonSerializer.Serialize(new { spaces=new[]{"appDataFolder"}, createdTime=DateTimeOffset.UtcNow.AddDays(old&&RetentionMode!="young"?-45:0).ToString("o"), appProperties=new { silverlightSnapshot="1", protocol=old&&RetentionMode=="part"?"part-v2":old&&RetentionMode=="manual"?"manual-v1":"auto-v1", dataset=old&&RetentionMode=="foreign"?"other":"d", device="pc", revision=RetentionMode=="wrong-revision"?"wrong":"replacement" } });
+   return new(HttpStatusCode.OK) { Content = new StringContent(content) };
+  }
   return new(HttpStatusCode.OK) { Content = new StringContent("{\"user\":{\"permissionId\":\"test-account\"}}") };
  }
 }

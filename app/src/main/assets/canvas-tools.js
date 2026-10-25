@@ -1,8 +1,9 @@
 /* Canvas tools share the app's existing persistence and undo boundary. */
 window.installCanvasTools=function(app){
  const {board,mutate,redraw,modal,close,escape:esc}=app;
- const size=c=>({width:Math.min(4000,Math.max(c.source?.type?.startsWith('milanote-')?20:120,Number(c.width)||(c.kind==='collection'?320:220))),height:Math.min(4000,Math.max(c.source?.type?.startsWith('milanote-')?20:c.kind==='collection'?150:80,Number(c.height)||(c.kind==='image'?220:c.kind==='collection'?200:Math.min(420,Math.max(140,70+Math.ceil((c.body||'').length/26)*19)))))});
- function imageSize(c){const frame=size(c);return {width:Number(c.imageWidth)||Math.max(1,frame.width-(c.imageMode==='raw'?0:20)),height:Number(c.imageHeight)||Math.max(1,frame.height-(c.imageMode==='raw'?0:48))}}
+ const frameSize=c=>({width:Math.min(4000,Math.max(c.source?.type?.startsWith('milanote-')?20:120,Number(c.width)||(c.kind==='collection'?320:220))),height:Math.min(4000,Math.max(c.source?.type?.startsWith('milanote-')?20:c.kind==='collection'?150:80,Number(c.height)||(c.kind==='image'?220:c.kind==='collection'?200:Math.min(420,Math.max(140,70+Math.ceil((c.body||'').length/26)*19)))))});
+ function size(c){const s=frameSize(c);if(c.kind==='image'&&!c.imageOffsetX&&!c.imageOffsetY&&Number(c.imageWidth)>0&&Number(c.imageHeight)>0){s.width=Number(c.imageWidth);s.height=Number(c.imageHeight)+(c.imageMode==='raw'||!String(c.title||'').trim()?0:36)}return s}
+ function imageSize(c){const frame=size(c);return {width:Number(c.imageWidth)||Math.max(1,frame.width),height:Number(c.imageHeight)||Math.max(1,frame.height-(c.imageMode==='raw'||!String(c.title||'').trim()?0:36))}}
  function freeze(c){const s=imageSize(c);c.imageWidth=s.width;c.imageHeight=s.height;}
  function constrain(c,parent){const a=size(c),p=size(parent),floor=(Number(parent.collectionHeaderHeight)||112)+8;c.x=Math.round(Math.max(parent.x-a.width/2,Math.min(parent.x+p.width-a.width/2,c.x)));c.y=Math.round(Math.max(parent.y+floor,Math.min(parent.y+Math.max(floor,p.height)-a.height/2,c.y)));if(c.y+a.height/2>parent.y+p.height){parent.height=Math.min(4000,c.y+a.height/2-parent.y+8)}}
  function descendants(c,visit=new Set()){if(visit.has(c.id))return [];visit.add(c.id);return (app.index?.()?.children.get(c.id)||board().cards.filter(x=>x.collectionId===c.id)).flatMap(x=>[x,...descendants(x,visit)])}

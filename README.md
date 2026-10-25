@@ -1,6 +1,6 @@
 # Mind-Map (Silverlight)
 
-Milanote-inspired, Android-first mind-mapping workspace. Current app functionality remains Openboard v0.6; the Android shell adds release-update checks.
+Silverlight Archives is an offline-first visual workspace for Windows and Android, with rich notes, nested Boards, image regions, Google Drive live sync and automatic update checks.
 
 ## Download
 
@@ -12,7 +12,7 @@ The Android APK is published as **Silverlight.apk** after a successful run of [B
 
 Silverlight checks this public repository's **latest GitHub release** on launch. When a newer version is available, it offers to download the APK and opens Android's installer after download. You must approve installation in Android.
 
-**Important:** Current releases are debug-signed. GitHub runner signatures are not guaranteed consistent between builds. Android may refuse to update an existing installation if signatures differ. Export a board backup before uninstalling. To enable reliable in-place upgrades, configure a stable signing key for future releases.
+**Signing:** Android releases use the existing persistent release key from protected build secrets. The workflow verifies its certificate identity before packaging. Current signed releases support in-place updates; an installation made with a different historical key cannot be made compatible by changing the new key. Keep app data and backups intact.
 
 ## Development
 
