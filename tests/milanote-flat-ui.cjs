@@ -23,7 +23,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
   let saved=await read();const root=saved.boards.find(b=>b.source?.path===main),nested=saved.boards.find(b=>b.source?.path===child);assert.ok(root&&nested);assert.equal(saved.boards.some(b=>b.source?.path===duplicate),false);assert.equal(root.cards.find(c=>c.kind==='nested').boardId,nested.id);
   const note=root.cards.find(c=>c.title==='Ashspren');assert.equal(note.kind,'text');assert.equal(note.body,'(EMPTY BOARD ON IMPORT - CHANGE TO NESTED TO USE AS NEW BOARD)');assert.equal(note.hideTitle,false);assert.equal(note.boardId,undefined);
   await page.reload();await page.locator('[data-card]').first().waitFor();saved=await read();assert.equal(saved.boards.find(b=>b.id===root.id).cards.find(c=>c.id===note.id).body,note.body);
-  await page.locator('[data-card="'+note.id+'"] .noteMenu').click();
+  await page.locator('[data-card="'+note.id+'"]').dispatchEvent('contextmenu',{clientX:400,clientY:300});await page.getByRole('menuitem',{name:'Edit note',exact:true}).click();
   // Notes produced from missing PDFs remain normal editable Notes with conversion available.
   assert.equal(await page.locator('#nestedToggle').isChecked(),false);assert.equal(await page.locator('#cardTitle').inputValue(),'Ashspren');await page.locator('#nestedToggle').check();await page.locator('#confirm').click();await page.waitForTimeout(400);saved=await read();const converted=saved.boards.find(b=>b.id===root.id).cards.find(c=>c.id===note.id);assert.equal(converted.kind,'nested');assert.ok(saved.boards.some(b=>b.id===converted.boardId&&b.title==='Ashspren'));assert.equal(converted.body,note.body);
   assert.deepEqual(errors,[]);

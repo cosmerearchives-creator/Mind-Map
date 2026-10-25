@@ -53,5 +53,5 @@ window.installDesktopSelection=function(app){
   }catch(error){alert('Selection paste failed: '+error.message)}
  },true);
  const css=document.createElement('style');css.textContent='.note.cutPending{opacity:.45}.transparentSticky{background:transparent!important;border-color:transparent;box-shadow:none}.clipboardSticky .richBody h1{font-size:22px;line-height:1.2;margin:0 0 .4em}.clipboardSticky .richBody h2{font-size:20px;line-height:1.2;margin:0 0 .4em}.clipboardSticky .richBody h3{font-size:18px;line-height:1.2;margin:0 0 .4em}.note.multiSelected{outline:2px solid #796b96;outline-offset:2px}.selectionBox{position:absolute;border:1px solid #796b96;background:#796b9622;pointer-events:none;z-index:10000}.importedSticky .noteBody,.importedSticky .nestedFullButton{color:inherit}.importedSticky .noteTitle{color:inherit}';document.head.append(css);
- return {sync,ids:()=>[...selected],movingClick:()=>suppressClick};
+ return {sync,select:id=>{desktopUsed=true;if(!selected.has(id))selected=new Set([id]);sync()},copy:cut=>copy({target:canvas(),preventDefault(){},stopImmediatePropagation(){}},cut),ids:()=>[...selected],movingClick:()=>suppressClick};
 };
