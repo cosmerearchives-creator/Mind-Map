@@ -45,5 +45,6 @@ function createOption(position){const tabs=document.querySelector('.stickyEditor
 document.addEventListener('click',e=>{const open=e.target.closest('[data-codex-open]');if(!open)return;e.preventDefault();e.stopImmediatePropagation();openBook(open.dataset.codexOpen)},true);
 function isSelecting(){const host=document.querySelector('.codexSource'),s=getSelection();return !!(host&&s&&!s.isCollapsed&&host.contains(s.anchorNode))}
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('.codexReadingBox,.codexAnnotationTools,#modalRoot')&&isSelecting())getSelection().removeAllRanges()},true);
-return {decorate,canvasBoardId,importFile,createOption,openBook,prefs,isSelecting};
+function readerOnly(){const entry=raw();return !!(entry&&info(entry).codexRole==='entry'&&prefs(entry.id).mode==='board')}
+return {decorate,canvasBoardId,importFile,createOption,openBook,prefs,isSelecting,readerOnly};
 };
