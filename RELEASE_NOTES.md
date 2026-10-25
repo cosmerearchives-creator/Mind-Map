@@ -1,3 +1,11 @@
+## Codex library, scoped search and highlight editing
+
+- Codex library defaults to Creator / World / Codex / Chapters. Imports create or reuse Creator and World layers; choose an existing layer or library root when needed. Existing Codices appear at the library root until organized.
+- Add custom layer types, rename or move branches, skip levels, and move Codices. Removing a layer promotes its child layers and books. Book source, annotations, research canvases and existing canvas placements remain intact.
+- Search from every Codex column header: source text, linked-note quotes/headings/body, or research Sticky titles/body. Scope to chapter, Codex, or any ancestor layer. Results show book/chapter excerpts and jump to the source, note or Sticky. Search is cancellable and paginated; unopened chapters are inspected without retaining them or loading original images.
+- Select source text and right-click Highlight and add note. Edit any existing Codex note to change its highlight color. A color wheel, brightness control, hex field, presets and per-Codex saved custom colors are included. Independent overlapping annotations retain their own colors.
+- Search marks are temporary presentation and never become annotations. Existing imports work without reimport or destructive migration; existing citations and source hashes are unchanged.
+
 ## Navigation responsiveness and Codex import polish
 
 - Canvas panning no longer redraws every Sticky each frame. Offscreen culling now includes chapter overviews with 40 or more Stickies; redraws happen when leaving the buffered viewport or changing scale.
