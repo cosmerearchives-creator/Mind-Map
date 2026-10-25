@@ -30,4 +30,4 @@ Google app-data files cannot be trashed, so deletion is permanent. The app expla
 
 The existing protected release key is preserved. Its certificate matches Android builds 84 and 85 (SHA-1 identity fingerprint `9F:2F:5C:1E:80:A8:57:99:97:25:E4:F9:80:E5:25:A8:D7:6E:11:E1`). CI pins that identity and refuses accidental key changes. This does not make old installations signed with a different historical key compatible.
 
-Ebook importing and potential integration with the ebook research app remain a later development phase. Further PDF import development is dropped; existing PDF import stays available.
+Codex ebook importing is implemented in the subsequent Codex release (see codex.md); integration with the separate ebook research app remains a later phase. Further PDF import development is dropped; existing PDF import stays available.

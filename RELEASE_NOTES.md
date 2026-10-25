@@ -1,15 +1,13 @@
-# Silverlight — project keys and canvas polish
+# Silverlight — Codex reading and research
 
-- Design one project key on its own canvas and show it across the project's Boards. Key text entries become reusable Project styles in Sticky editors.
-- Home previews display sanitized rich notes instead of storage markup. Blank Sticky titles stay hidden.
-- Connection forks adapt to layout, using separate links for targets on opposing sides. Existing manual junctions remain overrides.
-- Selected images resize from borders and corners. Image bounds match their displayed size when not intentionally offset/cropped; animation stays mounted while resizing.
-- Image display no longer waits behind sync worker jobs. Requests coalesce, decode concurrency is bounded, and GIF/WebP/APNG sources retain animation.
-- Optional old-copy cleanup is off by default. It retains at least ten recent copies from each device and only removes already-merged automatic copies older than 30 days after a confirmed replacement. Manual copies, other devices' files, legacy copies and all shared parts remain. This does not reclaim shared image-part storage.
-- Android packaging verifies the existing release signing certificate; the key is unchanged.
+Import a DRM-free EPUB, TXT or Markdown book as a Codex. Its overview contains one Board per chapter, with read-only source text and an independent research canvas.
 
-Install over the current app without uninstalling or clearing app data. Existing boards, pending changes, credentials and sync datasets are retained. Use Board settings → Project key to design a key, or Board actions → Show project key to display one. Old-copy cleanup is separately enabled from the sync window and explains permanent deletion before opt-in.
+- Switch between chapter reading and a three-column Codex view. Reorder/resize columns and choose warm, white or night paper, text size, scrolling or reading pages. Each entry remembers its view on this device.
+- Create colored notes from selected passages, including multiple overlapping colors, or insert a distinctive superscript-style ᵛ marker. Notes stay in source order; nearby notes can cross chapters while distant future notes stay hidden.
+- Edit note headings/rich text, or delete a note and only its own highlight/marker. Imported book text stays read-only.
+- Copy an annotation to a normal Board or the chapter's canvas with its selected phrase as the title, chosen heading, rich text and an author/book/chapter citation. Marker notes use Book Title / Chapter / Random Note. Missing citation metadata is requested during creation.
+- Codex sources, annotations and research canvases use existing backup, recovery and Google Drive sync. Concurrent annotations merge independently. No existing dataset migration or credential change is required.
 
-Ebook tools/research-app integration remain for a later release. Further PDF import development is dropped; existing import remains available.
+Install over the existing app without clearing data. Use Home → Import Codex, or Add → Codex on a canvas. Update both computers for Codex display. No preview releases are published.
 
-Validation and limitations: docs/release-polish.md. Synthetic tests cover the changes; the affected personal Board's image-load time still needs confirmation after installation.
+This initial importer extracts text/paragraphs; it does not preserve EPUB images or publisher typography, read DRM content, or invent printed page numbers. Import limits and complete behavior are documented in docs/codex.md. Separate ebook research-app integration remains a later phase; PDF development remains excluded.
