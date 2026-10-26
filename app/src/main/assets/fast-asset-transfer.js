@@ -46,7 +46,7 @@ window.installFastAssetTransfer=function(legacy,raw,list,options){'use strict';o
   while(!base){if(seen.has(id)||seen.size>=4096)throw Error('Invalid sync dependency chain.');seen.add(id);base=await metadata(id);if(base)break;
    if(chain.length)await authorize();const response=await raw('download',{silent:args.silent,expectedAccount:args.expectedAccount,fileId:id}),manifest=JSON.parse(response.snapshot);
    if(manifest.format!=='silverlight-transfer-v3'){
-    const restored=await legacy('download',{...args,fileId:id,objectResult:true}),snapshot=typeof restored.snapshot==='string'?JSON.parse(restored.snapshot):restored.snapshot;return chain.length?Promise.reject(Error('A delta base is not a verified v3 checkpoint.')):{snapshot:args.objectResult?snapshot:JSON.stringify(snapshot)};
+    const restored=await legacy('download',{...args,fileId:id,objectResult:true,prefetched:response}),snapshot=typeof restored.snapshot==='string'?JSON.parse(restored.snapshot):restored.snapshot;return chain.length?Promise.reject(Error('A delta base is not a verified v3 checkpoint.')):{snapshot:args.objectResult?snapshot:JSON.stringify(snapshot)};
    }
    const {checksum,...signed}=manifest;if(await hash(signed)!==checksum||manifest.auto?.dataset!==args.dataset&&args.dataset||manifest.originalFormat!=='silverlight-auto-v1'||!Array.isArray(manifest.assetIds))throw Error('Sync manifest checksum or workspace mismatch.');chain.push({id,manifest});if(!manifest.base)break;id=manifest.base.id;
   }
