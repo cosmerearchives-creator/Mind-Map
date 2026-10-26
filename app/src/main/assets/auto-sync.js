@@ -76,7 +76,7 @@ async function cycle(){
   acceptCursor();diagnostic.finish(meta.conflicts?.length||meta.missing?.length?'attention':'complete');schedule(stillPending||generation!==cleanGeneration?EDIT_DELAY:LIVE_POLL);
  }catch(error){sessionCache=null;capturedGeneration=-1;fullCapture=true;diagnostic.begin();diagnostic.finish('retry',error,retry);status(navigator.onLine?'Pending':'Offline',error.message);scheduler.cancel();retryUntil=Date.now()+retry;schedule(retry);retry=Math.min(retry*2,60000)}finally{running=false}
 }
-async function pause(){if(running)throw Error('Wait for the current sync to finish before pausing or restoring.');if(!meta)return;const next=clone(meta);next.enabled=false;await persist(next);scheduler.cancel();status('Live sync is paused')}
+async function pause(){if(running)throw Error('Wait for the current sync to finish before pausing or restoring.');if(!meta)return;const next=clone(meta);next.enabled=false;await persist(next);capturedGeneration=-1;fullCapture=true;scheduler.cancel();status('Live sync is paused')}
 async function enable(){
  if(running||transport.isManualBusy())return;running=true;
  try{

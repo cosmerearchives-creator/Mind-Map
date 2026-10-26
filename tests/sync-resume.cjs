@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),S=require('../app/src/main/assets/sync-core.js'),Auto=require('../app/src/main/assets/auto-sync-core.js'),A=require('../app/src/main/assets/assets-core.js');
+(async()=>{
+ let cycle;const state={boards:[{id:'b',title:'Before restore',cards:[],connections:[]}]},buttons=new Map(),uploads=[];
+ let stored=await Auto.capture(Auto.empty('device','dataset','account'),state);stored.enabled=true;stored.published=await S.revision(stored.records);
+ const sandbox={window:{addEventListener(){}},document:{visibilityState:'visible',addEventListener(){},querySelector(selector){if(selector==='#driveSync')return {dataset:{},setAttribute(){}};if(selector.startsWith('#autoResume')||selector==='#autoEnableConfirm'){if(!buttons.has(selector))buttons.set(selector,{});return buttons.get(selector)}return null}},navigator:{onLine:true},setInterval(){return 1},clearInterval(){},Date,crypto:globalThis.crypto,console,SilverlightAssets:{...A,fingerprint:JSON.stringify},SilverlightSync:S,SilverlightAuto:Auto,SilverlightTasks:{run:async(op,{method,values})=>Auto[method](...values)},SilverlightSyncDiagnostics:{STAGES:{},create:()=>({stage(){},begin(){},finish(){},snapshot(){return null}})},SilverlightLiveScheduler:{create:fn=>(cycle=fn,{request(){},cancel(){}})}};
+ // Expose the existing enable handler only inside this isolated test sandbox.
+ const source=fs.readFileSync(require.resolve('../app/src/main/assets/auto-sync.js'),'utf8').replace('return {start,changed,pause,decorate,','return {enable,start,changed,pause,decorate,');vm.runInNewContext(source,sandbox);
+ const app={getState:()=>state,ready:()=>true,canSync:()=>true,readSync:async()=>stored,writeSync:async(w,m)=>{stored=structuredClone(m);if(w)state.boards=structuredClone(w.boards)},modal(){},close(){}};
+ const transport={isManualBusy:()=>false,list:async()=>[],show(){},request:async(op,args)=>{if(op==='session'||op==='connect')return {connected:true,accountId:'account'};if(op==='upload'){uploads.push(args.snapshot);return {id:'uploaded'}}throw Error(op)}};
+ const controller=sandbox.window.installAutoSync(app,transport);await controller.start();await cycle();assert.equal(uploads.length,0);
+ await controller.pause();state.boards[0].title='Manually restored content';await controller.enable();await buttons.get('#autoEnableConfirm').onclick();await cycle();
+ assert.equal(uploads.length,1,'resuming must capture a manually restored workspace even without a normal save notification');await Auto.verify(uploads[0],'dataset');assert.equal(stored.records[0].versions[0].board.title,'Manually restored content');
+ console.log('PASS: pause, manual restore and resume capture restored content without losing the previous causal history.');
+})().catch(e=>{console.error(e);process.exit(1)});
