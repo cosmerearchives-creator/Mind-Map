@@ -41,7 +41,7 @@ internal sealed class DriveSync : IDisposable
         try
         {
             string op = request.GetProperty("op").GetString() ?? "";
-            if (op is not ("disconnect" or "connect" or "session" or "list" or "upload" or "download" or "prune")) throw new InvalidOperationException("Unsupported Drive operation.");
+            if (op is not ("disconnect" or "connect" or "session" or "list" or "upload" or "download" or "prune" or "batch" or "changes")) throw new InvalidOperationException("Unsupported Drive operation.");
             if (op == "disconnect") {
                 // Forget this machine only. Never revoke other devices or touch workspace storage.
                 if (File.Exists(RefreshFile)) File.Delete(RefreshFile);
@@ -60,7 +60,26 @@ internal sealed class DriveSync : IDisposable
             using var accountDocument = JsonDocument.Parse(await SendAsync(HttpMethod.Get, "https://www.googleapis.com/drive/v3/about?fields=user(permissionId)"));
             string accountId = accountDocument.RootElement.GetProperty("user").GetProperty("permissionId").GetString() ?? throw new InvalidOperationException("Google account could not be identified.");
             if (request.TryGetProperty("expectedAccount", out var expectedAccount) && expectedAccount.GetString() != accountId) throw new InvalidOperationException("Google account changed. Reconnect the original account before syncing.");
-            if (op is "connect" or "session") return new { platform = "Windows", connected = true, accountId };
+            if (op is "connect" or "session") return new { platform = "Windows", connected = true, accountId, features = new[] { "fast-transfer-v3", "parallel-parts-v1", "drive-changes-v1" } };
+            if (op == "changes") {
+                string dataset = request.GetProperty("dataset").GetString() ?? "";
+                if (!System.Text.RegularExpressions.Regex.IsMatch(dataset, @"\A[A-Za-z0-9_-]{1,300}\z")) throw new InvalidOperationException("Invalid sync workspace ID.");
+                string page = request.TryGetProperty("pageToken", out var cursor) ? cursor.GetString() ?? "" : "";
+                if (page.Length > 2048 || page.Any(char.IsControl)) throw new InvalidOperationException("Invalid changes cursor.");
+                const string changesApi = "https://www.googleapis.com/drive/v3/changes";
+                if (page.Length == 0) {
+                    var start = JsonNode.Parse(await SendAsync(HttpMethod.Get, changesApi + "/startPageToken?fields=startPageToken"))!;
+                    return new { bootstrap = true, cursor = start["startPageToken"]!.GetValue<string>(), files = Array.Empty<object>() };
+                }
+                var changes = JsonNode.Parse(await SendAsync(HttpMethod.Get, changesApi + "?spaces=appDataFolder&includeRemoved=true&pageSize=1000&pageToken=" + Uri.EscapeDataString(page) + "&fields=" + Uri.EscapeDataString("nextPageToken,newStartPageToken,changes(fileId,removed,file(id,createdTime,appProperties,trashed))")))!;
+                var files = new JsonArray();
+                foreach (var change in changes["changes"]?.AsArray() ?? new JsonArray()) {
+                    var file = change?["file"]; var props = file?["appProperties"];
+                    if (change?["removed"]?.GetValue<bool>() == true || file?["trashed"]?.GetValue<bool>() == true || props?["silverlightSnapshot"]?.GetValue<string>() != "1" || props?["protocol"]?.GetValue<string>() != "auto-v1" || props?["dataset"]?.GetValue<string>() != dataset) continue;
+                    listed.Add(file!["id"]!.GetValue<string>()); files.Add(file.DeepClone());
+                }
+                return new { files, nextPageToken = changes["nextPageToken"]?.GetValue<string>(), cursor = changes["newStartPageToken"]?.GetValue<string>() };
+            }
             if (op == "list")
             {
                 string page = request.TryGetProperty("pageToken", out var p) ? p.GetString() ?? "" : "";
@@ -80,6 +99,28 @@ internal sealed class DriveSync : IDisposable
                 result["files"] ??= new JsonArray();
                 foreach (var file in result["files"]!.AsArray()) listed.Add(file!["id"]!.GetValue<string>());
                 return result;
+            }
+            if (op == "batch") {
+                var items = request.GetProperty("requests").EnumerateArray().Select(x => x.Clone()).ToArray();
+                if (items.Length < 1 || items.Length > 3) throw new InvalidOperationException("A transfer batch permits one to three parts.");
+                var results = await Task.WhenAll(items.Select(async item => {
+                    try {
+                        object result;
+                        if (item.GetProperty("op").GetString() == "download") {
+                            string id = item.GetProperty("fileId").GetString() ?? "";
+                            if (!listed.Contains(id) || !System.Text.RegularExpressions.Regex.IsMatch(id, @"\A[A-Za-z0-9_-]+\z")) throw new InvalidOperationException("Choose a listed transfer part.");
+                            result = new { snapshot = await SendAsync(HttpMethod.Get, Api + "/" + id + "?alt=media") };
+                        } else if (item.GetProperty("op").GetString() == "upload") {
+                            var text = item.GetProperty("snapshot").GetString() ?? "";
+                            if (Encoding.UTF8.GetByteCount(text) > 8*1024*1024) throw new InvalidOperationException("Transfer part is too large.");
+                            using var part = JsonDocument.Parse(text);
+                            if (part.RootElement.GetProperty("format").GetString() != "silverlight-part-v2") throw new InvalidOperationException("Only immutable parts can be batch uploaded.");
+                            result = await UploadAsync(item);
+                        } else throw new InvalidOperationException("Invalid transfer batch operation.");
+                        return new { result, error = (string?)null };
+                    } catch (Exception e) { return new { result = (object?)null, error = e.Message }; }
+                }));
+                return new { results };
             }
             if (op == "download")
             {
@@ -101,11 +142,19 @@ internal sealed class DriveSync : IDisposable
                 if (DateTimeOffset.UtcNow-oldTime <= TimeSpan.FromDays(30) || newTime <= oldTime || DateTimeOffset.UtcNow-newTime > TimeSpan.FromDays(1) || replacement["appProperties"]!["revision"]?.GetValue<string>() != request.GetProperty("revision").GetString()) throw new InvalidOperationException("Cleanup replacement is not confirmed.");
                 await SendAsync(HttpMethod.Delete, Api + "/" + fileId); listed.Remove(fileId); return new { removed = true };
             }
+            return await UploadAsync(request);
+        }
+        finally { busy = false; }
+    }
+
+
+    private async Task<object> UploadAsync(JsonElement request)
+    {
             string snapshot = request.GetProperty("snapshot").GetString() ?? "";
             if (Encoding.UTF8.GetByteCount(snapshot) > Limit) throw new InvalidOperationException("A single transfer request exceeds 256 MB. Update both devices to use multipart transfers.");
             using var document = JsonDocument.Parse(snapshot);
             var root = document.RootElement;
-            if (root.GetProperty("format").GetString() is not ("silverlight-snapshot-v1" or "silverlight-auto-v1" or "silverlight-transfer-v2" or "silverlight-part-v2")) throw new InvalidOperationException("Invalid snapshot format.");
+            if (root.GetProperty("format").GetString() is not ("silverlight-snapshot-v1" or "silverlight-auto-v1" or "silverlight-transfer-v2" or "silverlight-transfer-v3" or "silverlight-part-v2")) throw new InvalidOperationException("Invalid snapshot format.");
             bool part = root.GetProperty("format").GetString() == "silverlight-part-v2";
             bool automatic = root.GetProperty("format").GetString() == "silverlight-auto-v1" || (root.TryGetProperty("originalFormat", out var original) && original.GetString() == "silverlight-auto-v1");
             var metadata = new {
@@ -117,8 +166,6 @@ internal sealed class DriveSync : IDisposable
             body.Add(new StringContent(JsonSerializer.Serialize(metadata), Encoding.UTF8, "application/json"));
             body.Add(new StringContent(snapshot, Encoding.UTF8, "application/json"));
             return JsonNode.Parse(await SendAsync(HttpMethod.Post, "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", body))!;
-        }
-        finally { busy = false; }
     }
 
     private async Task<string> SendAsync(HttpMethod method, string url, HttpContent? body = null)

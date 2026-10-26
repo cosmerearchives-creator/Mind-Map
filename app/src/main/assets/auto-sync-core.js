@@ -45,9 +45,9 @@ function normalize(versions){
 }
 function merge(a,b){const m=new Map();for(const record of [...a,...b])m.set(record.id,normalize([...(m.get(record.id)||[]),...record.versions]));return [...m].sort(([a],[b])=>compare(a,b)).map(([id,versions])=>({id,versions}))}
 function empty(device,dataset,account){return {version:1,device,dataset,account,enabled:false,records:[],seen:[],files:[],published:'',lastSynced:null}}
-async function capture(meta,workspace){
+async function capture(meta,workspace,changedIds){
  core.workspace(workspace);const next=copy(meta),seen=new Map(next.seen.map(x=>[x.id,x])),boards=new Map(workspace.boards.map(b=>[b.id,b])),records=new Map(next.records.map(r=>[r.id,r]));
- for(const id of new Set([...boards.keys(),...seen.keys()])){
+ for(const id of changedIds?new Set(changedIds):new Set([...boards.keys(),...seen.keys()])){
   const board=boards.get(id)||null,hash=await core.revision(semantic(board)),old=seen.get(id);
   if(!old||old.hash!==hash){
    if(!old&&!board)continue;
@@ -67,7 +67,17 @@ function projection(records,current){
  const ids=new Set(boards.map(b=>b.id)),missing=[];for(const b of boards)for(const c of b.cards)if(c.kind==='nested'&&!ids.has(c.boardId)&&!missing.includes(c.boardId))missing.push(c.boardId);
  return {workspace:{...copy(current),boards},selected,conflicts,missing};
 }
-async function observed(meta,w){const next=copy(meta),boards=new Map(w.boards.map(b=>[b.id,b])),old=new Map(next.seen.map(x=>[x.id,x]));next.seen=[];for(const r of next.records){const board=boards.get(r.id)||null,hash=await core.revision(semantic(board)),v=r.versions.find(x=>same(x.board,board));next.seen.push({id:r.id,hash,clock:(same(materialize(r.versions)?.board||null,board)?materialize(r.versions)?.clock:null)||v?.clock||old.get(r.id)?.clock||[]})}return next}
+async function observed(meta,w,protectedIds=[]){const blocked=new Set(protectedIds),next=copy(meta),boards=new Map(w.boards.map(b=>[b.id,b])),old=new Map(next.seen.map(x=>[x.id,x]));next.seen=[];for(const r of next.records){if(blocked.has(r.id)&&old.has(r.id)){next.seen.push(copy(old.get(r.id)));continue}const board=boards.get(r.id)||null,hash=await core.revision(semantic(board)),v=r.versions.find(x=>same(x.board,board));next.seen.push({id:r.id,hash,clock:(same(materialize(r.versions)?.board||null,board)?materialize(r.versions)?.clock:null)||v?.clock||old.get(r.id)?.clock||[]})}return next}
+async function join(meta,w,remote){
+ const next=await capture(meta,w),projected=projection(remote,w),boards=new Map(projected.workspace.boards.map(b=>[b.id,b]));
+ // Identical local Boards adopt existing clocks rather than inventing an edit.
+ const identical=new Set(w.boards.filter(b=>boards.has(b.id)&&same(b,boards.get(b.id))).map(b=>b.id));
+ next.records=merge(remote,next.records.filter(r=>!identical.has(r.id)));
+ const adopted=await observed({...next,seen:[]},projected.workspace);
+ next.seen=next.seen.map(s=>identical.has(s.id)?adopted.seen.find(x=>x.id===s.id)||s:s);
+ for(const s of adopted.seen)if(!next.seen.some(x=>x.id===s.id))next.seen.push(s);
+ return next;
+}
 function resolve(meta,id,index,keepAll=false){
  const next=copy(meta),record=next.records.find(r=>r.id===id);if(!record)throw Error('BOARD conflict no longer exists.');
  const chosen=keepAll?record.versions.find(v=>v.board):record.versions[index];if(!chosen)throw Error('Version no longer exists.');
@@ -85,11 +95,12 @@ async function envelope(meta,w,changedIds){
   while(expanded){expanded=false;for(const id of [...ids])for(const v of byId.get(id)?.versions||[])for(const board of [v.board,v.previous].filter(Boolean))for(const c of [...board.cards,...(board.unsorted||[])])if(c.kind==='nested'&&!ids.has(c.boardId)){ids.add(c.boardId);expanded=true}}
   records=records.filter(r=>ids.has(r.id));source={...w,boards:w.boards.filter(b=>ids.has(b.id))};
  }
- const auto={dataset:meta.dataset,device:meta.device,records},workspace=core.workspace(source);return {format:FORMAT,createdAt:new Date().toISOString(),workspace,auto,revision:await core.revision({workspace,auto})};
+ const auto={dataset:meta.dataset,device:meta.device,records,...(!changedIds?{coveredFiles:(meta.files||[]).slice(-10000)}:{})},workspace=core.workspace(source);return {format:FORMAT,createdAt:new Date().toISOString(),workspace,auto,revision:await core.revision({workspace,auto})};
 }
 async function verify(snapshot,dataset){
  if(!snapshot||snapshot.format!==FORMAT||snapshot.auto?.dataset!==dataset||typeof snapshot.auto.device!=='string'||!Array.isArray(snapshot.auto.records))throw Error('Unsupported automatic sync snapshot.');
  core.workspace(snapshot.workspace);const ids=new Set();
+ if(snapshot.auto.coveredFiles!==undefined&&(!Array.isArray(snapshot.auto.coveredFiles)||snapshot.auto.coveredFiles.length>10000||snapshot.auto.coveredFiles.some(id=>typeof id!=='string'||!id||id.length>300)))throw Error('Invalid covered snapshot history.');
  for(const r of snapshot.auto.records){if(!r||typeof r.id!=='string'||!r.id||r.id.length>300||ids.has(r.id)||!Array.isArray(r.versions)||!r.versions.length||r.versions.length>100)throw Error('Damaged BOARD sync history.');ids.add(r.id);
   for(const v of r.versions){if(v.cells){if(typeof v.cells!=='object'||Array.isArray(v.cells))throw Error('Invalid property history.');for(const [key,values]of Object.entries(v.cells)){let path;try{path=JSON.parse(key)}catch{throw Error('Invalid property path.')}if(!Array.isArray(path)||!['board','cards','connections','junctions'].includes(path[0])||path.some(x=>typeof x!=='string'||['__proto__','constructor','prototype'].includes(x))||!Array.isArray(values)||!values.length||values.some(c=>!Array.isArray(c.clock)||!c.clock.length||c.clock.some(p=>!Array.isArray(p)||p.length!==2||typeof p[0]!=='string'||!Number.isSafeInteger(p[1])||p[1]<1)||typeof c.present!=='boolean'||!dominates(v.clock,c.clock)))throw Error('Invalid property history.');}const check=materialize([v]);if(!check||!same(check.board,v.board))throw Error('Property history does not match BOARD.');}if(!Array.isArray(v.clock)||!v.clock.length||v.clock.length>1000)throw Error('Invalid sync clock.');const devices=new Set();for(const pair of v.clock){if(!Array.isArray(pair)||pair.length!==2||typeof pair[0]!=='string'||!pair[0]||devices.has(pair[0])||!Number.isSafeInteger(pair[1])||pair[1]<1)throw Error('Invalid sync revision.');devices.add(pair[0])}if(v.board!==null&&v.board?.id!==r.id)throw Error('BOARD ID mismatch.');}
  }
@@ -98,5 +109,5 @@ async function verify(snapshot,dataset){
  if(await core.revision({workspace:snapshot.workspace,auto:snapshot.auto})!==snapshot.revision)throw Error('Automatic snapshot checksum mismatch. Local data was not replaced.');
  return merge(snapshot.auto.records,[]);
 }
-const api={FORMAT,semantic,same,clockJoin,dominates,normalize,materialize,merge,empty,capture,projection,observed,resolve,recoverReference,envelope,verify};if(typeof module!=='undefined')module.exports=api;else root.SilverlightAuto=api;
+const api={FORMAT,semantic,same,clockJoin,dominates,normalize,materialize,merge,empty,capture,projection,observed,join,resolve,recoverReference,envelope,verify};if(typeof module!=='undefined')module.exports=api;else root.SilverlightAuto=api;
 })(globalThis);

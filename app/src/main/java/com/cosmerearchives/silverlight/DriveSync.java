@@ -31,6 +31,7 @@ final class DriveSync {
     private static final int LIMIT = 256 * 1024 * 1024;
     private final Activity activity;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService transfers = Executors.newFixedThreadPool(3);
     private final Set<String> listed = new HashSet<>();
     private String token;
     private JSONObject current;
@@ -44,7 +45,7 @@ final class DriveSync {
         if (current != null) { respond(proxy, request.optString("id"), null, "Another Drive request is still running."); return; }
         current = request; reply = proxy;
         String op = request.optString("op");
-        if (!java.util.Arrays.asList("connect", "session", "list", "upload", "download", "prune").contains(op)) { finish(null, "Unsupported Drive operation."); return; }
+        if (!java.util.Arrays.asList("connect", "session", "list", "upload", "download", "prune", "batch", "changes").contains(op)) { finish(null, "Unsupported Drive operation."); return; }
         if (token == null || "connect".equals(op) || "session".equals(op)) authorize(); else execute();
     }
     private void authorize() {
@@ -77,7 +78,23 @@ final class DriveSync {
                 JSONObject user = new JSONObject(call("GET", "https://www.googleapis.com/drive/v3/about?fields=user(permissionId)", null, null)).getJSONObject("user");
                 String accountId = user.getString("permissionId");
                 if (request.has("expectedAccount") && !accountId.equals(request.getString("expectedAccount"))) throw new Exception("Google account changed. Reconnect the original account before syncing.");
-                if ("connect".equals(op) || "session".equals(op)) result = new JSONObject().put("platform", "Android").put("connected",true).put("accountId",accountId);
+                if ("connect".equals(op) || "session".equals(op)) result = new JSONObject().put("platform", "Android").put("connected",true).put("accountId",accountId).put("features",new JSONArray().put("fast-transfer-v3").put("parallel-parts-v1").put("drive-changes-v1"));
+                else if ("changes".equals(op)) {
+                    String dataset=request.getString("dataset"),page=request.optString("pageToken");
+                    if(!dataset.matches("[A-Za-z0-9_-]{1,300}"))throw new Exception("Invalid sync workspace ID.");
+                    if(page.length()>2048||page.chars().anyMatch(c->Character.isISOControl(c)))throw new Exception("Invalid changes cursor.");
+                    String api="https://www.googleapis.com/drive/v3/changes";
+                    if(page.isEmpty()) {JSONObject start=new JSONObject(call("GET",api+"/startPageToken?fields=startPageToken",null,null));result=new JSONObject().put("bootstrap",true).put("cursor",start.getString("startPageToken")).put("files",new JSONArray());}
+                    else {
+                        JSONObject changes=new JSONObject(call("GET",api+"?spaces=appDataFolder&includeRemoved=true&pageSize=1000&pageToken="+enc(page)+"&fields="+enc("nextPageToken,newStartPageToken,changes(fileId,removed,file(id,createdTime,appProperties,trashed))"),null,null));
+                        JSONArray files=new JSONArray(),items=changes.optJSONArray("changes");
+                        for(int i=0;items!=null&&i<items.length();i++){JSONObject change=items.getJSONObject(i),file=change.optJSONObject("file"),props=file==null?null:file.optJSONObject("appProperties");
+                            if(change.optBoolean("removed")||file==null||file.optBoolean("trashed")||props==null||!"1".equals(props.optString("silverlightSnapshot"))||!"auto-v1".equals(props.optString("protocol"))||!dataset.equals(props.optString("dataset")))continue;
+                            listed.add(file.getString("id"));files.put(file);
+                        }
+                        result=new JSONObject().put("files",files).put("nextPageToken",changes.optString("nextPageToken")).put("cursor",changes.optString("newStartPageToken"));
+                    }
+                }
                 else if ("list".equals(op)) {
                     String page = request.optString("pageToken");
                     if (page.isEmpty()) listed.clear();
@@ -96,6 +113,15 @@ final class DriveSync {
                     JSONArray files = result.optJSONArray("files");
                     if (files == null) { files = new JSONArray(); result.put("files",files); }
                     for (int i=0;i<files.length();i++) listed.add(files.getJSONObject(i).getString("id"));
+                } else if ("batch".equals(op)) {
+                    JSONArray items=request.getJSONArray("requests");if(items.length()<1||items.length()>3)throw new Exception("A transfer batch permits one to three parts.");
+                    java.util.List<java.util.concurrent.Callable<JSONObject>> jobs=new java.util.ArrayList<>();
+                    for(int i=0;i<items.length();i++){final JSONObject item=items.getJSONObject(i);jobs.add(()->{JSONObject entry=new JSONObject();try{JSONObject value;
+                        if("download".equals(item.optString("op"))){String id=item.getString("fileId");if(!listed.contains(id)||!id.matches("[A-Za-z0-9_-]+"))throw new Exception("Choose a listed transfer part.");value=new JSONObject().put("snapshot",call("GET",API+"/"+id+"?alt=media",null,null));}
+                        else if("upload".equals(item.optString("op"))){String text=item.getString("snapshot");if(text.getBytes(StandardCharsets.UTF_8).length>8*1024*1024||!"silverlight-part-v2".equals(new JSONObject(text).optString("format")))throw new Exception("Only bounded immutable parts can be batch uploaded.");value=upload(item);}
+                        else throw new Exception("Invalid transfer batch operation.");entry.put("result",value);
+                    }catch(Exception error){entry.put("error",error.getMessage()==null?"Part transfer failed":error.getMessage());}return entry;});}
+                    JSONArray values=new JSONArray();for(java.util.concurrent.Future<JSONObject> job:transfers.invokeAll(jobs))values.put(job.get());result=new JSONObject().put("results",values);
                 } else if ("download".equals(op)) {
                     String file = request.getString("fileId");
                     if (!listed.contains(file) || !file.matches("[A-Za-z0-9_-]+")) throw new Exception("Choose a snapshot from View cloud copies first.");
@@ -114,11 +140,18 @@ final class DriveSync {
                     if(now-oldTime<=30L*86400000 || newTime<=oldTime || now-newTime>86400000 || !request.getString("revision").equals(replacement.getJSONObject("appProperties").optString("revision")))throw new Exception("Cleanup replacement is not confirmed.");
                     call("DELETE",API+"/"+file,null,null);listed.remove(file);result=new JSONObject().put("removed",true);
                 } else {
+                    result = upload(request);
+                }
+                activity.runOnUiThread(() -> finish(result,null));
+            } catch (Exception error) { activity.runOnUiThread(() -> finish(null,error.getMessage()==null?"Drive transfer failed. Your local workspace is unchanged.":error.getMessage())); }
+        });
+    }
+    private JSONObject upload(JSONObject request) throws Exception {
                     String snapshot = request.getString("snapshot");
                     byte[] content = snapshot.getBytes(StandardCharsets.UTF_8);
                     if (content.length>LIMIT) throw new Exception("A single transfer request exceeds 256 MB. Update both devices to use multipart transfers.");
                     JSONObject envelope = new JSONObject(snapshot);
-                    if (!"silverlight-snapshot-v1".equals(envelope.optString("format")) && !"silverlight-auto-v1".equals(envelope.optString("format")) && !"silverlight-transfer-v2".equals(envelope.optString("format")) && !"silverlight-part-v2".equals(envelope.optString("format"))) throw new Exception("Invalid snapshot format.");
+                    if (!"silverlight-snapshot-v1".equals(envelope.optString("format")) && !"silverlight-auto-v1".equals(envelope.optString("format")) && !"silverlight-transfer-v2".equals(envelope.optString("format")) && !"silverlight-transfer-v3".equals(envelope.optString("format")) && !"silverlight-part-v2".equals(envelope.optString("format"))) throw new Exception("Invalid snapshot format.");
                     JSONArray boards = envelope.getJSONObject("workspace").getJSONArray("boards");
                     JSONObject properties = new JSONObject().put("silverlightSnapshot","1").put("platform","Android").put("boards",String.valueOf(boards.length())).put("revision",envelope.getString("revision"));
                     boolean part = "silverlight-part-v2".equals(envelope.optString("format"));
@@ -129,11 +162,7 @@ final class DriveSync {
                     byte[] head = ("--"+boundary+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+metadata+"\r\n--"+boundary+"\r\nContent-Type: application/json\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                     byte[] tail = ("\r\n--"+boundary+"--\r\n").getBytes(StandardCharsets.UTF_8);
                     ByteArrayOutputStream body = new ByteArrayOutputStream();body.write(head);body.write(content);body.write(tail);
-                    result = new JSONObject(call("POST","https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",body.toByteArray(),"multipart/related; boundary="+boundary));
-                }
-                activity.runOnUiThread(() -> finish(result,null));
-            } catch (Exception error) { activity.runOnUiThread(() -> finish(null,error.getMessage()==null?"Drive transfer failed. Your local workspace is unchanged.":error.getMessage())); }
-        });
+                    return new JSONObject(call("POST","https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",body.toByteArray(),"multipart/related; boundary="+boundary));
     }
     private String call(String method,String address,byte[] body,String contentType) throws Exception {
         HttpURLConnection connection=(HttpURLConnection)new URL(address).openConnection();
@@ -150,5 +179,5 @@ final class DriveSync {
     private static String enc(String s)throws Exception{return URLEncoder.encode(s,"UTF-8");}
     private void finish(JSONObject result,String error){if(current==null)return;respond(reply,current.optString("id"),result,error);current=null;reply=null;}
     private void respond(JavaScriptReplyProxy proxy,String id,JSONObject result,String error){try{JSONObject message=new JSONObject().put("channel","silverlight-drive").put("id",id);if(error!=null)message.put("error",error);else message.put("result",result);proxy.postMessage(message.toString());}catch(Exception ignored){}}
-    void close(){executor.shutdownNow();token=null;}
+    void close(){executor.shutdownNow();transfers.shutdownNow();token=null;}
 }
