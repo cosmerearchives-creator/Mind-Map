@@ -1,3 +1,16 @@
+## Silverlight 0.9.1 — faster Google Drive synchronization
+
+- Normal live update checks use Drive's changes feed instead of repeatedly listing all snapshots. Unchanged checks avoid Board capture and workspace hashing. Closing an editor requests a lightweight check; periodic and expired-cursor recovery scans remain.
+- Identical joining Boards adopt existing cloud history without another full upload. Automatic transfers send sparse changes, reuse image parts and resume verified cached downloads. Independent part transfers are bounded to three requests.
+- Unrelated Boards can update while drafts remain open. Changes to the edited Board stay queued until its draft is saved or closed. Offline edits, conflicting versions, original checksums and transactional recovery snapshots remain protected.
+- Full recovery checkpoints run after editing quiets down and can defer for new edits. Resuming after a manual restore captures the restored content. Existing snapshots are read without a duplicate root download.
+
+**Update both Windows and Android devices before continuing shared live sync.** Install over the existing application; preserve an independent backup. Google Drive remains the provider, with the existing account, authentication and application identities.
+
+Validated with shared/core tests, 31 browser regression suites, native Windows authentication/updater checks and signed Android/Windows builds. Small simulated two-device edits arrived in approximately 1–3 seconds; real Drive latency on a large workspace still requires device testing.
+
+This patch updates synchronization. Universal true inline editing, automatic sizing for every Sticky type and complete Canvas Template copying are not included.
+
 ## Silverlight 0.9.0 — coordinated workspace update
 
 - Desktop Sticky editors open anchored over their Sticky, with a pop-up alternative. Mobile keeps pop-up editing by default and offers the anchored option. Switching presentation preserves the live draft; per-tab drafts remain available. Desktop rich formatting sits above the Board tabs, with list/alignment icons and no indent/outdent buttons. The mobile Create Sticky selector wraps within the dialog.
