@@ -44,7 +44,7 @@ installer identity, and Google OAuth configuration are unchanged.
 
 - `node tests/validate.cjs`: shared parsing and core regressions, including new
   templates, parent junctions, changed-record checksums and offline reconstruction.
-- `node tests/browser-regressions.cjs`: 27 Edge suites, including two-device
+- `node tests/browser-regressions.cjs`: 28 Edge suites, including two-device
   Drive simulation, interrupted writes, draft protection, templates and mobile UI.
 - Branch Windows workflow: native updater/authentication checks, browser checks,
   application packaging and installer compilation.

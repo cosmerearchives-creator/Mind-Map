@@ -46,6 +46,11 @@ jobs:
           test -s dist/Silverlight-Setup.exe
           test -s dist/Silverlight.apk
           VERSION=$(node -p "require('./release-version.json').version")
-          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then exit 0; fi
-          gh release create "v$VERSION" dist/Silverlight-Setup.exe dist/Silverlight.apk --draft --title "Silverlight $VERSION" --notes-file RELEASE_NOTES.md --target "$RELEASE_SHA" --repo "$GITHUB_REPOSITORY"
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" --json isDraft > existing-release.json 2>/dev/null; then
+            if [ "$(node -p "require('./existing-release.json').isDraft")" = false ]; then exit 0; fi
+            gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" --json targetCommitish,assets > existing-release.json
+            node -e "const r=require('./existing-release.json');if(r.targetCommitish!==process.env.RELEASE_SHA||!['Silverlight.apk','Silverlight-Setup.exe'].every(n=>r.assets.some(a=>a.name===n)))process.exit(1)"
+          else
+            gh release create "v$VERSION" dist/Silverlight-Setup.exe dist/Silverlight.apk --draft --title "Silverlight $VERSION" --notes-file RELEASE_NOTES.md --target "$RELEASE_SHA" --repo "$GITHUB_REPOSITORY"
+          fi
           gh release edit "v$VERSION" --draft=false --latest --repo "$GITHUB_REPOSITORY"
