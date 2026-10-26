@@ -102,12 +102,14 @@ public class MainActivity extends Activity {
                 byte[] bytes = conn.getInputStream().readAllBytes();
                 JSONObject release = new JSONObject(new String(bytes, java.nio.charset.StandardCharsets.UTF_8));
                 String tag = release.optString("tag_name", "");
-                if (!tag.matches("v0\\.7\\.[0-9]+")) return;
-                long number = Long.parseLong(tag.substring("v0.7.".length()));
+                if (!tag.matches("v[0-9]+\\.[0-9]+\\.[0-9]+") || release.optBoolean("prerelease") || release.optBoolean("draft")) return;
+                String[] parts = tag.substring(1).split("\\.");
+                long major = Long.parseLong(parts[0]), minor = Long.parseLong(parts[1]), patch = Long.parseLong(parts[2]);
+                if (minor > 99 || patch > 99999 || major > 100) return;
                 long installed = Build.VERSION.SDK_INT >= 28
                     ? getPackageManager().getPackageInfo(getPackageName(), 0).getLongVersionCode()
                     : getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
-                long candidate = 700000L + number;
+                long candidate = major * 10000000L + minor * 100000L + patch;
                 if (candidate <= installed) return;
                 JSONArray assets = release.optJSONArray("assets");
                 if (assets == null) return;
@@ -198,8 +200,13 @@ public class MainActivity extends Activity {
         }
     }
     @Override public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) webView.goBack();
-        else super.onBackPressed();
+        if (webView == null) { super.onBackPressed(); return; }
+        webView.evaluateJavascript("Boolean(window.silverlightBack && window.silverlightBack())", result -> {
+            if (!"true".equals(result)) {
+                if (webView.canGoBack()) webView.goBack();
+                else MainActivity.super.onBackPressed();
+            }
+        });
     }
     @Override protected void onResume() {
         super.onResume();

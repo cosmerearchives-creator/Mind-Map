@@ -77,7 +77,16 @@ function resolve(meta,id,index,keepAll=false){
  record.versions=[{clock,board:copy(chosen.board),...(chosen.previous?{previous:chosen.previous}:{})}];next.published='';return next;
 }
 function recoverReference(meta,id){const next=copy(meta),r=next.records.find(r=>r.id===id),board=r?.versions.find(v=>v.board)?.board||r?.versions.find(v=>v.previous)?.previous;if(!board)throw Error('Restore this missing BOARD from Local recovery or a manual cloud copy, then retry.');r.versions=[{clock:tick(clockJoin(...r.versions.map(v=>v.clock)),next.device),board:copy(board)}];next.published='';return next}
-async function envelope(meta,w){const auto={dataset:meta.dataset,device:meta.device,records:meta.records},workspace=core.workspace(w);return {format:FORMAT,createdAt:new Date().toISOString(),workspace,auto,revision:await core.revision({workspace,auto})}}
+async function envelope(meta,w,changedIds){
+ let records=meta.records,source=w;
+ if(changedIds){
+  const ids=new Set(changedIds),byId=new Map(records.map(r=>[r.id,r]));let expanded=true;
+  // Include every linked Board needed to validate retained/conflicting versions.
+  while(expanded){expanded=false;for(const id of [...ids])for(const v of byId.get(id)?.versions||[])for(const board of [v.board,v.previous].filter(Boolean))for(const c of [...board.cards,...(board.unsorted||[])])if(c.kind==='nested'&&!ids.has(c.boardId)){ids.add(c.boardId);expanded=true}}
+  records=records.filter(r=>ids.has(r.id));source={...w,boards:w.boards.filter(b=>ids.has(b.id))};
+ }
+ const auto={dataset:meta.dataset,device:meta.device,records},workspace=core.workspace(source);return {format:FORMAT,createdAt:new Date().toISOString(),workspace,auto,revision:await core.revision({workspace,auto})};
+}
 async function verify(snapshot,dataset){
  if(!snapshot||snapshot.format!==FORMAT||snapshot.auto?.dataset!==dataset||typeof snapshot.auto.device!=='string'||!Array.isArray(snapshot.auto.records))throw Error('Unsupported automatic sync snapshot.');
  core.workspace(snapshot.workspace);const ids=new Set();

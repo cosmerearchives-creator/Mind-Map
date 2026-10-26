@@ -116,7 +116,7 @@ public sealed class MainWindow : Form
     private static void OpenReleases() =>
         Process.Start(new ProcessStartInfo(ReleasesPage) { UseShellExecute = true });
 
-    private static int CurrentBuild() => typeof(MainWindow).Assembly.GetName().Version?.Build ?? 0;
+    private static Version CurrentVersion() => typeof(MainWindow).Assembly.GetName().Version ?? new Version(0, 0, 0, 0);
 
     private async Task CheckUpdatesAsync(bool manual)
     {
@@ -131,9 +131,10 @@ public sealed class MainWindow : Form
             var newest = document.RootElement.EnumerateArray()
                 .Where(r => !r.TryGetProperty("draft", out var draft) || !draft.GetBoolean())
                 .Select(r => new { Release = r, Tag = r.GetProperty("tag_name").GetString() ?? "" })
-                .Where(r => r.Tag.StartsWith("v0.8.", StringComparison.Ordinal) &&
-                            int.TryParse(r.Tag.AsSpan(5), out _))
-                .OrderByDescending(r => int.Parse(r.Tag.AsSpan(5)))
+                .Where(r => !r.Release.GetProperty("prerelease").GetBoolean() &&
+                            r.Tag.StartsWith("v", StringComparison.Ordinal) && Version.TryParse(r.Tag[1..], out _))
+                .Where(r => r.Release.GetProperty("assets").EnumerateArray().Any(a => a.GetProperty("name").GetString() == "Silverlight-Setup.exe"))
+                .OrderByDescending(r => Version.Parse(r.Tag[1..]))
                 .FirstOrDefault();
 
             if (newest is null)
@@ -142,8 +143,9 @@ public sealed class MainWindow : Form
                 return;
             }
 
-            int availableBuild = int.Parse(newest.Tag.AsSpan(5));
-            if (availableBuild <= CurrentBuild())
+            var parsed = Version.Parse(newest.Tag[1..]);
+            var availableVersion = new Version(parsed.Major, parsed.Minor, Math.Max(0, parsed.Build), Math.Max(0, parsed.Revision));
+            if (availableVersion <= CurrentVersion())
             {
                 if (manual) MessageBox.Show("You're using the latest Windows version.", "Silverlight");
                 return;

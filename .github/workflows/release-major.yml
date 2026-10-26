@@ -1,0 +1,51 @@
+name: Publish coordinated Silverlight release
+on:
+  workflow_run:
+    workflows: [Build Windows installer, Build and publish Mind-Map APK]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: silverlight-release-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Require both successful native builds of this exact commit
+        id: builds
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.payload.workflow_run.head_sha;
+            const main = await github.rest.repos.getBranch({...context.repo, branch:'main'});
+            if (main.data.commit.sha !== sha) return;
+            for (const [key, workflow_id] of [['windows','windows.yml'],['android','android-apk.yml']]) {
+              const runs = await github.rest.actions.listWorkflowRuns({...context.repo, workflow_id, branch:'main', head_sha:sha, per_page:100});
+              const run = runs.data.workflow_runs.find(r=>r.head_sha===sha && r.status==='completed' && r.conclusion==='success');
+              if (!run) return;
+              core.setOutput(key, run.id);
+            }
+            core.setOutput('ready','true');
+      - name: Download verified installers and publish one release
+        if: steps.builds.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WINDOWS_RUN: ${{ steps.builds.outputs.windows }}
+          ANDROID_RUN: ${{ steps.builds.outputs.android }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          gh run download "$WINDOWS_RUN" --name Silverlight-Windows-Installer --dir dist --repo "$GITHUB_REPOSITORY"
+          gh run download "$ANDROID_RUN" --name Silverlight-signed-APK --dir dist --repo "$GITHUB_REPOSITORY"
+          test -s dist/Silverlight-Setup.exe
+          test -s dist/Silverlight.apk
+          VERSION=$(node -p "require('./release-version.json').version")
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then exit 0; fi
+          gh release create "v$VERSION" dist/Silverlight-Setup.exe dist/Silverlight.apk --draft --title "Silverlight $VERSION" --notes-file RELEASE_NOTES.md --target "$RELEASE_SHA" --repo "$GITHUB_REPOSITORY"
+          gh release edit "v$VERSION" --draft=false --latest --repo "$GITHUB_REPOSITORY"

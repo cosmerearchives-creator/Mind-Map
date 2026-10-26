@@ -1,7 +1,9 @@
 #ifndef BuildNumber
 #define BuildNumber "1"
 #endif
-#define AppVersion "0.8." + BuildNumber
+#ifndef AppVersion
+#define AppVersion "0.9.0"
+#endif
 [Setup]
 AppId={{7D487C7E-2B7D-4F1A-AF1F-64A21437DE76}
 AppName=Silverlight

@@ -1,7 +1,7 @@
 name: Build Windows installer
 on:
   push:
-    branches: [feature/tab-editors-family-tree,feature/canvas-sheets-timelines-sources, feature/codex-library-search-highlights, fix/codex-link-lazy-targets, fix/navigation-performance-codex-links, fix/editor-selection-drag-dismiss, feature/codex-chapter-artwork-tiles, fix/epub-toc-chapter-titles, feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, fix/large-drive-sync-desktop-auth, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
+    branches: [silverlight-interaction-fixes-20261026,feature/tab-editors-family-tree,feature/canvas-sheets-timelines-sources, feature/codex-library-search-highlights, fix/codex-link-lazy-targets, fix/navigation-performance-codex-links, fix/editor-selection-drag-dismiss, feature/codex-chapter-artwork-tiles, fix/epub-toc-chapter-titles, feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, fix/large-drive-sync-desktop-auth, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
     paths:
       - 'app/src/main/assets/index.html'
       - 'app/src/main/assets/**'
@@ -68,7 +68,7 @@ jobs:
       - name: Publish Windows application
         shell: pwsh
         run: |
-          dotnet publish windows/Silverlight.Windows.csproj -c Release -r win-x64 --self-contained true -p:Version=0.8.${{ github.run_number }} -p:AssemblyVersion=0.8.${{ github.run_number }}.0 -o windows/publish
+          dotnet publish windows/Silverlight.Windows.csproj -c Release -r win-x64 --self-contained true -p:Version=0.9.0 -p:AssemblyVersion=0.9.0.0 -o windows/publish
       - name: Verify Codex assets are packaged
         shell: pwsh
         run: |
@@ -81,15 +81,8 @@ jobs:
       - name: Build setup installer
         shell: pwsh
         run: |
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DBuildNumber=${{ github.run_number }}" "windows/installer.iss"
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.9.0" "windows/installer.iss"
       - uses: actions/upload-artifact@v4
         with:
           name: Silverlight-Windows-Installer
           path: windows/output/Silverlight-Setup.exe
-      - name: Publish Windows release
-        if: github.ref == 'refs/heads/main'
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "v0.8.${{ github.run_number }}" "windows/output/Silverlight-Setup.exe" --title "Silverlight Windows v0.8.${{ github.run_number }}" --notes-file RELEASE_NOTES.md --latest=false --target "${{ github.sha }}"
