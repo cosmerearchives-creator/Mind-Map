@@ -9,6 +9,7 @@ window.installBackNavigation=function(app){
   if(root.firstChild){if(root.firstElementChild.dataset.dirty==='true'&&!confirm('Discard the unsaved changes in this editor?'))return true;const cancel=root.querySelector('#cancel,#personCancel,#relationCancel,#familyClose,#familyCancel,#familyRenameCancel,#cancelRecovery,[data-cancel]');if(cancel)cancel.click();else app.close();return true}
   if(app.cancelGesture())return true;
   if(app.back())return true;
+  if(app.hasDrafts?.()&&!confirm('There are unsaved editor drafts in other tabs. Exit Silverlight and discard those drafts?'))return true;
   return false;
  };
 };
