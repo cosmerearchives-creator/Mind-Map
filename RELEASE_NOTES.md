@@ -1,3 +1,16 @@
+## Silverlight 0.9.0 — coordinated workspace update
+
+- Desktop Sticky editors open anchored over their Sticky, with a pop-up alternative. Mobile keeps pop-up editing by default and offers the anchored option. Switching presentation preserves the live draft; per-tab drafts remain available. Desktop rich formatting sits above the Board tabs, with list/alignment icons and no indent/outdent buttons. The mobile Create Sticky selector wraps within the dialog.
+- Connection previews clear on drop/cancel, targets highlight during drawing, and a click on the source handle starts click-to-connect. Saved connections follow Board movement. Windows nested Boards require a double-click; deliberate shortcut and Codex navigation remains available.
+- Google Drive live sync batches changed Board records, reuses immutable assets, and retains full checkpoints, offline edits, concurrent conflicts and transactional recovery snapshots. No account/provider migration. Incremental history is retained instead of being removed by the old full-snapshot cleanup rule.
+- Automatically sized notes measure rendered rich content after editing, stay within the existing 4,000-pixel frame limits, and scroll internally. Explicit manual frame sizes remain respected.
+- Family Tree names open person editing, with relationship actions and links to existing profiles. Relationship creation stays open with a saved confirmation for successive additions; duplicate/self/cyclic relationships explain why they are invalid. Matching parent sets share a parental junction. Each Family Tree Sticky can switch between a compact summary and a clickable diagram.
+- Android system Back closes interactions before exiting and asks before discarding changed editor drafts.
+- Canvas Templates save reusable layouts, including nested Boards and connections. Apply to a new Board, keep existing canvas content, move it to Unsorted Library, delete it, or cancel. Application supports Undo. Note Templates preserve rich formatting, substitute placeholders and optionally retain existing title/content. Templates travel with workspace backups and Drive sync.
+- Windows and signed Android installers are published together only after both native builds of the same commit succeed. Application/package/signing identities and existing Google authentication remain unchanged.
+
+Install over the existing app and keep an independent backup. Legacy updaters only recognize their older platform-specific release tags; this first unified release may need a direct installer download. Updated updaters accept unified version tags. Physical-device interaction and real Google Drive latency are not certified by browser simulations and build checks.
+
 ## Tab-specific editors and Family Tree Stickies
 
 - Creation and editing windows sit below the header and tabs. Switch to another tab, check a Board, then return to the same live editor with its draft, formatting and scroll position. Each tab keeps its own editor; opening the header's Board picker temporarily suspends the current editor. Closing a tab with an open editor asks you to finish or cancel it first.
