@@ -1,3 +1,12 @@
+## Silverlight 0.9.2 — direct inline note editing
+
+- On desktop, double-click a text Sticky to edit its title and rich text directly inside the Sticky. This also covers checklists, link notes, nested-Board notes and older text Stickies.
+- Save and Cancel stay inside the Sticky; formatting remains above the Board tabs. More / pop-up opens the full editor for tags, appearance, templates and other advanced options without losing the draft. A saved pop-up preference is respected; choose Edit inline to switch.
+- Per-tab drafts survive switching tabs and presentation. Mobile keeps pop-up editing by default and can opt into inline editing. Native Back still protects unsaved drafts.
+- Specialized Family Tree, image, spreadsheet and timeline editors keep their existing interfaces. Image-region notes without a visible Sticky use the pop-up fallback. This focused patch does not add automatic sizing for every Sticky type or expand Canvas Templates.
+
+Install over the existing application. Existing projects, links, authentication and synchronization are preserved.
+
 ## Silverlight 0.9.1 — faster Google Drive synchronization
 
 - Normal live update checks use Drive's changes feed instead of repeatedly listing all snapshots. Unchanged checks avoid Board capture and workspace hashing. Closing an editor requests a lightweight check; periodic and expired-cursor recovery scans remain.
