@@ -1,5 +1,7 @@
 ## Silverlight 0.9.3 — avoid unchanged image reloads at startup
 
+- Existing desktop text Stickies now start inline even when an older release saved a pop-up preference. Subsequent editor choices are retained; mobile keeps its existing default.
+- Clicking back onto the canvas finishes and saves the inline edit, releasing the editor's canvas lock. Save, Cancel and parked tab drafts remain available.
 - Live sync can resume a previously verified, unchanged local workspace using saved image hashes and sync history. It checks Drive for updates without first reading all local image originals or repeating the full workspace checksum.
 - A verified cached upload can provide the same proof when upgrading from the previous release. Missing proof, offline edits, changed image references, pending changes, conflicts or deferred drafts retain the normal verification path.
 - Local clean-state proof is saved atomically with the workspace and sync metadata, and is invalidated when causal records change. Missing-image checks and original-byte verification when an image is actually used remain. Remote snapshots retain their original integrity checks.
