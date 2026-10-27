@@ -8,8 +8,9 @@ async function check(input){const {document:d}=await A.pack(expand(input)),{meta
  // Upgrade path: an already-verified cached upload can prove the same local records without rereading images.
  if(!proven&&cached&&meta.publishedFile&&cached.fileId===meta.publishedFile&&cached.document?.revision===meta.publishedRevision&&cached.document?.auto?.dataset===meta.dataset&&cached.document?.auto?.device===meta.device&&await A.stream.hashJSON(cached.document,true)===cached.documentHash){proven=await A.stream.hashJSON(cached.document.auto.records,true)===recordsKey}
  if(!proven)return null;
- const boards=new Map(workspace.boards.map(b=>[b.id,b])),seen=new Map(meta.seen.map(s=>[s.id,s]));if(boards.size!==workspace.boards.length)return null;
- for(const r of meta.records){if(r.versions?.length!==1)return null;const v=r.versions[0],observed=seen.get(r.id);if(!observed||!Auto.dominates(observed.clock,v.clock)||!Auto.dominates(v.clock,observed.clock)||!Auto.same(v.board,boards.get(r.id)||null))return null;boards.delete(r.id)}
+ // Represent known asset IDs as references so existing causal materialization can validate compatible partner edits.
+ const local=A.lazyDocument({records:meta.records,boards:workspace.boards},{},()=>{throw Error('Startup comparison must not load image bytes.')}),boards=new Map(local.boards.map(b=>[b.id,b])),seen=new Map(meta.seen.map(s=>[s.id,s]));if(boards.size!==workspace.boards.length)return null;
+ for(const r of local.records){const v=r.versions?.length===1?r.versions[0]:Auto.materialize(r.versions||[]),observed=seen.get(r.id);if(!v||!observed||!Auto.dominates(observed.clock,v.clock)||!Auto.dominates(v.clock,observed.clock)||!Auto.same(v.board,boards.get(r.id)||null))return null;boards.delete(r.id)}
  return boards.size?null:meta.published;
 }
 const api={expand,check};if(typeof module!=='undefined')module.exports=api;else root.SilverlightResume=api;
