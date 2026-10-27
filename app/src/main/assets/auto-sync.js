@@ -15,7 +15,7 @@ function settled(){if(meta.missing?.length||meta.conflicts?.length)status('Needs
 function wake(){retryUntil=0;lastRepair=0;schedule(0)}
 function markPoll(files,repair){lastChecked=Date.now();if(repair)lastRepair=Date.now();for(const file of files){const created=Date.parse(file.createdTime);if(Number.isFinite(created))newest=Math.max(newest,created)}}
 
-async function persist(next,w=null,expected=state(),allowReview=false){diagnostic.stage('saving');await app.writeSync(w,next,expected,allowReview);meta=next;}
+async function persist(next,w=null,expected=state(),allowReview=false){diagnostic.stage('saving');await app.writeSync(w,next,expected,allowReview);delete next.__resumeDigest;meta=next;}
 async function call(op,args={}){return transport.request(op,{...args,silent:true,expectedAccount:meta.account,onProgress:transferProgress})}
 function available(){return app.ready()&&app.canSync()&&document.visibilityState!=='hidden'&&!transport.isManualBusy()}
 async function compactIfQuiet(){
@@ -70,7 +70,7 @@ async function cycle(){
    const revisions=Object.fromEntries(await Promise.all(meta.records.map(async r=>[r.id,await core.revision(r)]))),checkpoint=!meta.publishedRecords||(meta.incrementalUploads||0)>=49,changed=checkpoint?null:meta.records.filter(r=>meta.publishedRecords[r.id]!==revisions[r.id]).map(r=>r.id);
    const optimized=!!transport.optimized?.();const snapshot=await crdt.envelope(meta,app.getState(),optimized?null:changed);const result=await call('upload',{snapshot,optimized,dataset:meta.dataset});next=clone(meta);next.published=digest;next.publishedRecords=revisions;next.incrementalUploads=(optimized?result.checkpoint:checkpoint)?0:(meta.incrementalUploads||0)+1;next.incrementalHistory=true;next.publishedFile=result.id;next.publishedRevision=snapshot.revision;if(result.id&&!next.files.includes(result.id))next.files.push(result.id);await persist(next)
   }
-  expected=state();next=await captureSaved(meta,app.getState());diagnostic.stage('hash');recordDigest=await core.revision(next.records);const stillPending=recordDigest!==meta.published;next.lastSynced=new Date().toISOString();await persist(next,null,expected);retry=3000;retryUntil=0;cleanGeneration=capturedGeneration;markPoll(files,repair);
+  expected=state();next=await captureSaved(meta,app.getState());diagnostic.stage('hash');recordDigest=await core.revision(next.records);const stillPending=recordDigest!==meta.published;next.lastSynced=new Date().toISOString();if(!stillPending)next.__resumeDigest=recordDigest;await persist(next,null,expected);retry=3000;retryUntil=0;cleanGeneration=capturedGeneration;markPoll(files,repair);
   if(meta.missing?.length||meta.conflicts?.length)status('Needs attention','Conflicting BOARD versions are preserved; open the cloud menu');else if(stillPending)status('Pending');else settled();
   if(meta.cleanupEnabled&&!meta.incrementalHistory&&meta.publishedFile&&!stillPending){try{const retentionFiles=await transport.list({silent:true,expectedAccount:meta.account,dataset:meta.dataset});for(const file of SilverlightRetention.candidates(retentionFiles,meta)){await transport.request('prune',{silent:true,expectedAccount:meta.account,fileId:file.id,replacementId:meta.publishedFile,dataset:meta.dataset,device:meta.device,revision:meta.publishedRevision})}}catch{message='Sync completed; old-copy cleanup will retry after the next upload.'}}
   acceptCursor();diagnostic.finish(meta.conflicts?.length||meta.missing?.length?'attention':'complete');schedule(stillPending||generation!==cleanGeneration?EDIT_DELAY:LIVE_POLL);
@@ -108,7 +108,7 @@ function decorate(){const dialog=document.querySelector('#modalRoot .modal');if(
  button('autoDiagnostics','Download sync diagnostics',()=>{const blob=new Blob([JSON.stringify(diagnostic.report(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='silverlight-sync-diagnostics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
  panel.append(actions);dialog.querySelector('.actions').before(panel);status(label,message);
 }
-async function start(){if(started)return;started=true;try{meta=await app.readSync();if(meta?.version!==1)meta=null;if(meta?.enabled){status('Pending','Starting live sync');schedule(0)}}catch(e){status('Needs attention',e.message)}}
+async function start(){if(started)return;started=true;try{meta=await app.readSync();if(meta?.version!==1)meta=null;if(meta?.enabled){const stamp=generation;let resumed=null;try{resumed=await app.resumeSync?.(meta)}catch{}if(resumed&&generation===stamp){recordDigest=resumed;capturedGeneration=generation;cleanGeneration=generation;fullCapture=false}status('Pending',resumed?'Checking for cloud changes':'Starting live sync');schedule(0)}}catch(e){status('Needs attention',e.message)}}
 window.addEventListener('online',wake);window.addEventListener('offline',()=>{if(meta?.enabled)status('Offline','Changes stay saved on this device')});window.addEventListener('focus',wake);window.addEventListener('silverlight-resume',wake);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wake();else scheduler.cancel()});
 return {start,changed,pause,decorate,wake:()=>{retryUntil=0;schedule(0)},isRunning:()=>running};
 };

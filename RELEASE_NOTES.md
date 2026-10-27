@@ -1,3 +1,14 @@
+## Silverlight 0.9.3 — avoid unchanged image reloads at startup
+
+- Live sync can resume a previously verified, unchanged local workspace using saved image hashes and sync history. It checks Drive for updates without first reading all local image originals or repeating the full workspace checksum.
+- A verified cached upload can provide the same proof when upgrading from the previous release. Missing proof, offline edits, changed image references, pending changes, conflicts or deferred drafts retain the normal verification path.
+- Local clean-state proof is saved atomically with the workspace and sync metadata, and is invalidated when causal records change. Missing-image checks and original-byte verification when an image is actually used remain. Remote snapshots retain their original integrity checks.
+- Startup initialization no longer marks an unchanged workspace as a new edit. A concurrent user edit while the startup comparison runs invalidates the shortcut.
+
+Validation includes an isolated browser restart with 24 image Boards and zero original-image reads, verified-cache upgrade, offline-edit fallback, subsequent clean resume, corruption checks and the complete release test/build pipeline. Real-device startup timing remains dependent on workspace size and storage.
+
+Sync/performance follow-up: actual edits and incoming changes can still need broader verification work. This patch targets unchanged restarts; it does not claim that every sync operation loads only changed images.
+
 ## Silverlight 0.9.2 — direct inline note editing
 
 - On desktop, double-click a text Sticky to edit its title and rich text directly inside the Sticky. This also covers checklists, link notes, nested-Board notes and older text Stickies.
