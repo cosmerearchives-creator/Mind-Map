@@ -13,7 +13,7 @@ backdate=true;await rename(a,'Late visible snapshot');const repairMs=await until
 assert.equal(lists.filter(l=>l.args.dataset&&!l.args.after).length,initialRepairs,'saving and closing editors do not force repair listings');const beforeRepair=lists.length;expired=true;await until(async()=>lists.length>beforeRepair,'expired journal cursor safely triggers full repair',7500);if(fastMode){
  await until(async()=>!(await a.locator('#driveSync').getAttribute('title')).startsWith('Syncing'),'settled before simulated checkpoint threshold');
  await a.evaluate(async()=>{const db=await new Promise(resolve=>{const q=indexedDB.open('openboard-workspace',1);q.onsuccess=()=>resolve(q.result)});const meta=await SilverlightAssetStore.read(db,'auto-sync-meta',false,true);meta.incrementalUploads=49;await SilverlightAssetStore.write(db,[['auto-sync-meta',meta]]);db.close()});
- await a.reload();await a.locator('[data-card="note"]').waitFor();await a.waitForTimeout(700);const beforeCheckpoint=files.length;
+ await a.waitForFunction(()=>!window.SilverlightLocalSaveStatus?.().pending);await a.reload();await a.locator('[data-card="note"]').waitFor();await a.waitForTimeout(700);const beforeCheckpoint=files.length;
  await a.evaluate(()=>{const realNow=Date.now;Date.now=()=>realNow()+16000});
  await until(async()=>files.length>beforeCheckpoint&&files.at(-1).snapshot.auto.checkpoint,'quiet full checkpoint after threshold',12000);
  assert.equal(files.at(-1).snapshot.base,null,'quiet checkpoint has no delta dependency');

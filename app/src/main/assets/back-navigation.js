@@ -10,6 +10,7 @@ window.installBackNavigation=function(app){
   if(app.cancelGesture())return true;
   if(app.back())return true;
   if(app.hasDrafts?.()&&!confirm('There are unsaved editor drafts in other tabs. Exit Silverlight and discard those drafts?'))return true;
+  if(window.SilverlightLocalSaveStatus?.().pending&&!confirm('Changes are still waiting to save to device storage. Exit Silverlight anyway?'))return true;
   return false;
  };
 };

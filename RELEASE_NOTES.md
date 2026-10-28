@@ -1,3 +1,13 @@
+## Silverlight 0.10.1 — Stability & Performance Update
+
+- Background timeouts terminate the worker and cancel every outstanding job. Crashes and unreadable responses reset the worker and its image cache; the next request starts fresh. Late responses cannot overwrite recovered work. Failed worker startup can be retried on a later request.
+- Local saves retry transient storage failures with delays from one to thirty seconds. New edits supersede older retries. The unsaved warning clears only after the current workspace is durably saved, and closing with pending saves warns before exit. Returning to the app retries pending saves.
+- Changed Boards avoid a second serialization unless layout migration changes their content. Suspended editor drafts also prevent closing their owning tab and remain protected during navigation.
+- Downloaded sync diagnostics include worker/fallback job totals, reset count and an allowlisted failure category, without workspace text, images or credentials.
+- Existing workspace storage, backup formats, original images, Google Drive sync protocol, application IDs and Android signing identity are retained.
+
+Validation includes worker timeout/crash/post failure injection, save retry and warning recovery on desktop and Android-sized touch layouts, the shared/core and browser regression suites, and coordinated Windows/Android build checks. Physical Android installation and live Google Drive account timing are not covered by browser simulations. Version metadata and official main/latest release gating are checked automatically.
+
 ## Silverlight 0.10.0 — complete layouts, simpler Stickies and faster local work
 
 - Ordinary Note and checklist Stickies use content without a separate title. Existing titles move to the beginning of the content, preserving rich body formatting and Board links. Ordinary Nested Board Stickies have only a wrapping title and destination; existing note text joins that title. Codex book covers and read-only source annotations retain their specialized presentation.

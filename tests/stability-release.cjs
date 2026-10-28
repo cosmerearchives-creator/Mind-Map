@@ -1,0 +1,10 @@
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const read=p=>fs.readFileSync(p,'utf8'),r=JSON.parse(read('release-version.json')),[major,minor,patch]=r.version.split('.').map(Number);
+assert.equal(r.androidVersionCode,major*10000000+minor*100000+patch,'Android versionCode must match updater tag arithmetic');assert.ok(r.androidVersionCode>1000000);
+assert.ok(read('app/build.gradle').includes("versionName '"+r.version+"'"));assert.ok(read('app/build.gradle').includes('versionCode '+r.androidVersionCode));
+assert.ok(read('windows/Silverlight.Windows.csproj').includes('<Version>'+r.version+'</Version>'));
+assert.ok(read('windows/installer.iss').includes('AppVersion "'+r.version+'"'));
+const windows=read('.github/workflows/windows.yml');assert.ok(windows.includes('-p:Version='+r.version));assert.ok(windows.includes('/DAppVersion='+r.version));assert.ok(windows.includes('main'));
+const android=read('app/src/main/java/com/cosmerearchives/silverlight/MainActivity.java');assert.ok(android.includes('/releases/latest'));assert.ok(android.includes('Silverlight.apk'));assert.ok(android.includes('major * 10000000L + minor * 100000L + patch'));
+const release=read('.github/workflows/release-major.yml');for(const text of ['branches: [main]','head_sha===sha',"conclusion==='success'",'Silverlight-Setup.exe','Silverlight.apk','--draft=false --latest'])assert.ok(release.includes(text),text);
+console.log('PASS Windows and Android version metadata, updater tag arithmetic and coordinated main/latest release gate.');
