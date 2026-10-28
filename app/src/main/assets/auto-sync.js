@@ -55,12 +55,12 @@ async function cycle(){
   for(const file of [...files].sort((a,b)=>String(b.createdTime).localeCompare(String(a.createdTime)))){if(known.has(file.id))continue;diagnostic.stage('download');const result=await call('download',{fileId:file.id,objectResult:true,dataset:meta.dataset});const snapshot=(typeof result.snapshot==='string'?JSON.parse(result.snapshot):result.snapshot),records=await crdt.verify(snapshot,meta.dataset);diagnostic.stage('hash');remote.push(...records);cloudHashes.push(await core.revision(records));known.add(file.id);for(const covered of snapshot.auto.coveredFiles||[])known.add(covered)}
   if(!available()||!meta.enabled){diagnostic.finish('waiting');schedule(1000);return}
   // Capture intervening edits before learning remote clocks; they are concurrent, not overwrites.
-  current=clone(app.getState());expected=state();next=await captureSaved(meta,current);if(next.bootstrap){next=await crdt.join(next,current,remote);delete next.bootstrap;capturedGeneration=generation;fullCapture=false;dirtyBoards.clear()}else next.records=await crdt.merge(next.records,remote);next.files=[...known];
-  const projected=await crdt.projection(next.records,current);let incoming=null;
+  current=clone(app.getState());expected=state();next=await captureSaved(meta,current);if(next.bootstrap){next=await crdt.join(next,current,remote);delete next.bootstrap;capturedGeneration=generation;fullCapture=false;dirtyBoards.clear()}else if(remote.length)next.records=await crdt.merge(next.records,remote);next.files=[...known];
+  const localOnly=!remote.length&&!next.deferred&&!next.missing?.length&&!next.conflicts?.length;const projected=localOnly?{workspace:current,missing:[],conflicts:[]}:await crdt.projection(next.records,current);let incoming=null;
   const protectedIds=app.protectedBoards?.()||[];next.deferred=false;
   if(!projected.missing.length){core.workspace(projected.workspace);incoming=projected.workspace;
    for(const id of protectedIds){const local=current.boards.find(b=>b.id===id),remote=incoming.boards.find(b=>b.id===id);if(SilverlightAssets.fingerprint(local||null)!==SilverlightAssets.fingerprint(remote||null)){next.deferred=true;incoming.boards=incoming.boards.filter(b=>b.id!==id);if(local)incoming.boards.push(local)}}
-   next=await crdt.observed(next,incoming,protectedIds)}
+   if(!localOnly)next=await crdt.observed(next,incoming,protectedIds)}
   next.missing=projected.missing;next.conflicts=projected.conflicts;
   if(!available()){diagnostic.finish('waiting');schedule(1000);return}
   await persist(next,incoming&&SilverlightAssets.fingerprint(current.boards)!==SilverlightAssets.fingerprint(incoming.boards)?incoming:null,expected);

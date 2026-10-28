@@ -1,0 +1,10 @@
+[hidden]{display:none!important}
+.note.blankTitle>.noteHead{display:none}
+.note.blankTitle>.stickyContent{top:0;height:100%;max-height:100%;overflow:auto}
+.note .noteBody{max-height:none}
+.note.nestedEmpty .nestedFullButton{white-space:pre-wrap;max-height:100%;overflow:auto}
+.directStickyEditor>#cardTitle{resize:none;min-height:42px;height:auto;white-space:pre-wrap;overflow:auto}
+.directStickyEditor:has(>#cardTitle:not([hidden])):not(:has(.richShell))>#cardTitle{flex:1;min-height:0}
+.sizeProbe .stickyContent,.sizeProbe .noteBody,.sizeProbe .documentPreview,.sizeProbe .sheetViewport{position:static!important;height:auto!important;max-height:none!important;overflow:visible!important}
+.sizeProbe .familyInlineDiagram{height:260px}
+.note .stickyContent{overflow:auto}
