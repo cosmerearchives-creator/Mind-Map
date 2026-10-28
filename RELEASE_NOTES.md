@@ -1,3 +1,12 @@
+## Silverlight 0.11.0 — desktop canvas interactions
+
+- Editing an ordinary desktop Note keeps the existing Sticky frame, font, padding, line wrapping and text placement. A caret and accent outline indicate editing. Save, Cancel and More / pop-up are in the formatting area above the canvas. Clicking the canvas commits the edit; Escape cancels and Ctrl+Enter saves. Existing popup preferences and parked drafts remain available.
+- Double-click empty canvas on PC for a compact radial menu with labeled icons for Note, Nested Board, Image, Collection, Family tree, Spreadsheet, Timeline, Checklist, Link, Location Pin, Board shortcut and Codex. Select a type to begin creation at the original click position. Escape or an outside click dismisses the menu. Existing context-menu creation remains available.
+- Drag up to 20 image files from File Explorer onto the canvas, or drag a website image directly from the browser. Supported website images are downloaded through the Windows bridge without requiring cross-origin browser access. Originals are copied into workspace storage, preserving their bytes for offline use, backups and Drive sync. Each image must be below 8 MB. Invalid or blocked downloads leave the workspace unchanged and explain the file-download alternative.
+- Windows is the active development and release target. Android remains at 0.10.1 (versionCode 1000001); mobile-specific development and automatic APK releases are paused. Existing Android installations retain workspace and Google Drive access. The previous signed APK remains available in the 0.10.1 release. This release contains Silverlight-Setup.exe only.
+
+Validation includes matching displayed/editable text rectangles and line wrapping, stable frames across canvas zoom levels, parked drafts and save/cancel behavior, radial creation, local and website image-drop/reload/failure cases, existing shared-storage and Drive regression suites, native Windows updater/authentication tests and the Windows installer build. Website download restrictions can still require saving the image locally first.
+
 ## Silverlight 0.10.1 — Stability & Performance Update
 
 - Background timeouts terminate the worker and cancel every outstanding job. Crashes and unreadable responses reset the worker and its image cache; the next request starts fresh. Late responses cannot overwrite recovered work. Failed worker startup can be retried on a later request.

@@ -1,7 +1,7 @@
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const read=p=>fs.readFileSync(p,'utf8'),r=JSON.parse(read('release-version.json')),[major,minor,patch]=r.version.split('.').map(Number);
+const read=p=>fs.readFileSync(p,'utf8'),r=JSON.parse(read('release-version.json')),[major,minor,patch]=(r.androidVersion||r.version).split('.').map(Number);
 assert.equal(r.androidVersionCode,major*10000000+minor*100000+patch,'Android versionCode must match updater tag arithmetic');assert.ok(r.androidVersionCode>1000000);
-assert.ok(read('app/build.gradle').includes("versionName '"+r.version+"'"));assert.ok(read('app/build.gradle').includes('versionCode '+r.androidVersionCode));
+assert.ok(read('app/build.gradle').includes("versionName '"+(r.androidVersion||r.version)+"'"));assert.ok(read('app/build.gradle').includes('versionCode '+r.androidVersionCode));
 assert.ok(read('windows/Silverlight.Windows.csproj').includes('<Version>'+r.version+'</Version>'));
 assert.ok(read('windows/installer.iss').includes('AppVersion "'+r.version+'"'));
 const windows=read('.github/workflows/windows.yml');assert.ok(windows.includes('-p:Version='+r.version));assert.ok(windows.includes('/DAppVersion='+r.version));assert.ok(windows.includes('main'));

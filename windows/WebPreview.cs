@@ -15,7 +15,8 @@ internal static class WebPreview
     }
     public static async Task<object> ReadAsync(JsonElement request)
     {
-        bool image=request.GetProperty("op").GetString()=="previewImage";
+        bool importing=request.GetProperty("op").GetString()=="importImage";
+        bool image=importing||request.GetProperty("op").GetString()=="previewImage";
         var uri=new Uri(request.GetProperty("url").GetString()!);
         if(!uri.IsDefaultPort||uri.UserInfo.Length!=0)throw new InvalidOperationException("Unsupported preview address.");
         // Android also disallows cleartext; use HTTPS for preview retrieval on both platforms.
@@ -29,8 +30,8 @@ internal static class WebPreview
             if(addresses.Length==0||addresses.Any(a=>!PublicAddress(a)))throw new InvalidOperationException("Preview address is not public.");
             using var response=await http.GetAsync(uri,HttpCompletionOption.ResponseHeadersRead,timeout.Token);
             if((int)response.StatusCode>=300&&(int)response.StatusCode<400&&response.Headers.Location is Uri next){uri=new Uri(uri,next);continue;}
-            response.EnsureSuccessStatusCode();string type=response.Content.Headers.ContentType?.MediaType??"";int limit=image?2*1024*1024:512*1024;
-            if(image?!new[]{"image/png","image/jpeg","image/webp","image/gif","image/x-icon","image/vnd.microsoft.icon"}.Contains(type):!new[]{"text/html","application/xhtml+xml"}.Contains(type))throw new InvalidOperationException("Unsupported preview response.");
+            response.EnsureSuccessStatusCode();string type=response.Content.Headers.ContentType?.MediaType??"";int limit=importing?8*1024*1024:image?2*1024*1024:512*1024;
+            if(image?!new[]{"image/png","image/jpeg","image/webp","image/gif","image/x-icon","image/vnd.microsoft.icon","image/avif","image/bmp"}.Contains(type):!new[]{"text/html","application/xhtml+xml"}.Contains(type))throw new InvalidOperationException("Unsupported preview response.");
             using var input=await response.Content.ReadAsStreamAsync(timeout.Token);using var bytes=new MemoryStream();var buffer=new byte[8192];int count;
             while((count=await input.ReadAsync(buffer,timeout.Token))>0){if(bytes.Length+count>limit){if(image)throw new InvalidOperationException("Preview exceeds size limit.");bytes.Write(buffer,0,(int)(limit-bytes.Length));break;}bytes.Write(buffer,0,count);}
             if(image)return new{items=new[]{new{type,base64=Convert.ToBase64String(bytes.ToArray())}}};

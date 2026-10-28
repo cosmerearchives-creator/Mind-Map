@@ -83,7 +83,7 @@ public sealed class MainWindow : Form
                             string? clipId = request.TryGetProperty("id", out var clip) ? clip.GetString() : null;
                             try
                             {
-                                var clipboardOp=request.GetProperty("op").GetString();var clipboardResult = clipboardOp is "preview" or "previewImage" ? await WebPreview.ReadAsync(request) : clipboardOp == "media" ? await ClipboardBridge.MediaAsync(request) : ClipboardBridge.Read(request);
+                                var clipboardOp=request.GetProperty("op").GetString();var clipboardResult = clipboardOp is "preview" or "previewImage" or "importImage" ? await WebPreview.ReadAsync(request) : clipboardOp == "media" ? await ClipboardBridge.MediaAsync(request) : ClipboardBridge.Read(request);
                                 using var encoded = JsonDocument.Parse(JsonSerializer.Serialize(clipboardResult));
                                 browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel = "silverlight-clipboard", id = clipId, items = encoded.RootElement.GetProperty("items") }));
                             }
