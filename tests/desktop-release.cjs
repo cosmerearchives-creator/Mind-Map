@@ -1,5 +1,5 @@
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const config=JSON.parse(fs.readFileSync('release-version.json','utf8')),workflow=fs.readFileSync('.github/workflows/release-major.yml','utf8');
+const config=JSON.parse(fs.readFileSync('release-version.json','utf8')),workflow=fs.readFileSync('.github/workflows/release-major.yml','utf8').replace(/\r\n/g,'\n');
 assert.deepEqual(config.platforms,['windows']);assert.equal(config.androidVersion,'0.10.1');assert.equal(config.androidVersionCode,1000001);
 const android=fs.readFileSync('.github/workflows/android-apk.yml','utf8');assert.ok(android.includes('workflow_dispatch:'));assert.ok(!/^  push:/m.test(android),'mobile builds are paused on push');
 const script=workflow.split('          script: |\n')[1].split('      - name:')[0].split('\n').map(line=>line.startsWith('            ')?line.slice(12):line).join('\n');
