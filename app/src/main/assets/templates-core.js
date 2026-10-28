@@ -16,7 +16,7 @@
   const next=clone(card),layout=clone(template),escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const substitute=(text,rich)=>String(text||'').replace(/\{\{([\w .-]{1,80})\}\}/g,(all,key)=>Object.hasOwn(values,key)?(rich?escape(values[key]):String(values[key])):all);
   const old=next.body||'',rich=String(layout.body||'').startsWith('silverlight-rich-v1:');
-  for(const key of ['title','body','color','backgroundImageData','backgroundFit','backgroundOverlay','width','height'])if(Object.hasOwn(layout,key))next[key]=key==='body'||key==='title'?substitute(layout[key],key==='body'&&rich):layout[key];
+  for(const key of ['sizeMode','title','body','color','backgroundImageData','backgroundFit','backgroundOverlay','width','height'])if(Object.hasOwn(layout,key))next[key]=key==='body'||key==='title'?substitute(layout[key],key==='body'&&rich):layout[key];
   if(preserve){next.title=card.title||next.title;const toHTML=body=>body.startsWith('silverlight-rich-v1:')?body.slice(19):escape(body).replace(/\n/g,'<br>');if(old)next.body='silverlight-rich-v1:'+toHTML(next.body||'')+'<p><br></p>'+toHTML(old)}
   if((!next.kind||['text','task'].includes(next.kind))&&next.title){const title=escape(next.title),body=next.body||'';next.body='silverlight-rich-v1:<p><strong>'+title+'</strong></p>'+(body.startsWith('silverlight-rich-v1:')?body.slice(19):escape(body).replace(/\n/g,'<br>'));next.title='';next.hideTitle=true}return next;
  }
