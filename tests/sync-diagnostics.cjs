@@ -6,3 +6,6 @@ d.stage('uploading',{completed:2,total:5,reused:1});assert.equal(d.snapshot().co
 for(let i=0;i<200;i++){d.begin();d.stage('hash');d.finish()}assert.ok(d.report().events.length<=256);assert.ok(saved.length<65000);assert.ok(renders>0);
 const restarted=D.create({now:()=>time,storage});assert.ok(restarted.report().events.length>0);const hostile=D.create({storage:{getItem:()=>JSON.stringify([{stage:'hash',title:'BOARD-CANARY',error:'TOKEN-CANARY',at:1}]),setItem:()=>{throw Error('quota')}},render:()=>{throw Error('UI failure')}});hostile.begin();hostile.stage('hash');hostile.finish();assert.ok(!JSON.stringify(hostile.report()).includes('CANARY'));
 console.log('PASS: stage timing, one-minute stall notice, real advancement, retry countdown, bounded persisted diagnostics, allowlisted privacy and storage/UI failure isolation.');
+
+for(const message of ['Workspace changed; retrying sync.','Workspace save was interrupted.']){d.begin();d.finish('retry',new Error(message));assert.notEqual(d.report().events.at(-1).error,'storage-capacity',message)}
+for(const message of ['QuotaExceededError','Not enough disk space','Device storage full','Device storage is full','Not enough device storage for this change','Insufficient space']){d.begin();d.finish('retry',new Error(message));assert.equal(d.report().events.at(-1).error,'storage-capacity',message)}

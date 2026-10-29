@@ -1,3 +1,13 @@
+## Silverlight 0.11.1 — reduce repeated sync work
+
+- Panning, zooming and changing tabs no longer invalidate an automatic sync save. Actual content edits still stop stale incoming writes, and incoming Boards preserve the current local view and tabs.
+- Optimized Drive uploads skip redundant per-record checksums. The final sync check reuses its checksum when no new edits were captured, and computes a fresh one when edits arrive during upload. Existing checksums, original images and the Drive protocol remain unchanged.
+- Metadata-only sync updates avoid repacking an already-saved workspace. Pending local edits and incoming Boards still save atomically with sync history; incoming changes retain a local recovery copy. Stale queued writes check their guard before preparing each record.
+- Diagnostics no longer mistake “Workspace changed” for a storage-capacity error. Image progress describes preparation rather than implying every image was read from disk.
+- Windows release only. Android remains at 0.10.1 (versionCode 1000001), with existing access and Drive compatibility retained.
+
+Validation covers navigation during sync commits, concurrent edits, pending saves, recovery transactions, optimized hashing, existing browser/storage/two-device transfers, native updater/authentication checks and installer packaging. The reported 329-second workspace has not been benchmarked after this patch. Startup loading and large-board viewport performance still need separate investigation.
+
 ## Silverlight 0.11.0 — desktop canvas interactions
 
 - Editing an ordinary desktop Note keeps the existing Sticky frame, font, padding, line wrapping and text placement. A caret and accent outline indicate editing. Save, Cancel and More / pop-up are in the formatting area above the canvas. Clicking the canvas commits the edit; Escape cancels and Ctrl+Enter saves. Existing popup preferences and parked drafts remain available.
