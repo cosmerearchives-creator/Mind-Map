@@ -15,12 +15,14 @@ class SHA256{
  constructor(){this.h=new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);this.buffer=new Uint8Array(64);this.used=0;this.length=0;this.words=new Uint32Array(64)}
  block(bytes){const w=this.words;for(let i=0;i<16;i++)w[i]=(bytes[i*4]<<24)|(bytes[i*4+1]<<16)|(bytes[i*4+2]<<8)|bytes[i*4+3];for(let i=16;i<64;i++){const a=w[i-15],b=w[i-2];w[i]=w[i-16]+(rotate(a,7)^rotate(a,18)^(a>>>3))+w[i-7]+(rotate(b,17)^rotate(b,19)^(b>>>10))}let [a,b,c,d,e,f,g,h]=this.h;for(let i=0;i<64;i++){const t1=(h+(rotate(e,6)^rotate(e,11)^rotate(e,25))+((e&f)^(~e&g))+K[i]+w[i])|0,t2=((rotate(a,2)^rotate(a,13)^rotate(a,22))+((a&b)^(a&c)^(b&c)))|0;h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0}for(const [i,v]of [a,b,c,d,e,f,g,h].entries())this.h[i]+=v}
  update(bytes){this.length+=bytes.length;let at=0;while(at<bytes.length){const n=Math.min(64-this.used,bytes.length-at);this.buffer.set(bytes.subarray(at,at+n),this.used);this.used+=n;at+=n;if(this.used===64){this.block(this.buffer);this.used=0}}return this}
+ clone(){const copy=new SHA256();copy.h.set(this.h);copy.buffer.set(this.buffer);copy.used=this.used;copy.length=this.length;return copy}
  digest(){const bits=this.length*8;this.buffer[this.used++]=128;if(this.used>56){this.buffer.fill(0,this.used);this.block(this.buffer);this.used=0}this.buffer.fill(0,this.used,56);const view=new DataView(this.buffer.buffer);view.setUint32(56,Math.floor(bits/4294967296));view.setUint32(60,bits>>>0);this.block(this.buffer);return [...this.h].map(v=>v.toString(16).padStart(8,'0')).join('')}
 }
-async function hashChunks(chunks){let sha=null,buffered=[],bytes=0,processed=0;const native=globalThis.crypto?.subtle,limit=32*1024*1024;
+async function hashChunks(chunks,initial){let sha=initial?.clone()||null,buffered=[],bytes=0,processed=0;const native=globalThis.crypto?.subtle,limit=32*1024*1024;
  for(const chunk of chunks){const data=encoder.encode(chunk);if(native&&!sha&&bytes+data.length<=limit){buffered.push(data);bytes+=data.length}else{if(!sha){sha=new SHA256();for(const part of buffered)sha.update(part);buffered=[]}sha.update(data)}processed+=chunk.length;if(processed>=4*1024*1024){processed=0;await new Promise(r=>setTimeout(r,0))}}
  if(sha)return sha.digest();if(native){try{const input=new Uint8Array(bytes);let at=0;for(const part of buffered){input.set(part,at);at+=part.length}return [...new Uint8Array(await native.digest('SHA-256',input))].map(v=>v.toString(16).padStart(2,'0')).join('')}catch{}}
  sha=new SHA256();for(const part of buffered)sha.update(part);return sha.digest();}
+async function updateChunks(sha,chunks){let processed=0;for(const chunk of chunks){sha.update(encoder.encode(chunk));processed+=chunk.length;if(processed>=4*1024*1024){processed=0;await new Promise(r=>setTimeout(r,0))}}return sha}
 function* textChunks(text){for(let at=0;at<text.length;){let end=Math.min(at+16384,text.length);if(end<text.length&&/[\uD800-\uDBFF]/.test(text[end-1]))end--;yield text.slice(at,end);at=end}}
 // Parse each scalar separately. A document can exceed the engine's single-string limit.
 class Parser{
@@ -34,6 +36,6 @@ class Parser{
  write(text){for(const ch of text){if(this.string){this.token+=ch;if(this.escape)this.escape=false;else if(ch==='\\')this.escape=true;else if(ch==='"'){this.string=false;this.accept(this.token);this.token=''}continue}if(ch==='"'){if(this.token)throw Error('Invalid streamed JSON.');this.token=ch;this.string=true;continue}if(/[\s{}\[\],:]/.test(ch)){if(this.token){this.accept(this.token);this.token=''}if(!/\s/.test(ch))this.accept(ch)}else this.token+=ch}}
  finish(){if(this.string)throw Error('Incomplete JSON string.');if(this.token)this.accept(this.token);if(this.stack.length||!this.hasRoot)throw Error('Incomplete JSON document.');return this.value}
 }
-const api={json,textChunks,SHA256,Parser,hashChunks,hashJSON:(v,sorted=false)=>hashChunks(json(v,sorted)),hashText:t=>hashChunks(textChunks(t))};
+const api={json,textChunks,SHA256,Parser,hashChunks,updateChunks,hashJSON:(v,sorted=false)=>hashChunks(json(v,sorted)),hashText:t=>hashChunks(textChunks(t))};
 if(typeof module!=='undefined')module.exports=api;else root.SilverlightStream=api;
 })(globalThis);

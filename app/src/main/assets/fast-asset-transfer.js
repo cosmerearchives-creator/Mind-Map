@@ -1,10 +1,13 @@
 /* Verified sparse transfers layered over the legacy backup/restore transport. */
 window.installFastAssetTransfer=function(legacy,raw,list,options){'use strict';options=options||{};
- const A=SilverlightAssets,D=SilverlightDelta,heads=new Map(),documents=new Map();
+ const A=SilverlightAssets,D=SilverlightDelta,heads=new Map(),documents=new Map(),scopes=new Map(),catalogs=new Map();
  function remember(key,entry){if(A.logicalSize(entry.document)>32*1024*1024)return;documents.delete(key);documents.set(key,entry);while(documents.size>2)documents.delete(documents.keys().next().value)}
  const hash=x=>A.stream.hashJSON(x,true),partition=args=>(args.expectedAccount||'')+':'+(args.dataset||'');
  const get=async(args,key)=>options.cache?.get(args.expectedAccount||'',key);
  const put=async(args,key,value)=>options.cache?.put(args.expectedAccount||'',key,value);
+ function scopeKey(snapshot){return A.hash(JSON.stringify((snapshot.auto?.records||[]).map(r=>r.id).sort()))}
+ function keepScope(key,entry){if(A.logicalSize(entry.document)>32*1024*1024)return;scopes.delete(key);scopes.set(key,entry);while(scopes.size>4)scopes.delete(scopes.keys().next().value)}
+ async function saveCatalog(args,assets){const key=partition(args),previous=catalogs.get(key)||{},all=new Map(Object.entries(previous));for(const [id,entry]of Object.entries(assets)){all.delete(id);all.set(id,entry)}while(all.size>4096)all.delete(all.keys().next().value);let value=Object.fromEntries(all);if(A.logicalSize(value)>4*1024*1024)return;catalogs.set(key,value);await put(args,'assets:'+args.dataset,{assets:value,checksum:await hash(value)})}
  const checkpoint=()=>{const e=Error('Checkpoint deferred for saved edits.');e.deferred=true;throw e};
  async function batch(jobs,args){const out=[],wire={silent:args.silent,expectedAccount:args.expectedAccount};for(let at=0;at<jobs.length;at+=3){if(args.shouldContinue&&!args.shouldContinue())checkpoint();const group=jobs.slice(at,at+3);if(group.length===1)out.push(await raw(group[0].op,{...wire,...group[0].args}));else{const r=await raw('batch',{...wire,requests:group.map(j=>({op:j.op,...j.args}))});if(r.results?.length!==group.length)throw Error('Incomplete transfer batch.');for(const item of r.results){if(item.error)throw Error(item.error);out.push(item.result)}}}return out}
  async function pack(value,known){const assets={},data={},seen=new Map();let visited=0;
@@ -14,9 +17,12 @@ window.installFastAssetTransfer=function(legacy,raw,list,options){'use strict';o
   }return {document:await visit(value),assets,data};
  }
  async function upload(args){const {onProgress,shouldContinue,...wire}=args,notify=e=>{try{onProgress?.(e)}catch{}},key=partition(args);notify({phase:'preparing'});
-  let base=heads.get(key)||await get(args,'head:'+args.dataset);const files=await list({silent:true,expectedAccount:args.expectedAccount}),available=new Set(files.map(f=>f.id)),known=new Map(files.filter(f=>f.appProperties?.protocol==='part-v2').map(f=>[f.appProperties.revision,f.id]));
-  if(base&&!available.has(base.fileId))base=null;const oldAssets=base?.assets||{},validAssets={};for(const [id,entry]of Object.entries(oldAssets))if(entry.parts.every(p=>available.has(p.id)))validAssets[id]=entry;
-  const packed=await pack(typeof args.snapshot==='string'?JSON.parse(args.snapshot):args.snapshot,validAssets);if(shouldContinue&&!shouldContinue())checkpoint();
+  const original=typeof args.snapshot==='string'?JSON.parse(args.snapshot):args.snapshot,scope=await scopeKey(original),scopeId=key+':'+scope;notify({phase:'checking'});
+  const files=await list({silent:true,expectedAccount:args.expectedAccount}),available=new Set(files.map(f=>f.id)),partFiles=new Map(files.filter(f=>f.appProperties?.protocol==='part-v2').map(f=>[f.id,f.appProperties.revision])),known=new Map([...partFiles].map(([id,revision])=>[revision,id]));
+  let base=scopes.get(scopeId)||await get(args,'scope:'+args.dataset+':'+scope)||heads.get(key)||await get(args,'head:'+args.dataset);if(base&&(!available.has(base.fileId)||base.document?.auto?.dataset!==args.dataset||await hash(base.document)!==base.documentHash))base=null;
+  let catalog=catalogs.get(key);if(!catalog){const saved=await get(args,'assets:'+args.dataset);catalog=saved?.assets&&!Array.isArray(saved.assets)&&A.logicalSize(saved.assets)<=4*1024*1024&&await hash(saved.assets)===saved.checksum?saved.assets:{};catalogs.set(key,catalog)}
+  const validAssets={};for(const [id,entry]of Object.entries({...catalog,...(base?.assets||{})}))if(/^[a-f0-9]{64}$/.test(id)&&entry?.name===id&&Array.isArray(entry.parts)&&entry.parts.every(p=>partFiles.get(p.id)===p.revision&&/^[a-f0-9]{64}$/.test(p.revision)&&Number.isSafeInteger(p.length)&&p.length>=0&&p.length<=1048576)&&entry.length===entry.parts.reduce((n,p)=>n+p.length,0))validAssets[id]=entry;
+  notify({phase:'preparing'});const packed=await pack(original,validAssets);if(shouldContinue&&!shouldContinue())checkpoint();
   const patch=base&&!args.checkpoint?(D.diff(base.document,packed.document)||{object:{},remove:[]}):null;
   const delta=base&&!args.checkpoint&&A.logicalSize(patch)<A.logicalSize(packed.document)*.7;
   let payload=delta?patch:packed.document,parts=0,reused=0;const assets={...packed.assets};
@@ -29,10 +35,10 @@ window.installFastAssetTransfer=function(legacy,raw,list,options){'use strict';o
   for(const [id,data]of Object.entries(packed.data))assets[id]=await pieces(id,data);
   let documentParts=null;if(A.logicalSize(payload)>128*1024){documentParts=await pieces('document',payload,true);payload=null}
   if(shouldContinue&&!shouldContinue())checkpoint();
-  const assetChanges=delta?Object.fromEntries(Object.entries(assets).filter(([id])=>!base.assets[id])):assets;
+  const assetChanges=delta?Object.fromEntries(Object.entries(assets).filter(([id,entry])=>!D.equal(base.assets[id],entry))):assets;
   const manifest={format:'silverlight-transfer-v3',originalFormat:'silverlight-auto-v1',workspace:{boards:[]},auto:{dataset:args.dataset,device:packed.document.auto.device,checkpoint:!delta},revision:packed.document.revision,base:delta?{id:base.fileId,hash:base.documentHash}:null,payload,documentParts,assets:assetChanges,assetIds:[...A.refs(packed.document)].sort(),documentHash:await hash(packed.document),depth:delta?(base.depth||0)+1:0};
-  manifest.checksum=await hash(manifest);notify({phase:'finishing'});const result=await raw('upload',{...wire,snapshot:JSON.stringify(manifest)});if(!result?.id)throw Error('Drive did not confirm the sync manifest.');
-  const entry={fileId:result.id,document:packed.document,documentHash:manifest.documentHash,assets,depth:manifest.depth,at:Date.now()};heads.set(key,entry);remember(partition(args)+':'+result.id,entry);await put(args,'head:'+args.dataset,entry);await put(args,'document:'+result.id,entry);notify({phase:'done',completed:parts+1,total:parts+1,reused});return {...result,checkpoint:!delta,depth:entry.depth};
+  manifest.checksum=await hash(manifest);notify({phase:'uploading',completed:parts,total:parts+1,reused});const result=await raw('upload',{...wire,snapshot:JSON.stringify(manifest)});if(!result?.id)throw Error('Drive did not confirm the sync manifest.');notify({phase:'finishing',completed:parts+1,total:parts+1,reused});
+  const entry={fileId:result.id,document:packed.document,documentHash:manifest.documentHash,assets,depth:manifest.depth,at:Date.now()};heads.set(key,entry);remember(partition(args)+':'+result.id,entry);await put(args,'head:'+args.dataset,entry);await put(args,'document:'+result.id,entry);keepScope(scopeId,entry);if(A.logicalSize(entry.document)<=32*1024*1024)await put(args,'scope:'+args.dataset+':'+scope,entry);await saveCatalog(args,assets);notify({phase:'done',completed:parts+1,total:parts+1,reused});return {...result,checkpoint:!delta,depth:entry.depth};
  }
  async function download(args){const notify=e=>{try{args.onProgress?.(e)}catch{}},cacheKey=id=>partition(args)+':'+id;
   let listed=null;async function authorize(){if(!listed)listed=new Set((await list({silent:true,expectedAccount:args.expectedAccount})).map(f=>f.id));return listed}
@@ -54,7 +60,7 @@ window.installFastAssetTransfer=function(legacy,raw,list,options){'use strict';o
    if(m.base&&(!base||base.documentHash!==m.base.hash))throw Error('Sync delta base checksum mismatch.');const document=m.base?D.apply(base.document,payload):payload;if(await hash(document)!==m.documentHash)throw Error('Reconstructed sync checksum failed.');const assets={...(m.base?base.assets:{}),...m.assets};if(m.assetIds.some(k=>!assets[k]||!/^[a-f0-9]{64}$/.test(k)))throw Error('A sync image entry is missing.');base={fileId:id,document,documentHash:m.documentHash,assets,depth:m.depth||0,at:Date.now()};remember(cacheKey(id),base);await put(args,'document:'+id,base);
   }
   const assets={};for(const asset of A.refs(base.document)){try{const local=await A.load('silverlight-asset:'+asset);if(await A.hash(local)===asset){assets[asset]=local;continue}}catch{}const chunks=await readParts(base.assets[asset]);assets[asset]=chunks.join('');if(await A.hash(assets[asset])!==asset)throw Error('Image checksum failed.')}
-  const snapshot=await A.unpack({format:A.FORMAT,document:base.document,assets});heads.set(partition(args),base);await put(args,'head:'+args.dataset,base);notify({phase:'done'});return {snapshot:args.objectResult?snapshot:JSON.stringify(snapshot)};
+  const snapshot=await A.unpack({format:A.FORMAT,document:base.document,assets});heads.set(partition(args),base);await put(args,'head:'+args.dataset,base);const scope=await scopeKey(base.document);keepScope(partition(args)+':'+scope,base);if(A.logicalSize(base.document)<=32*1024*1024)await put(args,'scope:'+args.dataset+':'+scope,base);await saveCatalog(args,base.assets);notify({phase:'done'});return {snapshot:args.objectResult?snapshot:JSON.stringify(snapshot)};
  }
  return async function request(op,args={}){if(op==='upload'&&args.optimized&&options.supported?.())return upload(args);if(op==='download'&&options.supported?.())return download(args);const {optimized,checkpoint,shouldContinue,dataset,...legacyArgs}=args;return legacy(op,op==='upload'||op==='download'?legacyArgs:args)};
 };

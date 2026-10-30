@@ -1,3 +1,13 @@
+## Silverlight 0.13.3 — faster main-project transfers
+
+- Automatic transfers retain a verified basis for each recently used group of Boards. Returning to the main project after editing a nested Board can reuse the main project's previous transfer, including after a restart, instead of building a broad replacement from the smaller Board's basis.
+- A bounded, account-separated catalog retains verified image-part references across those switches. Each upload checks the referenced parts against Drive's file listing; unchanged images skip the part-processing loop. Missing parts are repaired and changed references are included even when the original image content ID stays the same.
+- Repeated large snapshots with the same verified original images reuse a bounded SHA-256 state for the unchanged image section. Checksum results remain byte-identical to existing releases. The cache retains IDs and checksum state, not original image bytes; new images invalidate the applicable state.
+- Optional cache corruption falls back to verified transfers. Cloud formats, original-image verification, nested-Board validation, conflict handling, local history and recovery are preserved. Transfer diagnostics now separate the cloud-part check from local preparation and report the final manifest upload explicitly.
+- Windows only; Android remains at 0.10.1 / versionCode 1000001.
+
+Validation includes a main-project blank Sticky after nested-Board editing and a persisted-cache restart: one approximately 3 KB manifest, no repeated image-part processing, and an independent reader recovering every nested Board and original image. Additional tests cover unchanged legacy checksum values, missing-part repair, invalid-cache fallback, image additions and the full core/browser and Windows release gates. These fixtures do not guarantee real Google Drive latency.
+
 ## Silverlight 0.13.2 — incremental local sync-history saves
 
 - Automatic-sync history is stored per Board with a small local index. Metadata-only saves reuse unchanged causal records rather than copying and hashing the whole project history on every sync stage. Changed records, the index, pending workspace changes and any recovery copy still commit atomically. History reads retrieve the index and records from one consistent database snapshot while another sync writes.
