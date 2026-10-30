@@ -1,3 +1,14 @@
+## Silverlight 0.13.1 — small-edit sync performance
+
+- Routine automatic uploads prepare only changed Boards and their required nested references before reading original images or crossing the worker boundary. A small Codex tag edit no longer prepares every Board and image for upload.
+- Incoming sparse updates merge and reproject only their affected records, preserving untouched local Boards and checking the resulting workspace for missing references. Parked drafts and conflict handling remain protected.
+- Saved sync metadata retains references to already stored images, avoiding repeated image hashing during metadata-only writes. Device-local pending-change detection uses verified causal clocks; automatic snapshot, transfer and image checksums remain unchanged.
+- A proven clean restart seeds the previous upload's Board clocks, so the first edit after upgrading can use the same sparse path. Full local causal history, conflicts, recovery copies and periodic full checkpoints remain available.
+- Sparse uploads advance the full-history checkpoint counter even when the transport chooses a standalone transfer manifest. This prevents sparse manifests from indefinitely postponing a complete recovery checkpoint.
+- Windows only; Android remains at 0.10.1 / versionCode 1000001. Existing Drive data and workspace formats remain compatible.
+
+Validation adds a 49-Board fixture with 48 stored images: one tag edit uploads one checksum-verified Board, reads zero unrelated original images while sending and receiving, survives resident-cache cleanup, preserves all 49 local records, and retains the sparse path after a clean upgrade. Measured local processing was about 0.15–0.21 seconds on that fixture; this is not a real Google Drive latency guarantee. Core and full browser regressions, plus native Windows release checks, gate publication.
+
 ## Silverlight 0.13.0 — reference tags and project tag Boards
 
 - Codex search now uses * instead of & for one-or-more-character prefix/suffix matching. A leading/trailing - requires no letters on that side; -is excludes This, and -is- matches the complete word. Match case and punctuation-insensitive quoted phrases remain available. The search reminder explains the revised symbols.

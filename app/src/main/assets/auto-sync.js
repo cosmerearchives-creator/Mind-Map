@@ -15,7 +15,10 @@ function settled(){if(meta.missing?.length||meta.conflicts?.length)status('Needs
 function wake(){retryUntil=0;lastRepair=0;schedule(0)}
 function markPoll(files,repair){lastChecked=Date.now();if(repair)lastRepair=Date.now();for(const file of files){const created=Date.parse(file.createdTime);if(Number.isFinite(created))newest=Math.max(newest,created)}}
 
-async function persist(next,w=null,expected=state(),allowReview=false){diagnostic.stage('saving');await app.writeSync(w,next,expected,allowReview);delete next.__resumeDigest;meta=next;}
+async function persist(next,w=null,expected=state(),allowReview=false){diagnostic.stage('saving');SilverlightAssets.intern(next);await app.writeSync(w,next,expected,allowReview);next=SilverlightAssets.resolveReferences(next);delete next.__resumeDigest;meta=next;}
+// Causal clocks identify verified record content; this local digest does not change wire checksums.
+const recordClocks=records=>Object.fromEntries(records.map(r=>[r.id,JSON.stringify(r.versions.map(v=>v.clock))]));
+const recordRevision=records=>core.revision(recordClocks(records));
 async function call(op,args={}){return transport.request(op,{...args,silent:true,expectedAccount:meta.account,onProgress:transferProgress})}
 function available(){return app.ready()&&app.canSync()&&document.visibilityState!=='hidden'&&!transport.isManualBusy()}
 async function compactIfQuiet(){
@@ -32,6 +35,20 @@ async function captureSaved(base,current){
  const result=await crdt.capture(base,current,ids);capturedGeneration=stamp;fullCapture=false;
  for(const [id,at]of dirtyBoards)if(at<=stamp)dirtyBoards.delete(id);
  return result;
+}
+async function mergeChanged(records,remote){const ids=new Set(remote.map(r=>r.id)),merged=await crdt.merge(records.filter(r=>ids.has(r.id)),remote);return [...records.filter(r=>!ids.has(r.id)),...merged].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0)}
+// Remote sparse snapshots need only reprocess the records they carry. Untouched Boards stay local.
+async function projectChanged(next,current,ids){
+ const wanted=new Set(ids),records=next.records.filter(r=>wanted.has(r.id)),workspace={...current,boards:current.boards.map(b=>wanted.has(b.id)?b:{id:b.id,title:b.title,cards:[],connections:[]})};
+ const result=await crdt.projection(records,workspace),order=new Map(current.boards.map((b,i)=>[b.id,i]));
+ result.workspace={...current,boards:[...current.boards.filter(b=>!wanted.has(b.id)),...result.workspace.boards].sort((a,b)=>(order.get(a.id)??Infinity)-(order.get(b.id)??Infinity)||(a.id<b.id?-1:a.id>b.id?1:0))};
+ const present=new Set(result.workspace.boards.map(b=>b.id)),missing=new Set();
+ for(const board of result.workspace.boards)for(const card of SilverlightAssets.inspectBoard(board).cards||[])if(card.kind==='nested'&&!present.has(card.boardId))missing.add(card.boardId);
+ result.missing=[...missing];return result;
+}
+async function observeChanged(next,incoming,protectedIds,ids){
+ const wanted=new Set(ids),partial={...next,records:next.records.filter(r=>wanted.has(r.id)),seen:next.seen.filter(s=>wanted.has(s.id))},workspace={...incoming,boards:incoming.boards.map(b=>wanted.has(b.id)?b:{id:b.id,title:b.title,cards:[],connections:[]})};
+ const result=await crdt.observed(partial,workspace,protectedIds);return {...next,seen:[...next.seen.filter(s=>!wanted.has(s.id)),...result.seen]};
 }
 async function cycle(){
  if(running||!meta?.enabled)return;
@@ -52,25 +69,26 @@ async function cycle(){
   const unseen=files.filter(f=>!meta.files.includes(f.id));if(!unseen.length&&generation===cleanGeneration&&recordDigest&&meta.published===recordDigest&&!meta.deferred){await compactIfQuiet();acceptCursor();markPoll(files,repair);settled();schedule(generation!==cleanGeneration?EDIT_DELAY:LIVE_POLL);return}
   diagnostic.begin();diagnostic.stage('capture');status('Syncing','Live sync · checking saved changes');let current=clone(app.getState()),expected=state(),next=await captureSaved(meta,current);await persist(next,null,expected);
   const known=new Set(meta.files),remote=[];let cloudHashes=[];
-  for(const file of [...files].sort((a,b)=>String(b.createdTime).localeCompare(String(a.createdTime)))){if(known.has(file.id))continue;diagnostic.stage('download');const result=await call('download',{fileId:file.id,objectResult:true,dataset:meta.dataset});const snapshot=(typeof result.snapshot==='string'?JSON.parse(result.snapshot):result.snapshot),records=await crdt.verify(snapshot,meta.dataset);diagnostic.stage('hash');remote.push(...records);cloudHashes.push(await core.revision(records));known.add(file.id);for(const covered of snapshot.auto.coveredFiles||[])known.add(covered)}
+  for(const file of [...files].sort((a,b)=>String(b.createdTime).localeCompare(String(a.createdTime)))){if(known.has(file.id))continue;diagnostic.stage('download');const result=await call('download',{fileId:file.id,objectResult:true,dataset:meta.dataset});const snapshot=(typeof result.snapshot==='string'?JSON.parse(result.snapshot):result.snapshot),records=await crdt.verify(snapshot,meta.dataset);diagnostic.stage('hash');remote.push(...records);cloudHashes.push(await recordRevision(records));known.add(file.id);for(const covered of snapshot.auto.coveredFiles||[])known.add(covered)}
   if(!available()||!meta.enabled){diagnostic.finish('waiting');schedule(1000);return}
   // Capture intervening edits before learning remote clocks; they are concurrent, not overwrites.
-  current=clone(app.getState());expected=state();next=await captureSaved(meta,current);if(next.bootstrap){next=await crdt.join(next,current,remote);delete next.bootstrap;capturedGeneration=generation;fullCapture=false;dirtyBoards.clear()}else if(remote.length)next.records=await crdt.merge(next.records,remote);next.files=[...known];
-  const localOnly=!remote.length&&!next.deferred&&!next.missing?.length&&!next.conflicts?.length;const projected=localOnly?{workspace:current,missing:[],conflicts:[]}:await crdt.projection(next.records,current);let incoming=null;
+  current=clone(app.getState());expected=state();next=await captureSaved(meta,current);if(next.bootstrap){next=await crdt.join(next,current,remote);delete next.bootstrap;capturedGeneration=generation;fullCapture=false;dirtyBoards.clear()}else if(remote.length)next.records=await mergeChanged(next.records,remote);next.files=[...known];
+  const changedRemote=remote.length&&!meta.bootstrap&&!next.deferred&&!next.missing?.length&&!next.conflicts?.length?[...new Set(remote.map(r=>r.id))]:null;
+  const localOnly=!remote.length&&!next.deferred&&!next.missing?.length&&!next.conflicts?.length;const projected=localOnly?{workspace:current,missing:[],conflicts:[]}:changedRemote?await projectChanged(next,current,changedRemote):await crdt.projection(next.records,current);let incoming=null;
   const protectedIds=app.protectedBoards?.()||[];next.deferred=false;
   if(!projected.missing.length){core.workspace(projected.workspace);incoming=projected.workspace;
    for(const id of protectedIds){const local=current.boards.find(b=>b.id===id),remote=incoming.boards.find(b=>b.id===id);if(SilverlightAssets.fingerprint(local||null)!==SilverlightAssets.fingerprint(remote||null)){next.deferred=true;incoming.boards=incoming.boards.filter(b=>b.id!==id);if(local)incoming.boards.push(local)}}
-   if(!localOnly)next=await crdt.observed(next,incoming,protectedIds)}
+   if(!localOnly)next=changedRemote?await observeChanged(next,incoming,protectedIds,changedRemote):await crdt.observed(next,incoming,protectedIds)}
   next.missing=projected.missing;next.conflicts=projected.conflicts;
   if(!available()){diagnostic.finish('waiting');schedule(1000);return}
   await persist(next,incoming&&SilverlightAssets.fingerprint(current.boards)!==SilverlightAssets.fingerprint(incoming.boards)?incoming:null,expected);
-  diagnostic.stage('hash');const digestGeneration=capturedGeneration,digest=await core.revision(meta.records);
+  diagnostic.stage('hash');const digestGeneration=capturedGeneration,digest=await recordRevision(meta.records);
   if(cloudHashes.includes(digest)&&meta.published!==digest){next=clone(meta);next.published=digest;next.publishedFile='';await persist(next)}
   if(meta.published!==digest){
-   const optimized=!!transport.optimized?.(),revisions=optimized?null:Object.fromEntries(await Promise.all(meta.records.map(async r=>[r.id,await core.revision(r)]))),checkpoint=!meta.publishedRecords||(meta.incrementalUploads||0)>=49,changed=optimized||checkpoint?null:meta.records.filter(r=>meta.publishedRecords[r.id]!==revisions[r.id]).map(r=>r.id);
-   const snapshot=await crdt.envelope(meta,app.getState(),optimized?null:changed);const result=await call('upload',{snapshot,optimized,dataset:meta.dataset});next=clone(meta);next.published=digest;next.publishedRecords=revisions;next.incrementalUploads=(optimized?result.checkpoint:checkpoint)?0:(meta.incrementalUploads||0)+1;next.incrementalHistory=true;next.publishedFile=result.id;next.publishedRevision=snapshot.revision;if(result.id&&!next.files.includes(result.id))next.files.push(result.id);await persist(next)
+   const optimized=!!transport.optimized?.(),revisions=recordClocks(meta.records),checkpoint=!meta.publishedRecords||(meta.incrementalUploads||0)>=49,changed=checkpoint?null:meta.records.filter(r=>meta.publishedRecords[r.id]!==revisions[r.id]).map(r=>r.id);
+   const snapshot=await crdt.envelope(meta,app.getState(),changed);const result=await call('upload',{snapshot,optimized,dataset:meta.dataset});next=clone(meta);next.published=digest;next.publishedRecords=revisions;next.incrementalUploads=checkpoint?0:(meta.incrementalUploads||0)+1;next.incrementalHistory=true;next.publishedFile=result.id;next.publishedRevision=snapshot.revision;if(result.id&&!next.files.includes(result.id))next.files.push(result.id);await persist(next)
   }
-  expected=state();next=await captureSaved(meta,app.getState());diagnostic.stage('hash');recordDigest=capturedGeneration===digestGeneration?digest:await core.revision(next.records);const stillPending=recordDigest!==meta.published;next.lastSynced=new Date().toISOString();if(!stillPending)next.__resumeDigest=recordDigest;await persist(next,null,expected);retry=3000;retryUntil=0;cleanGeneration=capturedGeneration;markPoll(files,repair);
+  expected=state();next=await captureSaved(meta,app.getState());diagnostic.stage('hash');recordDigest=capturedGeneration===digestGeneration?digest:await recordRevision(next.records);const stillPending=recordDigest!==meta.published;next.lastSynced=new Date().toISOString();if(!stillPending)next.__resumeDigest=recordDigest;await persist(next,null,expected);retry=3000;retryUntil=0;cleanGeneration=capturedGeneration;markPoll(files,repair);
   if(meta.missing?.length||meta.conflicts?.length)status('Needs attention','Conflicting BOARD versions are preserved; open the cloud menu');else if(stillPending)status('Pending');else settled();
   if(meta.cleanupEnabled&&!meta.incrementalHistory&&meta.publishedFile&&!stillPending){try{const retentionFiles=await transport.list({silent:true,expectedAccount:meta.account,dataset:meta.dataset});for(const file of SilverlightRetention.candidates(retentionFiles,meta)){await transport.request('prune',{silent:true,expectedAccount:meta.account,fileId:file.id,replacementId:meta.publishedFile,dataset:meta.dataset,device:meta.device,revision:meta.publishedRevision})}}catch{message='Sync completed; old-copy cleanup will retry after the next upload.'}}
   acceptCursor();diagnostic.finish(meta.conflicts?.length||meta.missing?.length?'attention':'complete');schedule(stillPending||generation!==cleanGeneration?EDIT_DELAY:LIVE_POLL);
@@ -108,7 +126,7 @@ function decorate(){const dialog=document.querySelector('#modalRoot .modal');if(
  button('autoDiagnostics','Download sync diagnostics',()=>{const blob=new Blob([JSON.stringify(diagnostic.report(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='silverlight-sync-diagnostics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
  panel.append(actions);dialog.querySelector('.actions').before(panel);status(label,message);
 }
-async function start(){if(started)return;started=true;try{meta=await app.readSync();if(meta?.version!==1)meta=null;if(meta?.enabled){const stamp=generation;let resumed=null;try{resumed=await app.resumeSync?.(meta)}catch{}if(resumed&&generation===stamp){recordDigest=resumed;capturedGeneration=generation;cleanGeneration=generation;fullCapture=false}status('Pending',resumed?'Checking for cloud changes':'Starting live sync');schedule(0)}}catch(e){status('Needs attention',e.message)}}
+async function start(){if(started)return;started=true;try{meta=await app.readSync();if(meta?.version!==1)meta=null;if(meta?.enabled){const stamp=generation;let resumed=null;try{resumed=await app.resumeSync?.(meta)}catch{}if(resumed&&generation===stamp){if(!meta.publishedRecords)meta.publishedRecords=recordClocks(meta.records);recordDigest=resumed;capturedGeneration=generation;cleanGeneration=generation;fullCapture=false}status('Pending',resumed?'Checking for cloud changes':'Starting live sync');schedule(0)}}catch(e){status('Needs attention',e.message)}}
 window.addEventListener('online',wake);window.addEventListener('offline',()=>{if(meta?.enabled)status('Offline','Changes stay saved on this device')});window.addEventListener('focus',wake);window.addEventListener('silverlight-resume',wake);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wake();else scheduler.cancel()});
 return {start,changed,pause,decorate,wake:()=>{retryUntil=0;schedule(0)},isRunning:()=>running};
 };
