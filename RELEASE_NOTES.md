@@ -1,6 +1,6 @@
 ## Silverlight 0.13.2 — incremental local sync-history saves
 
-- Automatic-sync history is stored per Board with a small local index. Metadata-only saves reuse unchanged causal records rather than copying and hashing the whole project history on every sync stage. Changed records, the index, pending workspace changes and any recovery copy still commit atomically.
+- Automatic-sync history is stored per Board with a small local index. Metadata-only saves reuse unchanged causal records rather than copying and hashing the whole project history on every sync stage. Changed records, the index, pending workspace changes and any recovery copy still commit atomically. History reads retrieve the index and records from one consistent database snapshot while another sync writes.
 - Existing monolithic local history remains readable and migrates on its next successful save. Failed transactions retain the previous workspace/index and retry the changed records. No cloud snapshot, image, causal merge or Drive transfer format changes.
 - Clean-start proofs cover per-record content digests. Startup recomputes those digests and compares the actual workspace before accepting the shortcut; clocks alone are not accepted as a restart integrity proof. Original-image verification remains required when reading originals.
 - SHA-256 uses the platform's native implementation for inputs up to 32 MiB, preserving identical checksum bytes. Larger inputs and unavailable/failing native crypto retain the bounded streaming implementation.
