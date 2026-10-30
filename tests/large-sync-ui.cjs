@@ -1,6 +1,6 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict');
 (async()=>{const server=await require('./serve-assets.cjs')(),browser=await chromium.launch({headless:true,channel:'msedge'});
-try{const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(server.url);await page.waitForFunction(()=>SilverlightAssetStore.stats.writes>0);
+try{const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(server.url);await page.waitForFunction(()=>SilverlightAssetStore.stats.writes>=2&&!window.SilverlightLocalSaveStatus?.().pending);
 const result=await page.evaluate(async()=>{
  const db=await new Promise((resolve,reject)=>{const q=indexedDB.open('openboard-workspace',1);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});
  const image='data:image/png;base64,'+'A'.repeat(4*1024*1024),w={boards:[{id:'large',title:'Large regression',cards:Array.from({length:140},(_,i)=>({id:'c'+i,kind:'image',imageData:image,x:i,y:0}))}],tabs:[],active:null,views:{}};

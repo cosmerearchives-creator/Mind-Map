@@ -1,3 +1,14 @@
+## Silverlight 0.13.2 — incremental local sync-history saves
+
+- Automatic-sync history is stored per Board with a small local index. Metadata-only saves reuse unchanged causal records rather than copying and hashing the whole project history on every sync stage. Changed records, the index, pending workspace changes and any recovery copy still commit atomically.
+- Existing monolithic local history remains readable and migrates on its next successful save. Failed transactions retain the previous workspace/index and retry the changed records. No cloud snapshot, image, causal merge or Drive transfer format changes.
+- Clean-start proofs cover per-record content digests. Startup recomputes those digests and compares the actual workspace before accepting the shortcut; clocks alone are not accepted as a restart integrity proof. Original-image verification remains required when reading originals.
+- SHA-256 uses the platform's native implementation for inputs up to 32 MiB, preserving identical checksum bytes. Larger inputs and unavailable/failing native crypto retain the bounded streaming implementation.
+- Downloaded diagnostics now include counts of sync-history records written and local preparation/commit timings, without Board names, content or credentials.
+- Windows patch only. Android development remains paused at 0.10.1 / versionCode 1000001.
+
+Validation includes legacy migration, a text-heavy 24-Board corpus, a blank Sticky writing one history record, metadata-only saves writing zero history records, transaction abort/retry, full reload, corrupt-record rejection, native-crypto failure and bounded fallback, original-image preservation and the complete core/browser and Windows release gates. Fixture timings do not guarantee real Google Drive latency.
+
 ## Silverlight 0.13.1 — small-edit sync performance
 
 - Routine automatic uploads prepare only changed Boards and their required nested references before reading original images or crossing the worker boundary. A small Codex tag edit no longer prepares every Board and image for upload.

@@ -3,6 +3,8 @@ const S=require('../app/src/main/assets/stream-json.js'),A=require('../app/src/m
 const digest=t=>crypto.createHash('sha256').update(t).digest('hex');
 async function main(){
  for(const text of ['', 'abc','a'.repeat(55),'a'.repeat(56),'a'.repeat(64),'a'.repeat(1000000),'x'.repeat(16383)+'😀\ud800終'])assert.equal(await S.hashText(text),digest(text));
+ for(const cryptoAPI of [undefined,{subtle:{digest:async()=>{throw Error('native unavailable')}}}]){const sandbox={TextEncoder,setTimeout,crypto:cryptoAPI};vm.runInNewContext(fs.readFileSync('app/src/main/assets/stream-json.js','utf8'),sandbox);assert.equal(await sandbox.SilverlightStream.hashText('Native fallback 😀'),digest('Native fallback 😀'))}
+ const bounded='Z'.repeat(33*1024*1024);assert.equal(await S.hashText(bounded),digest(bounded),'larger hashes fall back without unbounded native buffers');
  const values=[null,{},[],{z:'😀\n"\\\ud800',a:[true,false,null,0,-2,1e30]},{a:'x'.repeat(16383)+'😀end',b:undefined}];
  for(const value of values){const text=JSON.stringify(value);assert.equal([...S.json(value)].join(''),text);assert.equal(await S.hashJSON(value),digest(text));assert.equal(await S.hashJSON(value,true),digest(C.canonical(value)));for(const size of [1,7,16384]){const p=new S.Parser();for(let at=0;at<text.length;at+=size)p.write(text.slice(at,at+size));assert.deepEqual(p.finish(),JSON.parse(text))}}
  for(const bad of ['[1,]','{"a":}','{"a" 1}','[}','{}{}','"unterminated','{"a":1,}'])assert.throws(()=>{const p=new S.Parser();p.write(bad);p.finish()});

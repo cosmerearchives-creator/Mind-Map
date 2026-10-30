@@ -1,4 +1,4 @@
-/* Bounded JSON traversal and incremental SHA-256. No aggregate document string. */
+/* Bounded JSON traversal and SHA-256: native below 32 MiB, incremental beyond it. No aggregate JSON string. */
 (function(root){'use strict';
 const encoder=new TextEncoder();
 function* json(value,sorted=false){
@@ -17,7 +17,10 @@ class SHA256{
  update(bytes){this.length+=bytes.length;let at=0;while(at<bytes.length){const n=Math.min(64-this.used,bytes.length-at);this.buffer.set(bytes.subarray(at,at+n),this.used);this.used+=n;at+=n;if(this.used===64){this.block(this.buffer);this.used=0}}return this}
  digest(){const bits=this.length*8;this.buffer[this.used++]=128;if(this.used>56){this.buffer.fill(0,this.used);this.block(this.buffer);this.used=0}this.buffer.fill(0,this.used,56);const view=new DataView(this.buffer.buffer);view.setUint32(56,Math.floor(bits/4294967296));view.setUint32(60,bits>>>0);this.block(this.buffer);return [...this.h].map(v=>v.toString(16).padStart(8,'0')).join('')}
 }
-async function hashChunks(chunks){const sha=new SHA256();let processed=0;for(const chunk of chunks){sha.update(encoder.encode(chunk));processed+=chunk.length;if(processed>=4*1024*1024){processed=0;await new Promise(r=>setTimeout(r,0))}}return sha.digest()}
+async function hashChunks(chunks){let sha=null,buffered=[],bytes=0,processed=0;const native=globalThis.crypto?.subtle,limit=32*1024*1024;
+ for(const chunk of chunks){const data=encoder.encode(chunk);if(native&&!sha&&bytes+data.length<=limit){buffered.push(data);bytes+=data.length}else{if(!sha){sha=new SHA256();for(const part of buffered)sha.update(part);buffered=[]}sha.update(data)}processed+=chunk.length;if(processed>=4*1024*1024){processed=0;await new Promise(r=>setTimeout(r,0))}}
+ if(sha)return sha.digest();if(native){try{const input=new Uint8Array(bytes);let at=0;for(const part of buffered){input.set(part,at);at+=part.length}return [...new Uint8Array(await native.digest('SHA-256',input))].map(v=>v.toString(16).padStart(2,'0')).join('')}catch{}}
+ sha=new SHA256();for(const part of buffered)sha.update(part);return sha.digest();}
 function* textChunks(text){for(let at=0;at<text.length;){let end=Math.min(at+16384,text.length);if(end<text.length&&/[\uD800-\uDBFF]/.test(text[end-1]))end--;yield text.slice(at,end);at=end}}
 // Parse each scalar separately. A document can exceed the engine's single-string limit.
 class Parser{
