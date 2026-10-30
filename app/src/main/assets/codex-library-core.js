@@ -12,10 +12,21 @@ function books(boards){return boards.filter(b=>summary(b).codexRole==='book')}
 function scopeBooks(boards,scope){if(scope.kind==='book')return boards.filter(b=>b.id===scope.id);const ids=descendants(catalog(boards),scope.id);return books(boards).filter(b=>ids.has(inspect(b).codexBook.libraryParentId))}
 function chapterBoards(boards,scope){if(scope.kind==='chapter')return boards.filter(b=>b.id===scope.id);const ids=new Set(scopeBooks(boards,scope).flatMap(b=>(inspect(b).cards||[]).filter(c=>c.codexEntryLink).map(c=>c.boardId)));return boards.filter(b=>ids.has(b.id)&&summary(b).codexRole==='entry')}
 function plain(value){const s=String(value||'');return s.startsWith('silverlight-rich-v1:')?s.slice('silverlight-rich-v1:'.length).replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#39;/g,"'").replace(/&quot;/g,'"'):s}
-async function search(boards,scope,column,query,{cancelled=()=>false,skip=0,limit=100,progress=()=>{}}={}){
+// Retain original UTF-16 offsets when punctuation is omitted from quoted phrases.
+function searchPattern(query,matchCase){
+ const quoted=query.length>=2&&query.startsWith('"')&&query.endsWith('"');
+ const clean=s=>quoted?s.replace(/\p{P}/gu,''):s;
+ let term=clean(quoted?query.slice(1,-1):query),prefix=term.startsWith('&'),suffix=term.endsWith('&');
+ if(prefix)term=term.slice(1);if(suffix)term=term.slice(0,-1);
+ if(!term.trim())throw Error('Enter letters beside & or inside quotation marks.');
+ const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ const literal=escape(term),source=(prefix?'(?<!\\S)\\S+':suffix?'(?<!\\S)':'')+literal+(suffix?'\\S+(?!\\S)':prefix?'(?!\\S)':'');
+ return {quoted,pattern:new RegExp(source,matchCase?'gu':'giu')};
+}
+async function search(boards,scope,column,query,{cancelled=()=>false,skip=0,limit=100,matchCase=false,progress=()=>{}}={}){
  query=String(query||'').trim();if(!query)return {results:[],more:false};if(query.length>500)throw Error('Search for a phrase of 500 characters or fewer.');
- const pattern=new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'giu'),entries=chapterBoards(boards,scope),results=[];let matched=0,scanned=0;
- function find(text,base){pattern.lastIndex=0;for(const m of String(text||'').matchAll(pattern)){if(cancelled())return true;if(matched++<skip)continue;if(results.length>=limit)return true;results.push({...base,start:m.index,end:m.index+m[0].length,excerpt:String(text).slice(Math.max(0,m.index-65),m.index+m[0].length+100),match:m[0]})}return false}
+ const {pattern,quoted}=searchPattern(query,matchCase),entries=chapterBoards(boards,scope),results=[];let matched=0,scanned=0;
+ function find(text,base){text=String(text||'');let searchable='',offsets=[];if(quoted){for(let i=0;i<text.length;){const char=String.fromCodePoint(text.codePointAt(i));if(!/\p{P}/u.test(char)){searchable+=char;for(let j=0;j<char.length;j++)offsets.push(i+j)}i+=char.length}}else searchable=text;pattern.lastIndex=0;for(const m of searchable.matchAll(pattern)){const start=quoted?offsets[m.index]:m.index,end=quoted?offsets[m.index+m[0].length-1]+1:m.index+m[0].length;if(cancelled())return true;if(matched++<skip)continue;if(results.length>=limit)return true;results.push({...base,start,end,excerpt:text.slice(Math.max(0,start-65),end+100),match:text.slice(start,end)})}return false}
  const read=new Set();for(const ref of entries){if(cancelled())return {results:[],cancelled:true};const entry=inspect(ref),label=entry.codexEntry.chapterTitle,base={entryId:entry.id,chapter:label,book:entry.codexEntry.book.title};let more=false;
   if(column==='reading')more=find(entry.codexEntry.text,{...base,kind:'source'});
   else if(column==='notes'){for(const note of entry.cards||[]){if(find([note.quote,note.title,plain(note.body)].filter(Boolean).join('\n'),{...base,kind:'note',noteId:note.id,anchor:note.start})){more=true;break}}}

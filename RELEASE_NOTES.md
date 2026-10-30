@@ -1,3 +1,17 @@
+## Silverlight 0.12.0 — desktop editing and Codex research
+
+- New desktop Notes start directly on the canvas, ready to type, from the Add button, context menu or radial menu. New-note creation starts inline even when an existing-note popup preference was selected. Save, Cancel, keyboard shortcuts and parked drafts remain available.
+- Narrow and split-screen PC windows keep the desktop editor and its wrapping/scrolling formatting bar above the canvas. Resizing retains the editor DOM, draft and selection.
+- Double-click an ordinary nested Board label to edit it on a transparent canvas surface with controls above. Its image/icon or non-label frame still opens the Board. Codex chapter links retain their existing navigation.
+- Website image drops recognize Firefox URL/title and URL-data formats, normal URI lists, HTML images and local files. Accepted drops suppress default navigation; drops outside an open canvas explain where to drop. Imports show preparation/download feedback and retain original bytes locally for offline use and Drive sync.
+- Codex search supports & before/after a word for one or more additional non-space characters, a Match case toggle, punctuation-insensitive quoted phrases, and a short syntax reminder. Results retain original source positions for navigation and highlights. Regular unquoted searches retain literal punctuation matching.
+- In Codex view, research-canvas creation choices now live in an Add dropdown in that column's header, beside Search. The former canvas plus button is hidden in this view. Other canvas creation menus are retained.
+- Startup shows a loading state until local storage and any required migration are ready. Saved Boards render before cloud-resume checks. Unchanged restarts avoid repacking and rewriting the saved workspace; migrations and edits still save normally.
+- Newly mounted image requests are queued for a frame and prioritize visible items before overscan images, retaining bounded decode concurrency and the existing preview cache.
+- Windows release only; Android remains at 0.10.1 (versionCode 1000001). Existing workspace formats, original images, recovery copies, backups and Drive compatibility are preserved.
+
+Validation covers the supplied search examples and Unicode source offsets, narrow desktop editing/resizing, loading gates, nested label/icon behavior, draft parking, Firefox-style payloads using the supplied Coppermind URL, Codex menus/search, clean restarts with zero original reads and workspace rewrites, large Boards, storage failure recovery and two-device transfers. Browser drop tests simulate browser payloads; a physical Firefox-to-Silverlight drag and the image host's live download response still require device verification. The user's large workspace has not been benchmarked after this update.
+
 ## Silverlight 0.11.1 — reduce repeated sync work
 
 - Panning, zooming and changing tabs no longer invalidate an automatic sync save. Actual content edits still stop stale incoming writes, and incoming Boards preserve the current local view and tabs.

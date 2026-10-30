@@ -8,5 +8,18 @@ assert.equal((await L.search(boards,{kind:'chapter',id:e.id},'reading','copper')
 const original=e.codexEntry.text,hash=e.codexEntry.sourceHash,overlap=C.annotation(e,0,6,'#445566');e.cards.push(overlap);e.cards[0].color='#abcdef';assert.equal(overlap.color,'#445566');assert.equal(e.codexEntry.text,original);assert.equal(e.codexEntry.sourceHash,hash);const w=Sync.workspace({boards}),packed=await A.pack(w);assert.deepEqual((await A.unpack(packed)).boards,w.boards);const meta=await Auto.capture(Auto.empty('library-device','library','account'),w);await Auto.verify(await Auto.envelope(meta,w),'library');assert.equal(L.catalog(w.boards).length,3);
 // Read-only search inspects deferred JSON without expanding the UI's resident Boards.
 global.SilverlightAssets=A;const deferred=boards.map(b=>A.deferBoard(JSON.stringify(b),A.boardSummary(b))),before=A.residency().parsedBoards;assert.equal((await L.search(deferred,{kind:'layer',id:'creator'},'reading','copper')).results.length,4);assert.equal(A.residency().parsedBoards,before);delete global.SilverlightAssets;
+const research=await C.build([{title:'Reference',text:'Hello, my name is John. This is my son Jaja.'}],{title:'Reference',author:'Writer'},A.hash),entry=research.boards.find(b=>b.codexEntry),scope={kind:'chapter',id:entry.id};
+const find=(q,options)=>L.search(research.boards,scope,'reading',q,options);
+assert.deepEqual((await find('&is')).results.map(r=>r.match),['This']);
+assert.deepEqual((await find('Ja&')).results.map(r=>r.match),['Jaja.']);
+assert.equal((await find('&is',{matchCase:true})).results.length,1);
+assert.equal((await find('ja&',{matchCase:true})).results.length,0);
+assert.equal((await find('ja&')).results.length,1);
+let phrase=(await find('"Hello my name is John"')).results[0];assert.equal(phrase.match,'Hello, my name is John');assert.equal(entry.codexEntry.text.slice(phrase.start,phrase.end),phrase.match);
+assert.equal((await find('"hello my name is John"',{matchCase:true})).results.length,0);
+assert.equal((await find('"Hello my name is Joan"')).results.length,0);
+entry.codexEntry.text='before 😀 “Don’t,” she said. red-blue redXblue a.b a+b';
+phrase=(await find('"Dont she said"')).results[0];assert.equal(entry.codexEntry.text.slice(phrase.start,phrase.end),'Don’t,” she said');assert.equal((await find('"redblue"')).results[0].match,'red-blue');assert.equal((await find('a.b')).results.length,1);assert.equal((await find('a+b')).results.length,1);
+await assert.rejects(find('&'),/Enter letters/);
 console.log('PASS: configurable hierarchy/cycle prevention/promotion, chapter/book/ancestor scope, escaped phrases, note/canvas search, pagination/cancellation, independent recoloring, backup/sync and nonresident search.');
 })().catch(e=>{console.error(e);process.exit(1)});
