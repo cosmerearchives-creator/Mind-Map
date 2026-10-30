@@ -16,11 +16,11 @@ function plain(value){const s=String(value||'');return s.startsWith('silverlight
 function searchPattern(query,matchCase){
  const quoted=query.length>=2&&query.startsWith('"')&&query.endsWith('"');
  const clean=s=>quoted?s.replace(/\p{P}/gu,''):s;
- let term=clean(quoted?query.slice(1,-1):query),prefix=term.startsWith('&'),suffix=term.endsWith('&');
- if(prefix)term=term.slice(1);if(suffix)term=term.slice(0,-1);
- if(!term.trim())throw Error('Enter letters beside & or inside quotation marks.');
+ let term=clean(quoted?query.slice(1,-1):query),prefix=term.startsWith('*'),suffix=term.endsWith('*'),leftBoundary=term.startsWith('-'),rightBoundary=term.endsWith('-');
+ if(prefix||leftBoundary)term=term.slice(1);if(suffix||rightBoundary)term=term.slice(0,-1);
+ if(!term.trim())throw Error('Enter letters beside * or - or inside quotation marks.');
  const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
- const literal=escape(term),source=(prefix?'(?<!\\S)\\S+':suffix?'(?<!\\S)':'')+literal+(suffix?'\\S+(?!\\S)':prefix?'(?!\\S)':'');
+ const literal=escape(term),source=(leftBoundary?'(?<![\\p{L}\\p{N}\\p{M}])':'')+(prefix?'(?<!\\S)\\S+':suffix?'(?<!\\S)':'')+literal+(suffix?'\\S+(?!\\S)':prefix?'(?!\\S)':'')+(rightBoundary?'(?![\\p{L}\\p{N}\\p{M}])':'');
  return {quoted,pattern:new RegExp(source,matchCase?'gu':'giu')};
 }
 async function search(boards,scope,column,query,{cancelled=()=>false,skip=0,limit=100,matchCase=false,progress=()=>{}}={}){

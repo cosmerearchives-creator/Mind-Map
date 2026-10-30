@@ -1,3 +1,15 @@
+## Silverlight 0.13.0 — reference tags and project tag Boards
+
+- Codex search now uses * instead of & for one-or-more-character prefix/suffix matching. A leading/trailing - requires no letters on that side; -is excludes This, and -is- matches the complete word. Match case and punctuation-insensitive quoted phrases remain available. The search reminder explains the revised symbols.
+- Opening a search match retains the active Codex/research view and reading appearance, including when moving between chapters. Research-Sticky search can display a nested research canvas inside the Codex layout.
+- Tag an exact passage from a search result, the selected-passage toolbar or context menu, or an existing annotation. Each # starts a new label: #Hoid?#Who is this guy?#sexy drifter produces three tags, preserving spaces, punctuation and display capitalization. Source text, source hashes and citation offsets are unchanged.
+- Board actions now includes Project tags, Refresh project tags and Tagged references. Project tags lists labels from the main project, nested Boards, Unsorted items and Codex annotations. Tagged references returns to the exact passage or Sticky.
+- Clicking a tag reuses its matching project Board or creates one and adds its link to the main project's Unsorted Library. Refresh scans the whole project, groups equivalent labels, rechecks existing matches, and creates only missing Boards. Existing ambiguous names require a choice and are kept intact.
+- Refreshes run as single synchronous workspace mutations with reentry protection. Generated Board and Library-link identities are stable for each project/tag pair, so repeated requests and independently refreshed devices converge on the same tag Board. Existing legacy comma-separated tags remain readable.
+- Windows release only. Android remains at 0.10.1 (versionCode 1000001), with no new mobile build. Storage, backups, original images and Drive protocol/checksums are retained. Older Android builds do not gain the new tag controls or delimiter handling.
+
+Validation includes prefix/boundary examples, exact-source tag persistence, cross-chapter view retention, project isolation, reuse of existing Boards, ambiguous-name selection, rapid and repeated refreshes, independent/two-device tag creation, Unsorted placement, snapshot round trips and the complete browser/core and native Windows release checks. Live Google Drive timing and physical Android installation are not covered by browser simulations.
+
 ## Silverlight 0.12.0 — desktop editing and Codex research
 
 - New desktop Notes start directly on the canvas, ready to type, from the Add button, context menu or radial menu. New-note creation starts inline even when an existing-note popup preference was selected. Save, Cancel, keyboard shortcuts and parked drafts remain available.

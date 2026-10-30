@@ -12,3 +12,5 @@
 
 .codexColumn-canvas>.codexColumnHeader{position:relative;z-index:8}#codexCanvasAdd>summary{cursor:pointer;list-style:none;background:white;white-space:nowrap}#codexCanvasAdd>summary::-webkit-details-marker{display:none}#codexCanvasAdd .codexCreationDropdown{top:100%;bottom:auto;right:8px;width:min(280px,calc(100% - 16px));min-width:0;max-height:min(55vh,430px);overflow:auto;z-index:20}#codexCanvasAdd:not([open])>.floatMenu{display:none}
 .codexSingle .codexColumnHeader .codexColumnSearch{display:inline-block}
+
+.codexSearchRow{display:flex;align-items:center;gap:8px}.codexSearchRow>.codexSearchResult{flex:1;min-width:0}.codexSearchRow>.outline{flex:none}.projectTagRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}.projectTagRow>span{font-size:12px;color:#756b5c}

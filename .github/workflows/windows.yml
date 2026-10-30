@@ -69,11 +69,11 @@ jobs:
       - name: Publish Windows application
         shell: pwsh
         run: |
-          dotnet publish windows/Silverlight.Windows.csproj -c Release -r win-x64 --self-contained true -p:Version=0.12.0 -p:AssemblyVersion=0.12.0.0 -o windows/publish
+          dotnet publish windows/Silverlight.Windows.csproj -c Release -r win-x64 --self-contained true -p:Version=0.13.0 -p:AssemblyVersion=0.13.0.0 -o windows/publish
       - name: Verify Codex assets are packaged
         shell: pwsh
         run: |
-          foreach ($file in @('desktop-create.js','desktop-image-drop.js','tab-editors.js','family-tree-core.js','family-tree.js','family-tree.css','canvas-documents-core.js','canvas-documents.js','codex-sources.js','canvas-documents.css','codex-library-core.js','codex-library.js','codex-colors.js','smooth-wheel.js','codex-artwork.js','context-menus.js','codex.css','codex.js','codex-core.js','codex-import.js')) {
+          foreach ($file in @('project-tags.js','desktop-create.js','desktop-image-drop.js','tab-editors.js','family-tree-core.js','family-tree.js','family-tree.css','canvas-documents-core.js','canvas-documents.js','codex-sources.js','canvas-documents.css','codex-library-core.js','codex-library.js','codex-colors.js','smooth-wheel.js','codex-artwork.js','context-menus.js','codex.css','codex.js','codex-core.js','codex-import.js')) {
             if (!(Test-Path "windows/publish/web/$file")) { throw "Missing packaged Codex asset: $file" }
           }
       - name: Install Inno Setup
@@ -82,7 +82,7 @@ jobs:
       - name: Build setup installer
         shell: pwsh
         run: |
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.12.0" "windows/installer.iss"
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.13.0" "windows/installer.iss"
       - uses: actions/upload-artifact@v4
         with:
           name: Silverlight-Windows-Installer
