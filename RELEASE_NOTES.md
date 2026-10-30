@@ -1,3 +1,13 @@
+## Silverlight 0.13.4 — less repeated sync preparation
+
+- Reuse transfer snapshots already verified within the running app. Disk-loaded snapshots still receive full checksum verification, and each upload still checks its referenced cloud files and image parts. Cache corruption or missing targets safely falls back to a complete verified transfer.
+- Store one full transfer-cache snapshot with small head/scope references, rather than three full copies. Related cache writes share one bounded transaction and storage check. Unchanged image catalogs skip redundant writes; older cache entries remain readable.
+- Stream checksums through bounded 64 KiB encoding blocks, reduce small JSON-token allocations, and remove per-block SHA-256 allocations. Legacy checksum bytes, native-crypto fallback, original-image verification and cloud formats stay unchanged.
+- Yield during transfer traversal according to elapsed work time instead of pausing after every fixed number of fields. New diagnostics separately time snapshot validation/packing/hashing, Drive listing, basis verification, image catalog checks, transfer packing/comparison/hashing and final cache persistence. Worker progress preserves cancellation deadlines and late-response protection.
+- Windows only; Android remains at 0.10.1 / versionCode 1000001. Existing workspace data, Google Drive compatibility, conflict handling and draft protections remain intact.
+
+Validation includes 762 linked Boards with text-heavy notes, a warm blank-Sticky edit and a fresh transfer-client edit, one small manifest per edit, one full cache copy, and independent recovery of all Boards and text. Separate image-heavy tests retain original bytes and cover scope switches, restart, missing-part repair, corrupt/legacy/missing-target cache recovery and old checksum parity. These simulated transfers measure local preparation, not real Google Drive or two-device latency; the 10-second target still requires confirmation on the user's project.
+
 ## Silverlight 0.13.3 — faster main-project transfers
 
 - Automatic transfers retain a verified basis for each recently used group of Boards. Returning to the main project after editing a nested Board can reuse the main project's previous transfer, including after a restart, instead of building a broad replacement from the smaller Board's basis.
