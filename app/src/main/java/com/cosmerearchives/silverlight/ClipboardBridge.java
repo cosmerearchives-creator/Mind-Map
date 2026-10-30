@@ -29,9 +29,9 @@ final class ClipboardBridge {
                     // can still be copied directly between Boards without the clipboard.
                     if (text.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 512 * 1024) throw new Exception("This clipboard selection is too large. Use Copy to Board instead.");
                     JSONObject selection = new JSONObject(text);
-                    if (!"silverlight-selection-v1".equals(selection.optString("format")) && !("silverlight-assets-v1".equals(selection.optString("format")) && "silverlight-selection-v1".equals(selection.getJSONObject("document").optString("format")))) throw new Exception("Invalid Silverlight clipboard selection.");
+                    if (!"silverlight-selection-v1".equals(selection.optString("format")) && !("silverlight-assets-v1".equals(selection.optString("format")) && "silverlight-selection-v1".equals(selection.getJSONObject("document").optString("format")))) throw new Exception("Invalid Archives of Arcanum clipboard selection.");
                     ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-                    clipboard.setPrimaryClip(ClipData.newPlainText("Silverlight selection", text));
+                    clipboard.setPrimaryClip(ClipData.newPlainText("Archives of Arcanum selection", text));
                     response.put("items", new JSONArray());
                 } catch (Exception error) {
                     try { response.put("error", error.getMessage() == null ? "Clipboard is unavailable. Use Copy to Board instead." : error.getMessage()); } catch (Exception ignored) { }
@@ -85,7 +85,7 @@ final class ClipboardBridge {
                     activity.runOnUiThread(() -> proxy.postMessage(response.toString()));
                 }, "silverlight-clipboard").start();
             } catch (Exception error) {
-                try { proxy.postMessage(new JSONObject().put("id", id).put("error", "Clipboard is unavailable. Copy content again while Silverlight is open.").toString()); } catch (Exception ignored) { }
+                try { proxy.postMessage(new JSONObject().put("id", id).put("error", "Clipboard is unavailable. Copy content again while Archives of Arcanum is open.").toString()); } catch (Exception ignored) { }
             }
         });
     }

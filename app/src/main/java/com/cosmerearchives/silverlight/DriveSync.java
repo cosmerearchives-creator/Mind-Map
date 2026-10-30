@@ -57,7 +57,7 @@ final class DriveSync {
                 try { activity.startIntentSenderForResult(result.getPendingIntent().getIntentSender(), AUTHORIZE, null, 0, 0, 0); }
                 catch (Exception ignored) { finish(null, "Google sign-in could not open. Check Google Play services and OAuth setup."); }
             } else authorized(result);
-        }).addOnFailureListener(error -> finish(null, "Google authorization failed. Check Drive API, test users, and Android OAuth package/release certificate in the Silverlight Google Cloud project."));
+        }).addOnFailureListener(error -> finish(null, "Google authorization failed. Check Drive API, test users, and Android OAuth package/release certificate in the configured Google Cloud project."));
     }
     void authorizationResult(int resultCode, Intent data) {
         if (current == null) return;

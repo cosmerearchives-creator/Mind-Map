@@ -30,7 +30,7 @@ Shortcuts resolve to unique imported or existing Board titles. They do not own t
 
 PDF text, shapes, images, paint order and arrowheads identify objects. Rich formatting is recovered where present, with font families mapped to available editor fonts. Adjacent cards remain distinct. Collections retain membership and free positioning. Images retain transparency and Board tiles retain artwork.
 
-Arrow paths are analyzed independently at crossings. Endpoints and direction become native connections, so Silverlight controls curves and forks. Decorative lines without qualifying arrowheads and endpoints remain artwork. Uncertain connectors are listed for endpoint selection.
+Arrow paths are analyzed independently at crossings. Endpoints and direction become native connections, so Archives of Arcanum controls curves and forks. Decorative lines without qualifying arrowheads and endpoints remain artwork. Uncertain connectors are listed for endpoint selection.
 
 Fully covered recovered notes default to Unsorted. Partial overlaps can be moved there in preview. Content omitted from the PDF cannot be recovered. Intentional background images remain on canvas. Connections to Unsorted objects remain pending until both endpoints are placed. Unclassified recovered text is retained for review. Tables, flattened text, unusual exports and unavailable glyphs may need manual correction. There is no OCR.
 

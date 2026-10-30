@@ -1,6 +1,6 @@
 # Community philosophy and licensing
 
-Silverlight is a passion project started by a creator dissatisfied with their previous mind-map program. The code on `main` is largely AI-generated under human direction: the creator sets the goals, makes decisions, and directs development. This describes the development process, not a guarantee of correctness, security, or ownership clearance. Maintaining it takes time and has costs.
+Archives of Arcanum is a passion project started by a creator dissatisfied with their previous mind-map program. The code on `main` is largely AI-generated under human direction: the creator sets the goals, makes decisions, and directs development. This describes the development process, not a guarantee of correctness, security, or ownership clearance. Maintaining it takes time and has costs.
 
 The goal is a full offline-first core that people can continue using. All sync, AI, and accounts are optional. The community license requires no telemetry or online license verification. Optional network features, external content, and update checks can still contact their providers; see the [privacy policy](https://cosmerearchives-creator.github.io/privacy/). This documentation update does not change application behavior.
 
@@ -8,7 +8,7 @@ Donations and shout-outs are welcome and entirely voluntary. Neither is required
 
 ## What the proposed license permits
 
-The controlling text is [LICENSE](../LICENSE), **Silverlight Community License — Proposed Custom Terms v0.1**, published October 30, 2026. It is offered for covered material now, pending legal review; users do not need individual approval for permitted uses. It is source-available with use and redistribution restrictions, not OSI-approved open source and not a renamed or modified PolyForm license.
+The controlling text is [LICENSE](../LICENSE), **Archives of Arcanum Community License — Proposed Custom Terms v0.1**, published October 30, 2026. It is offered for covered material now, pending legal review; users do not need individual approval for permitted uses. It is source-available with use and redistribution restrictions, not OSI-approved open source and not a renamed or modified PolyForm license.
 
 | Situation | Community terms |
 | --- | --- |
@@ -33,4 +33,6 @@ This is an unreviewed custom license, not legal advice or a guarantee of enforce
 
 The license grants only rights the applicable licensor holds. Existing third-party licenses and notices remain controlling for their components (including vendored libraries and fonts); a full dependency and asset audit is still needed. It does not retrospectively settle rights in earlier releases. Contributors retain their rights: publication does not establish consent from every past contributor or an assignment allowing commercial relicensing. Before accepting contributions, establish explicit permission for community distribution and separately negotiate any commercial relicensing rights needed. No blanket retroactive consent is assumed.
 
-Silverlight and Cosmere Archives identify this independent project; no trademark registration, exclusivity, brand clearance, or affiliation is asserted. Forks must identify modifications and avoid implying endorsement. Branding and third-party rights need separate review. The software comes with the warranty disclaimer and liability limits in LICENSE; maintain independent backups.
+Archives of Arcanum and Cosmere Archives identify this independent project; no trademark registration, exclusivity, brand clearance, or affiliation is asserted. Forks must identify modifications and avoid implying endorsement. Branding and third-party rights need separate review. The software comes with the warranty disclaimer and liability limits in LICENSE; maintain independent backups.
+
+The October 30, 2026 rename from Silverlight to Archives of Arcanum identifies the same project and permissions. It does not reset initial qualification or grandfathering dates.

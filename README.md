@@ -1,18 +1,20 @@
-# Mind-Map (Silverlight)
+# Archives of Arcanum
 
-Silverlight Archives is an offline-first visual workspace for Windows and Android, with rich notes, nested Boards, image regions, Google Drive live sync and automatic update checks.
+Archives of Arcanum is an offline-first visual workspace for Windows and Android, with rich notes, nested Boards, image regions, Google Drive live sync and automatic update checks.
 
-## Why Silverlight exists
+Formerly **Silverlight**; the source repository remains `Mind-Map`. The rename preserves existing installations, workspace storage, backups, and Google Drive identities. See [rename compatibility](docs/archives-of-arcanum-rename.md).
 
-Silverlight is a passion project from a creator who was dissatisfied with their previous mind-map app. Code on `main` is largely AI-generated under human direction: the creator sets goals, makes decisions, and directs development. That process takes time and has costs; it is not a guarantee of error-free software.
+## Why Archives of Arcanum exists
+
+Archives of Arcanum is a passion project from a creator who was dissatisfied with their previous mind-map app. Code on `main` is largely AI-generated under human direction: the creator sets goals, makes decisions, and directs development. That process takes time and has costs; it is not a guarantee of error-free software.
 
 The full offline-first core is intended to remain usable on your device. Sync, AI, and accounts are optional. The license requires no telemetry or online license verification. Optional services, external content, and update checks can make network requests; see the [privacy policy](https://cosmerearchives-creator.github.io/privacy/).
 
 ## Community license and support
 
-[LICENSE](LICENSE) offers **Silverlight Community License — Proposed Custom Terms v0.1** for covered material now, pending legal review. This is a custom source-available license with restrictions, not OSI-approved open source or a PolyForm license.
+[LICENSE](LICENSE) offers **Archives of Arcanum Community License — Proposed Custom Terms v0.1** for covered material now, pending legal review. This is a custom source-available license with restrictions, not OSI-approved open source or a PolyForm license.
 
-Independent individual creators may monetize their output and keep using Silverlight free regardless of success. Independent, creator-controlled teams of at most five people at first use may qualify; the same undertaking is grandfathered as it grows while its qualifying original creators retain majority ownership and control. Acquisition does not transfer that permission. Your output remains yours to the extent you hold its rights.
+Independent individual creators may monetize their output and keep using Archives of Arcanum free regardless of success. Independent, creator-controlled teams of at most five people at first use may qualify; the same undertaking is grandfathered as it grows while its qualifying original creators retain majority ownership and control. Acquisition does not transfer that permission. Your output remains yours to the extent you hold its rights.
 
 Modification and free noncommercial redistribution are permitted subject to the license, notices, and source requirements. Commercial adoption by nonqualifying organizations, including large media companies, and software resale, paid hosting, or commercially supplied rebranded forks require a separate negotiated paid license. See [qualification rules, examples, and review limitations](docs/community-licensing.md). Third-party licenses and contributor rights remain separate; no completed rights audit or brand clearance is claimed.
 

@@ -223,7 +223,7 @@ internal sealed class DriveSync : IDisposable
             bool valid = line.Length < 8192 && parts.Length == 3 && parts[0] == "GET" && Uri.TryCreate(redirect.TrimEnd('/') + parts[1], UriKind.Absolute, out callback) && callback.AbsolutePath == "/";
             var values = valid ? System.Web.HttpUtility.ParseQueryString(callback!.Query) : null;
             valid = valid && values!["state"] == state;
-            string page = valid ? "Google sign-in received. Return to Silverlight." : "Invalid sign-in response. Return to Silverlight and try again.";
+            string page = valid ? "Google sign-in received. Return to Archives of Arcanum." : "Invalid sign-in response. Return to Archives of Arcanum and try again.";
             byte[] reply = Encoding.UTF8.GetBytes("HTTP/1.1 " + (valid ? "200 OK" : "400 Bad Request") + "\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\nContent-Length: " + Encoding.UTF8.GetByteCount(page) + "\r\n\r\n" + page);
             await stream.WriteAsync(reply, timeout.Token);
             if (!valid) continue;
@@ -288,7 +288,7 @@ internal sealed class DriveSync : IDisposable
         // The owner-approved Google desktop value is injected by CI, never committed.
         // Legacy config stays intact for existing installations.
         var path = File.Exists(clientConfig) ? clientConfig : Path.Combine(DataFolder, "google-desktop-oauth.json");
-        if (!File.Exists(path)) throw new InvalidOperationException("This build has no Google Desktop client ID. Install a configured Silverlight release. Local data is unchanged.");
+        if (!File.Exists(path)) throw new InvalidOperationException("This build has no Google Desktop client ID. Install a configured Archives of Arcanum release. Local data is unchanged.");
         using var settings = JsonDocument.Parse(await File.ReadAllTextAsync(path, lifetime.Token));
         var root = settings.RootElement;
         var client = root.TryGetProperty("installed", out var legacy) ? legacy : root;
@@ -299,7 +299,7 @@ internal sealed class DriveSync : IDisposable
     }
     private static void ValidateScope(JsonElement credentials)
     {
-        if (credentials.TryGetProperty("scope", out var granted) && !(granted.GetString() ?? "").Split(' ').Contains(Scope)) throw new InvalidOperationException("Google did not grant Silverlight's Drive app-data scope. Reconnect Google. Local data is unchanged.");
+        if (credentials.TryGetProperty("scope", out var granted) && !(granted.GetString() ?? "").Split(' ').Contains(Scope)) throw new InvalidOperationException("Google did not grant Archives of Arcanum's Drive app-data scope. Reconnect Google. Local data is unchanged.");
     }
     public void Dispose() { lifetime.Cancel(); lifetime.Dispose(); http.Dispose(); token = null; }
 }

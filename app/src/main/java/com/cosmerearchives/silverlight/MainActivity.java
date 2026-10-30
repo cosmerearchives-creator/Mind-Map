@@ -119,7 +119,7 @@ public class MainActivity extends Activity {
                     String link = asset.optString("browser_download_url", "");
                     if (!link.startsWith("https://github.com/cosmerearchives-creator/Mind-Map/releases/download/")) continue;
                     runOnUiThread(() -> new AlertDialog.Builder(this)
-                        .setTitle("Silverlight update available")
+                        .setTitle("Archives of Arcanum update available")
                         .setMessage("Version " + tag + " is available. Download and install it? Android will ask you to confirm installation.")
                         .setNegativeButton("Later", null)
                         .setPositiveButton("Download", (d,w) -> downloadUpdate(link, tag))
@@ -134,10 +134,10 @@ public class MainActivity extends Activity {
     private void downloadUpdate(String link, String tag) {
         try {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(link))
-                .setTitle("Silverlight " + tag)
+                .setTitle("Archives of Arcanum " + tag)
                 .setDescription("Android app update")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "Silverlight-" + tag + ".apk");
+                .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "Archives-of-Arcanum-" + tag + ".apk");
             downloadId = manager.enqueue(request);
             pollDownload(0);
         } catch (Exception e) { alert("Download could not be started. You can download the APK from GitHub Releases."); }
@@ -166,8 +166,8 @@ public class MainActivity extends Activity {
         if (readyApk == null) return;
         if (Build.VERSION.SDK_INT >= 26 && !getPackageManager().canRequestPackageInstalls()) {
             new AlertDialog.Builder(this)
-                .setTitle("Allow Silverlight updates")
-                .setMessage("Android requires permission to install APKs from this app. You can enable it for Silverlight in system settings.")
+                .setTitle("Allow Archives of Arcanum updates")
+                .setMessage("Android requires permission to install APKs from this app. You can enable it for Archives of Arcanum in system settings.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Open settings", (d,w) -> startActivityForResult(
                     new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())), INSTALL_PERMISSION))
@@ -185,7 +185,7 @@ public class MainActivity extends Activity {
     }
 
     private void alert(String message) {
-        new AlertDialog.Builder(this).setTitle("Silverlight updater").setMessage(message).setPositiveButton("OK", null).show();
+        new AlertDialog.Builder(this).setTitle("Archives of Arcanum updater").setMessage(message).setPositiveButton("OK", null).show();
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {

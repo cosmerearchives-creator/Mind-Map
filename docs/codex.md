@@ -18,7 +18,7 @@ Linked notes are anchored to UTF-16 positions in the immutable chapter text, wit
 
 ## Copy out with citations
 
-Copy… → Copy to Board creates an independent normal Sticky on any non-Codex Board, including the originating chapter's research canvas. Copy to clipboard writes the normal Silverlight selection format for pasting elsewhere. Ctrl+C on a focused note with no text selection also copies the full cited Sticky.
+Copy… → Copy to Board creates an independent normal Sticky on any non-Codex Board, including the originating chapter's research canvas. Copy to clipboard writes the normal Archives of Arcanum selection format for pasting elsewhere. Ctrl+C on a focused note with no text selection also copies the full cited Sticky.
 
 - Highlight note title: exact selected word/phrase.
 - Marker note title: `Book Title / Chapter / Random Note`.

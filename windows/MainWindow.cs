@@ -27,13 +27,13 @@ public sealed class MainWindow : Form
 
     public MainWindow()
     {
-        Text = "Silverlight";
+        Text = "Archives of Arcanum";
         Width = 1180;
         Height = 780;
         MinimumSize = new(420, 350);
         Controls.Add(browser);
 
-        var file = new ToolStripMenuItem("&Silverlight");
+        var file = new ToolStripMenuItem("&Archives of Arcanum");
         updates.Click += async (_, _) => await CheckUpdatesAsync(true);
         file.DropDownItems.Add(updates);
         file.DropDownItems.Add(new ToolStripMenuItem("Open releases", null, (_, _) => OpenReleases()));
@@ -108,7 +108,7 @@ public sealed class MainWindow : Form
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Could not launch Silverlight. WebView2 Runtime may need to be installed.\n\n" + ex.Message, "Silverlight");
+                MessageBox.Show("Could not launch Archives of Arcanum. WebView2 Runtime may need to be installed.\n\n" + ex.Message, "Archives of Arcanum");
             }
         };
     }
@@ -133,13 +133,13 @@ public sealed class MainWindow : Form
                 .Select(r => new { Release = r, Tag = r.GetProperty("tag_name").GetString() ?? "" })
                 .Where(r => !r.Release.GetProperty("prerelease").GetBoolean() &&
                             r.Tag.StartsWith("v", StringComparison.Ordinal) && Version.TryParse(r.Tag[1..], out _))
-                .Where(r => r.Release.GetProperty("assets").EnumerateArray().Any(a => a.GetProperty("name").GetString() == "Silverlight-Setup.exe"))
+                .Where(r => r.Release.GetProperty("assets").EnumerateArray().Any(a => a.GetProperty("name").GetString() is "Archives-of-Arcanum-Setup.exe" or "Silverlight-Setup.exe"))
                 .OrderByDescending(r => Version.Parse(r.Tag[1..]))
                 .FirstOrDefault();
 
             if (newest is null)
             {
-                if (manual) MessageBox.Show("No Windows release found.", "Silverlight");
+                if (manual) MessageBox.Show("No Windows release found.", "Archives of Arcanum");
                 return;
             }
 
@@ -147,15 +147,16 @@ public sealed class MainWindow : Form
             var availableVersion = new Version(parsed.Major, parsed.Minor, Math.Max(0, parsed.Build), Math.Max(0, parsed.Revision));
             if (availableVersion <= CurrentVersion())
             {
-                if (manual) MessageBox.Show("You're using the latest Windows version.", "Silverlight");
+                if (manual) MessageBox.Show("You're using the latest Windows version.", "Archives of Arcanum");
                 return;
             }
 
             var asset = newest.Release.GetProperty("assets").EnumerateArray()
-                .FirstOrDefault(a => a.GetProperty("name").GetString() == "Silverlight-Setup.exe");
+                .OrderByDescending(a => a.GetProperty("name").GetString() == "Archives-of-Arcanum-Setup.exe")
+                .FirstOrDefault(a => a.GetProperty("name").GetString() is "Archives-of-Arcanum-Setup.exe" or "Silverlight-Setup.exe");
             if (asset.ValueKind == JsonValueKind.Undefined)
             {
-                if (manual) MessageBox.Show("A newer Windows release exists, but its installer isn't available yet.", "Silverlight");
+                if (manual) MessageBox.Show("A newer Windows release exists, but its installer isn't available yet.", "Archives of Arcanum");
                 return;
             }
 
@@ -167,14 +168,14 @@ public sealed class MainWindow : Form
                 throw new InvalidOperationException("Unexpected release download address.");
 
             if (MessageBox.Show(
-                $"Silverlight {newest.Tag} is available.\n\nDownload the Windows installer and install it now? Silverlight will close after the download. Your local boards are stored separately from the application files.",
-                "Silverlight update", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes) return;
+                $"Archives of Arcanum {newest.Tag} is available.\n\nDownload the Windows installer and install it now? Archives of Arcanum will close after the download. Your local boards are stored separately from the application files.",
+                "Archives of Arcanum update", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes) return;
 
             await DownloadAndInstallAsync(address, newest.Tag);
         }
         catch (Exception ex)
         {
-            if (manual) MessageBox.Show("Update check failed: " + ex.Message, "Silverlight");
+            if (manual) MessageBox.Show("Update check failed: " + ex.Message, "Archives of Arcanum");
         }
         finally
         {
@@ -189,7 +190,7 @@ public sealed class MainWindow : Form
         string stage = "preparing the update folder";
         using var progress = new Form
         {
-            Text = "Downloading Silverlight update",
+            Text = "Downloading Archives of Arcanum update",
             Width = 400, Height = 140, FormBorderStyle = FormBorderStyle.FixedDialog,
             StartPosition = FormStartPosition.CenterParent, ControlBox = false
         };
@@ -231,7 +232,7 @@ public sealed class MainWindow : Form
             files.Complete(length);
             progress.Close();
 
-            if (MessageBox.Show("Download complete. Close Silverlight and start the installer? Your board data will remain in the local app data folder.",
+            if (MessageBox.Show("Download complete. Close Archives of Arcanum and start the installer? Your board data will remain in the local app data folder.",
                 "Install update", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
             stage = "launching the installer";
@@ -246,7 +247,7 @@ public sealed class MainWindow : Form
             var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Silverlight", "updater-error.log");
             try { Directory.CreateDirectory(Path.GetDirectoryName(logPath)!); File.AppendAllText(logPath, DateTimeOffset.Now + " " + stage + "\n" + files?.DirectoryPath + "\n" + ex + "\n\n"); } catch { }
             string recovery = stage == "launching the installer" && files is not null ? "\n\nThe downloaded installer is available at:\n" + files.InstallerPath : "\n\nYou can install manually from GitHub Releases.";
-            MessageBox.Show("Update failed while " + stage + ": " + ex.Message + recovery + "\n\nDiagnostic log: " + logPath, "Silverlight");
+            MessageBox.Show("Update failed while " + stage + ": " + ex.Message + recovery + "\n\nDiagnostic log: " + logPath, "Archives of Arcanum");
         }
     }
 

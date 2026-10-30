@@ -8,7 +8,7 @@ function make(board,ids,boards){const set=expand(board,ids),cards=board.cards.fi
  return {format:FORMAT,cards,connections:(board.connections||[]).filter(e=>set.has(e.from)&&set.has(e.to)).map(clone),junctions:Object.fromEntries(Object.entries(board.junctions||{}).filter(([id])=>set.has(id)).map(([id,v])=>[id,clone(v)])),boards:boards.filter(b=>included.has(b.id)).map(clone)};
 }
 function paste(payload,uid=()=>crypto.randomUUID(),options={}){
- if(payload?.format!==FORMAT||!Array.isArray(payload.cards)||!Array.isArray(payload.boards)||!Array.isArray(payload.connections))throw Error('Invalid Silverlight selection.');
+ if(payload?.format!==FORMAT||!Array.isArray(payload.cards)||!Array.isArray(payload.boards)||!Array.isArray(payload.connections))throw Error('Invalid Archives of Arcanum selection.');
  if(!options.unbounded&&(assets||root.SilverlightAssets).measure(payload)>64*1024*1024)throw Error('Selection exceeds 64 MB.');
  const result=clone(payload),boardMap=new Map(result.boards.map(b=>[b.id,uid()])),allIds=new Map(result.boards.map(b=>[b.id,new Map([...(b.cards||[]),...(b.unsorted||[])].map(c=>[c.id,uid()]))]));
  if(options.rootId&&options.targetId){boardMap.set(options.rootId,options.targetId);allIds.set(options.rootId,new Map([...(result.cards||[]),...(result.unsorted||[])].map(c=>[c.id,uid()])));result.id=options.rootId}

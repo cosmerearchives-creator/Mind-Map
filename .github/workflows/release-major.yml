@@ -1,4 +1,4 @@
-name: Publish coordinated Silverlight release
+name: Publish coordinated Archives of Arcanum release
 on:
   workflow_run:
     workflows: [Build Windows installer, Build and publish Mind-Map APK]
@@ -46,6 +46,8 @@ jobs:
           gh run download "$WINDOWS_RUN" --name Silverlight-Windows-Installer --dir dist --repo "$GITHUB_REPOSITORY"
           FILES=(dist/Silverlight-Setup.exe)
           test -s dist/Silverlight-Setup.exe
+          cp dist/Silverlight-Setup.exe dist/Archives-of-Arcanum-Setup.exe
+          FILES+=(dist/Archives-of-Arcanum-Setup.exe)
           if [ -n "$ANDROID_RUN" ]; then
             gh run download "$ANDROID_RUN" --name Silverlight-signed-APK --dir dist --repo "$GITHUB_REPOSITORY"
             test -s dist/Silverlight.apk
@@ -55,8 +57,8 @@ jobs:
           if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" --json isDraft > existing-release.json 2>/dev/null; then
             if [ "$(node -p "require('./existing-release.json').isDraft")" = false ]; then exit 0; fi
             gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" --json targetCommitish,assets > existing-release.json
-            node -e "const r=require('./existing-release.json');if(r.targetCommitish!==process.env.RELEASE_SHA||!(process.env.ANDROID_RUN?['Silverlight.apk','Silverlight-Setup.exe']:['Silverlight-Setup.exe']).every(n=>r.assets.some(a=>a.name===n)))process.exit(1)"
+            node -e "const r=require('./existing-release.json');if(r.targetCommitish!==process.env.RELEASE_SHA||!(process.env.ANDROID_RUN?['Silverlight.apk','Silverlight-Setup.exe','Archives-of-Arcanum-Setup.exe']:['Silverlight-Setup.exe','Archives-of-Arcanum-Setup.exe']).every(n=>r.assets.some(a=>a.name===n)))process.exit(1)"
           else
-            gh release create "v$VERSION" "${FILES[@]}" --draft --title "Silverlight $VERSION" --notes-file RELEASE_NOTES.md --target "$RELEASE_SHA" --repo "$GITHUB_REPOSITORY"
+            gh release create "v$VERSION" "${FILES[@]}" --draft --title "Archives of Arcanum $VERSION" --notes-file RELEASE_NOTES.md --target "$RELEASE_SHA" --repo "$GITHUB_REPOSITORY"
           fi
           gh release edit "v$VERSION" --draft=false --latest --repo "$GITHUB_REPOSITORY"

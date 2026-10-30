@@ -1,4 +1,4 @@
-# Silverlight — current-version feature inventory
+# Archives of Arcanum — current-version feature inventory
 
 Release baseline: October 22, 2026. The application may still display **Openboard** in older builds or interface areas. This file establishes the agreed vocabulary and behavioral baseline; it is not a claim that every flow has been device-tested.
 
@@ -70,7 +70,7 @@ Preserve the HOME PAGE / BOARD / STICKY vocabulary in issue reports, discussions
 - IMAGE STICKIES can be moved, placed in COLLECTIONS and stretched or shrunk via a corner resize control.
 - Sticky appearance controls include default colors, an arbitrary custom color picker, favorite colors saved in the application, and an uploaded image background with fill/fit/tile and overlay opacity.
 - Existing Stickies have the background customizations available in their editor.
-- App branding uses **Silverlight Archives** with the tower emblem on the header and Android/Windows application icons.
+- App branding uses **Archives of Arcanum** with the tower emblem on the header and Android/Windows application icons.
 
 **Verification limitation:** JavaScript syntax parsing and platform build workflows are not equivalent to interactive testing. Touch behavior, image file persistence, background display, image sizing, and new dialogs should be manually validated on Android and Windows.
 

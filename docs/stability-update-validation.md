@@ -1,4 +1,4 @@
-# Silverlight 0.10.1 validation
+# Archives of Arcanum 0.10.1 validation
 
 The official release uses main, tag v0.10.1, Windows version 0.10.1 and Android versionCode 1000001. Android derives candidate codes as major × 10000000 + minor × 100000 + patch. Both installers must come from successful builds of the same main commit before the coordinated workflow publishes latest.
 

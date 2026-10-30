@@ -1,3 +1,11 @@
+## Archives of Arcanum 0.13.5 — product rename
+
+- Rename the application from Silverlight to Archives of Arcanum across the header, title, default welcome content, menus, dialogs, Windows installer and shortcuts, Android source label, website, and current project documentation. Existing user-created Boards and notes are not rewritten.
+- Preserve Windows installer AppId, executable identity, local data folders, WebView origin, Android package/signing identity, workspace/clipboard formats, and Google Drive protocol metadata. This is an in-place branding update, not a new workspace or account.
+- Publish Archives-of-Arcanum-Setup.exe alongside the identical Silverlight-Setup.exe compatibility alias, so existing updaters can discover this release. The renamed app prefers the new asset and accepts old releases too.
+- Keep the existing tower artwork, which contains no Silverlight lettering. Community-license permissions, initial qualification dates, and grandfathering continue unchanged under the renamed title.
+- Windows release only. Android binary remains 0.10.1 while mobile development is paused; the source label will apply to a future Android build. Google consent branding is managed separately and may still show the old name.
+
 ## Silverlight 0.13.4 — less repeated sync preparation
 
 - Reuse transfer snapshots already verified within the running app. Disk-loaded snapshots still receive full checksum verification, and each upload still checks its referenced cloud files and image parts. Cache corruption or missing targets safely falls back to a complete verified transfer.

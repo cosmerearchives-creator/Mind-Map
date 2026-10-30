@@ -1,10 +1,10 @@
-# Silverlight Google Drive Sync — Implementation Contract
+# Archives of Arcanum Google Drive Sync — Implementation Contract
 
 Status: **Automatic sync while the app is open is implemented and promoted to stable after owner confirmation on Windows and Android.** Manual transfers in both directions were also confirmed by the owner. See [automatic-sync.md](automatic-sync.md) for current setup, protocol and limits. Closed-app syncing remains unimplemented.
 
 ## Historical manual-transfer preview setup
 - Android uses Google Play services AuthorizationClient and the existing package/release signing identity. Tokens never enter HTML or board exports.
-- Windows uses system-browser OAuth, loopback redirect, state validation and PKCE. On first Connect Google, select the JSON downloaded for a **Desktop app** OAuth client in the **same Google Cloud project as Android**, currently `silverlight-512321`. It is copied to `%LOCALAPPDATA%/Silverlight/google-desktop-oauth.json`; tokens are session-only. To replace a mistakenly selected Desktop configuration, close Silverlight and remove just that configuration file, then connect again. Never remove the WebView2 data folder.
+- Windows uses system-browser OAuth, loopback redirect, state validation and PKCE. On first Connect Google, select the JSON downloaded for a **Desktop app** OAuth client in the **same Google Cloud project as Android**, currently `silverlight-512321`. It is copied to `%LOCALAPPDATA%/Silverlight/google-desktop-oauth.json`; tokens are session-only. To replace a mistakenly selected Desktop configuration, close Archives of Arcanum and remove just that configuration file, then connect again. Never remove the WebView2 data folder.
 - Enable Drive API and include the Google account in the consent screen's testing audience when applicable. Use the same account on both devices.
 - The cloud button offers manual upload, snapshot listing, reviewed restore and local recovery. Snapshots use immutable unique filenames and `appProperties.silverlightSnapshot=1`; listing is paginated. No shared mutable manifest is written in this milestone, so concurrent uploads retain both copies.
 - Restore requires working IndexedDB, validates schema, hash, stable IDs and references, detects changes made during review, and stores recovery plus replacement in one transaction. Cancel, download errors, checksum failure and storage abort leave the active workspace intact.

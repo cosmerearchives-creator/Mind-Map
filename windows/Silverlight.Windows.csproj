@@ -7,9 +7,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Silverlight</AssemblyName>
     <RootNamespace>Silverlight.Windows</RootNamespace>
-    <ApplicationTitle>Silverlight Archives</ApplicationTitle>
+    <ApplicationTitle>Archives of Arcanum</ApplicationTitle>
+    <Product>Archives of Arcanum</Product>
+    <Description>Archives of Arcanum visual workspace</Description>
     <ApplicationIcon>app.ico</ApplicationIcon>
-    <Version>0.13.4</Version>
+    <Version>0.13.5</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />

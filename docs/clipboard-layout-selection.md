@@ -4,11 +4,11 @@
 
 Middle-button drag pans anywhere on the canvas. Left-button drag on blank space selects fully enclosed Stickies. Shift-click toggles items in the selection. Drag any selected Sticky to move the selected group. Selecting a Collection also moves/copies its descendants. Connections continue to render using native curves and forks. Existing drawing-mode Hand/middle-button pan and Android touch gestures remain supported.
 
-Ctrl+C writes a Silverlight selection to the system clipboard; Ctrl+V on a Board pastes it. New IDs are allocated, relative positions are preserved, internal connections and labels are retained, and owned nested Boards are cloned. Connections to unselected items are excluded. External shortcut destinations remain references. Copying is limited to 16 MiB; pasted workspaces retain the existing 64 MiB sync limit. Paste and group movement support Undo/Redo. Normal text editing keeps normal clipboard behavior.
+Ctrl+C writes a Archives of Arcanum selection to the system clipboard; Ctrl+V on a Board pastes it. New IDs are allocated, relative positions are preserved, internal connections and labels are retained, and owned nested Boards are cloned. Connections to unselected items are excluded. External shortcut destinations remain references. Copying is limited to 16 MiB; pasted workspaces retain the existing 64 MiB sync limit. Paste and group movement support Undo/Redo. Normal text editing keeps normal clipboard behavior.
 
 ## Milanote paste recovery
 
-Copy cards in Milanote, then paste on an open Silverlight Board. A cancellable preparation stage recovers media, followed by a review before any workspace change.
+Copy cards in Milanote, then paste on an open Archives of Arcanum Board. A cancellable preparation stage recovers media, followed by a review before any workspace change.
 
 - BOARD tiles create real blank nested Boards when descendants are absent. Included descendants still populate their Boards. This behavior applies to clipboard paste; PDF/ZIP missing-Board Notes are unchanged.
 - Collection HTML can contain member objects absent from the custom JSON. The importer reconstructs supported members by element ID and retains Collection membership without duplicating JSON members.

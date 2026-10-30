@@ -6,7 +6,7 @@ function canonical(value){if(Array.isArray(value))return '['+value.map(canonical
 function compareCanonical(a,b){const S=typeof module!=='undefined'?require('./stream-json.js'):root.SilverlightStream,ai=S.json(a,true),bi=S.json(b,true);let av=ai.next(),bv=bi.next(),x=0,y=0;while(!av.done&&!bv.done){const n=Math.min(av.value.length-x,bv.value.length-y),as=av.value.slice(x,x+n),bs=bv.value.slice(y,y+n);if(as!==bs)return as<bs?-1:1;x+=n;y+=n;if(x===av.value.length){av=ai.next();x=0}if(y===bv.value.length){bv=bi.next();y=0}}return av.done?(bv.done?0:-1):1}
 function workspace(input){
  const assets=typeof module!=='undefined'?require('./assets-core.js'):root.SilverlightAssets;const w=assets?assets.clone(input):JSON.parse(JSON.stringify(input));
- if(!w||!Array.isArray(w.boards))throw Error('This is not a Silverlight workspace.');
+ if(!w||!Array.isArray(w.boards))throw Error('This is not a Archives of Arcanum workspace.');
  const validId=x=>typeof x==='string'&&x.length>0&&x.length<=300;
  const boards=new Set();
  for(const b of w.boards){if(!b||!validId(b.id)||boards.has(b.id)||typeof b.title!=='string'||!Array.isArray(b.cards))throw Error('Invalid or duplicate BOARD data.');boards.add(b.id)}

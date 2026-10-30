@@ -1,6 +1,6 @@
 # Live Google Drive sync
 
-Live sync uses the existing Google Drive account, automatic workspace and conflict-safe snapshot protocol. It runs while Silverlight is open and visible. Existing enabled automatic sync upgrades to the faster schedule without making a new workspace. This is polling-based saved-edit synchronization, not a shared-cursor or per-keystroke collaboration service.
+Live sync uses the existing Google Drive account, automatic workspace and conflict-safe snapshot protocol. It runs while Archives of Arcanum is open and visible. Existing enabled automatic sync upgrades to the faster schedule without making a new workspace. This is polling-based saved-edit synchronization, not a shared-cursor or per-keystroke collaboration service.
 
 ## Setup and first test
 1. Export independent backups; install the stable release over each existing app. Do not uninstall or clear app data.

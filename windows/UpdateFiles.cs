@@ -7,8 +7,8 @@ namespace Silverlight.Windows;
 internal sealed class UpdateFiles
 {
     public string DirectoryPath { get; }
-    public string PartialPath => Path.Combine(DirectoryPath, "Silverlight-Setup.partial");
-    public string InstallerPath => Path.Combine(DirectoryPath, "Silverlight-Setup.exe");
+    public string PartialPath => Path.Combine(DirectoryPath, "Archives-of-Arcanum-Setup.partial");
+    public string InstallerPath => Path.Combine(DirectoryPath, "Archives-of-Arcanum-Setup.exe");
     private UpdateFiles(string directory) { DirectoryPath = directory; }
 
     public static UpdateFiles Create(params string[] roots)
