@@ -1,5 +1,17 @@
 name: Build and publish Mind-Map APK
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'release-version.json'
+      - 'RELEASE_NOTES.md'
+      - 'tests/**'
+      - '.github/workflows/android-apk.yml'
+      - '.github/workflows/release-major.yml'
   workflow_dispatch:
 
 permissions:
@@ -69,6 +81,22 @@ jobs:
           test -s "$APK"
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n 1)"
           "$APKSIGNER" verify --verbose "$APK"
+          "$APKSIGNER" verify --print-certs "$APK" | grep -i 'certificate SHA-1 digest: 9f2f5c1e80a857999725e4f980e525a8d76e11e1'
+          "$(dirname "$APKSIGNER")/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
+          python - <<'PY'
+          import hashlib, json, os, re, zipfile
+          from pathlib import Path
+          config = json.loads(Path('release-version.json').read_text())
+          badging = Path(os.environ['RUNNER_TEMP'], 'apk-badging.txt').read_text()
+          package = re.search(r"package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", badging)
+          assert package and package.groups() == ('com.cosmerearchives.silverlight', str(config['androidVersionCode']), config['androidVersion']), 'APK update identity/version mismatch'
+          with zipfile.ZipFile('app/build/outputs/apk/release/app-release.apk') as apk:
+              for source in Path('app/src/main/assets').rglob('*'):
+                  if source.is_file():
+                      target = 'assets/' + source.relative_to('app/src/main/assets').as_posix()
+                      assert hashlib.sha256(apk.read(target)).digest() == hashlib.sha256(source.read_bytes()).digest(), 'Packaged asset mismatch: ' + target
+          print('PASS: Android package/version and every current shared asset match the release source')
+          PY
           cp "$APK" Silverlight.apk
       - uses: actions/upload-artifact@v4
         with:

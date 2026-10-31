@@ -1,3 +1,12 @@
+## Archives of Arcanum 0.13.6 — Android catch-up update
+
+- Bring the signed Android app up to the current shared application code, including the accumulated sync performance, local-save recovery, Codex search/reference tags and editor improvements, plus the Archives of Arcanum name. Desktop-specific controls retain their existing platform rules.
+- Android version 0.13.6 / versionCode 1300006 updates the existing application in place. Keep the same application ID, signing certificate, local WebView origin, storage keys, workspace formats and Google Drive compatibility. Existing Boards, notes, images, recovery data and account access are preserved.
+- Publish Windows and Android together from the same validated main commit. Keep Silverlight.apk and Silverlight-Setup.exe compatibility asset names so existing installed updaters detect the official release; the renamed Windows installer remains available too.
+- Restore coordinated Android builds on main so the APK stays aligned with shared application updates. This catch-up release does not add a separate mobile feature redesign.
+
+Validation: shared snapshot/merge/recovery checks, desktop and touch-size browser regressions, original signing-identity verification, release APK signature verification, and packaged shared-asset/version checks. Physical Android installation, Google authorization and real-device Drive latency still require device testing.
+
 ## Archives of Arcanum 0.13.5 — product rename
 
 - Rename the application from Silverlight to Archives of Arcanum across the header, title, default welcome content, menus, dialogs, Windows installer and shortcuts, Android source label, website, and current project documentation. Existing user-created Boards and notes are not rewritten.
