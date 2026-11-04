@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'app/**'
+      - 'windows/**'
+      - 'gradle/**'
+      - '.github/workflows/windows.yml'
       - 'build.gradle'
       - 'settings.gradle'
       - 'gradle.properties'
