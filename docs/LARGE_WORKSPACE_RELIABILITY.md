@@ -26,7 +26,7 @@ Windows: a same-folder unique .partial is read back and fsynced before replaceme
 
 Android: ACTION_CREATE_DOCUMENT must provide a new, empty document. A private temporary disk file is verified before copying; the destination is read back and verified too. Normal cancellation, pause and destruction clean the temporary file and attempt to remove incomplete output. A provider that cannot prove an empty destination or read the final document is refused. No broad storage permission, account or network is needed for core backup/restore.
 
-Verified restart checkpoints and promoted image chunks consume disk space. Hard process termination can leave unreferenced staging data or .partial files; no incomplete archive is accepted and no incomplete main state is committed. Individual image strings and individual Board metadata still must fit memory. This update removes aggregate-original/whole-backup allocations, not every possible per-document memory bound. No physical-phone heap or live personal-account Drive test was performed by the automated suite.
+Verified restart checkpoints and promoted image chunks consume disk space. Hard process termination can leave unreferenced staging data or .partial files; no incomplete archive is accepted and no incomplete main state is committed. Streaming JSON retains per-chunk string fragments rather than building large scalar tokens character by character. Individual image strings and individual Board metadata still must fit memory. This update removes aggregate-original/whole-backup allocations, not every possible per-document memory bound. No physical-phone heap or live personal-account Drive test was performed by the automated suite.
 
 ## Reproducible verification
 
