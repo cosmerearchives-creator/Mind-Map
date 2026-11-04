@@ -31,6 +31,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Verify bounded Android backup I/O
+        run: |
+          javac -d "$RUNNER_TEMP/backup-test" app/src/main/java/com/cosmerearchives/silverlight/BackupIO.java tests/BackupIOTest.java
+          java -Xmx32m -cp "$RUNNER_TEMP/backup-test" com.cosmerearchives.silverlight.BackupIOTest
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'

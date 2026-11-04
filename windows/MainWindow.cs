@@ -24,9 +24,11 @@ public sealed class MainWindow : Form
     private long lastMenuToggle;
     private readonly MenuStrip menu = new() { Visible = false };
     private readonly DriveSync driveSync = new();
+    private readonly BackupFiles backupFiles = new();
 
     public MainWindow()
     {
+        FormClosed += (_, _) => backupFiles.Dispose();
         Text = "Archives of Arcanum";
         Width = 1180;
         Height = 780;
@@ -78,6 +80,12 @@ public sealed class MainWindow : Form
                     try {
                         using var message = JsonDocument.Parse(args.WebMessageAsJson);
                         var request = message.RootElement;
+                        if (request.GetProperty("channel").GetString() == "arcanum-backup") {
+                            string? backupId = request.GetProperty("id").GetString();
+                            try { var result = await backupFiles.ExecuteAsync(request, this); browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel="arcanum-backup", id=backupId, result })); }
+                            catch (Exception e) { browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel="arcanum-backup", id=backupId, error=e.Message })); }
+                            return;
+                        }
                         if (request.GetProperty("channel").GetString() == "silverlight-clipboard")
                         {
                             string? clipId = request.TryGetProperty("id", out var clip) ? clip.GetString() : null;

@@ -162,7 +162,10 @@ final class DriveSync {
                     byte[] head = ("--"+boundary+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+metadata+"\r\n--"+boundary+"\r\nContent-Type: application/json\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                     byte[] tail = ("\r\n--"+boundary+"--\r\n").getBytes(StandardCharsets.UTF_8);
                     ByteArrayOutputStream body = new ByteArrayOutputStream();body.write(head);body.write(content);body.write(tail);
-                    return new JSONObject(call("POST","https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",body.toByteArray(),"multipart/related; boundary="+boundary));
+                    JSONObject uploaded=new JSONObject(call("POST","https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,md5Checksum,size",body.toByteArray(),"multipart/related; boundary="+boundary));
+                    byte[] digest=java.security.MessageDigest.getInstance("MD5").digest(content);StringBuilder expected=new StringBuilder();for(byte b:digest)expected.append(String.format("%02x",b & 255));
+                    if(!expected.toString().equals(uploaded.optString("md5Checksum"))||uploaded.optLong("size",-1)!=content.length){String failed=uploaded.optString("id");if(failed.matches("[A-Za-z0-9_-]+"))try{call("DELETE",API+"/"+failed,null,null);}catch(Exception ignored){}throw new Exception("Drive upload checksum or byte count was not confirmed. Local data is unchanged.");}
+                    return uploaded;
     }
     private String call(String method,String address,byte[] body,String contentType) throws Exception {
         HttpURLConnection connection=(HttpURLConnection)new URL(address).openConnection();

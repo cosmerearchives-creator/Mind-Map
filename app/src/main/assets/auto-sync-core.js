@@ -2,7 +2,7 @@
 (function(root){
 'use strict';
 const core=typeof module!=='undefined'?require('./sync-core.js'):root.SilverlightSync;
-const FORMAT='silverlight-auto-v1',copy=x=>(typeof module!=='undefined'?require('./assets-core.js'):root.SilverlightAssets).clone(x);
+const FORMAT='silverlight-auto-v1',copy=x=>(typeof module!=='undefined'?require('./assets-core.js'):root.SilverlightAssets).clone(x,true);
 function semantic(b){if(b===null)return null;const value=copy(b);delete value.updated;for(const c of value.cards||[])delete c.collectionHidden;value.cards=(value.cards||[]).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);value.connections=(value.connections||[]).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);value.junctions=value.junctions||{};return value}
 const compare=(a,b)=>a<b?-1:a>b?1:0;
 function equal(a,b){if(a===b)return true;if(!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b))return false;const keys=Object.keys(a).filter(k=>a[k]!==undefined),other=Object.keys(b).filter(k=>b[k]!==undefined);return keys.length===other.length&&keys.every(k=>Object.hasOwn(b,k)&&equal(a[k],b[k]))}

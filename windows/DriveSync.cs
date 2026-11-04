@@ -165,7 +165,15 @@ internal sealed class DriveSync : IDisposable
             using var body = new MultipartContent("related", "silverlight_" + Guid.NewGuid().ToString("N"));
             body.Add(new StringContent(JsonSerializer.Serialize(metadata), Encoding.UTF8, "application/json"));
             body.Add(new StringContent(snapshot, Encoding.UTF8, "application/json"));
-            return JsonNode.Parse(await SendAsync(HttpMethod.Post, "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", body))!;
+            var uploaded = JsonNode.Parse(await SendAsync(HttpMethod.Post, "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,md5Checksum,size", body))!;
+            var bytes = Encoding.UTF8.GetBytes(snapshot);
+            string expected = Convert.ToHexString(MD5.HashData(bytes)).ToLowerInvariant();
+            if (uploaded["md5Checksum"]?.ToString() != expected || !long.TryParse(uploaded["size"]?.ToString(), out long storedSize) || storedSize != bytes.LongLength) {
+                string? failed = uploaded["id"]?.ToString();
+                if (failed is not null && System.Text.RegularExpressions.Regex.IsMatch(failed,@"\A[A-Za-z0-9_-]+\z")) { try { await SendAsync(HttpMethod.Delete, Api+"/"+failed); } catch { } }
+                throw new InvalidOperationException("Drive upload checksum or byte count was not confirmed. Local data is unchanged.");
+            }
+            return uploaded;
     }
 
     private async Task<string> SendAsync(HttpMethod method, string url, HttpContent? body = null)

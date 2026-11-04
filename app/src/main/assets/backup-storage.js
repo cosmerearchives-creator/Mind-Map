@@ -1,0 +1,10 @@
+/* Backup staging is isolated from live records. Only verified image data is promoted. */
+window.ArcanumBackupStorage=(()=>{'use strict';
+function stage(db){const prefix='backup-stage:'+crypto.randomUUID()+':';let promoted=false;
+ const get=key=>new Promise((resolve,reject)=>{const q=db.transaction('documents').objectStore('documents').get(prefix+key);q.onsuccess=()=>resolve(q.result?.value);q.onerror=()=>reject(q.error)});
+ const put=(key,value)=>new Promise((resolve,reject)=>{const t=db.transaction('documents','readwrite');t.objectStore('documents').put({value},prefix+key);t.oncomplete=resolve;t.onabort=t.onerror=()=>reject(t.error||Error('Backup staging interrupted.'))});
+ async function clear(){await new Promise((resolve,reject)=>{const t=db.transaction('documents','readwrite'),s=t.objectStore('documents'),q=s.openCursor(IDBKeyRange.bound(prefix,prefix+'\uffff'));q.onsuccess=()=>{const c=q.result;if(c){if(!promoted||!String(c.key).startsWith(prefix+'image:'))c.delete();c.continue()}};t.oncomplete=resolve;t.onabort=t.onerror=()=>reject(t.error)})}
+ async function workspace(verified){promoted=true;const sizes={};for(const [id,entry]of verified.images){sizes[id]=entry.length;const keys=Array.from({length:entry.parts},(_,i)=>prefix+'image:'+id+':'+i);await new Promise((resolve,reject)=>{const t=db.transaction('documents','readwrite');t.objectStore('documents').put({parts:keys,length:entry.length},'asset-'+id);t.oncomplete=resolve;t.onabort=t.onerror=()=>reject(t.error)});SilverlightAssetStore.adopt(db,id,entry.length);SilverlightAssets.registerAsset(id,entry.length,async()=>{const chunks=[];for(let i=0;i<entry.parts;i++){const text=await get('image:'+id+':'+i);if(typeof text!=='string')throw Error('Restored image is incomplete.');chunks.push(text)}return chunks.join('')},true)}promoted=true;const boards=[];for(const entry of verified.boards){const board=await get(entry.name);boards.push(SilverlightAssets.deferBoard(JSON.stringify(board),entry.summary))}return {...SilverlightAssets.lazyDocument(verified.metadata,sizes,()=>{throw Error('Missing original')}),boards}}
+ return {get,put,clear,workspace,prefix};
+}
+return {stage};})();

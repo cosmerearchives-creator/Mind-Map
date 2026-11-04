@@ -1,0 +1,11 @@
+/* Acknowledged native disk writes; no Blob of the entire backup crosses the WebView boundary. */
+window.ArcanumBackupFiles=(()=>{'use strict';let sequence=0;const pending=new Map(),native=window.ArcanumBackup||window.chrome?.webview;
+function receive(event){let r;try{r=typeof event.data==='string'?JSON.parse(event.data):event.data}catch{return}if(r?.channel!=='arcanum-backup')return;const p=pending.get(r.id);if(!p)return;pending.delete(r.id);clearTimeout(p.timer);r.error?p.reject(Error(r.error)):p.resolve(r.result)}
+if(window.ArcanumBackup)window.ArcanumBackup.onmessage=receive;else native?.addEventListener('message',receive);
+function call(op,args={}){return new Promise((resolve,reject)=>{const id='backup-'+(++sequence),timer=setTimeout(()=>{pending.delete(id);reject(Error('Backup file operation was interrupted. No successful backup was reported.'))},300000);pending.set(id,{resolve,reject,timer});try{native.postMessage(window.ArcanumBackup?JSON.stringify({channel:'arcanum-backup',id,op,...args}):{channel:'arcanum-backup',id,op,...args})}catch(e){clearTimeout(timer);pending.delete(id);reject(e)}})}
+async function open(){
+ if(native){const {token}=await call('begin');return {async write(bytes){for(let at=0;at<bytes.length;at+=65536){let text='';for(const b of bytes.subarray(at,at+65536))text+=String.fromCharCode(b);await call('write',{token,data:btoa(text)})}},async commit(hash){const r=await call('commit',{token,hash});if(!r.verified)throw Error('Backup was not verified.')},abort:()=>call('abort',{token})}}
+ if(window.showSaveFilePicker){const handle=await showSaveFilePicker({suggestedName:'archives-backup.jsonl',types:[{description:'Archives backup',accept:{'application/x-ndjson':['.jsonl']}}]}),writer=await handle.createWritable();return {write:bytes=>writer.write(bytes),async commit(hash){await writer.close();const file=await handle.getFile(),sha=new SilverlightStream.SHA256();for(let at=0;at<file.size;at+=256*1024)sha.update(new Uint8Array(await file.slice(at,at+256*1024).arrayBuffer()));if(sha.digest()!==hash)throw Error('Saved backup verification failed.')},abort:()=>writer.abort()}}
+ throw Error('Streaming backup requires the current Windows/Android app or a browser with direct file saving.');
+}
+return {open};})();

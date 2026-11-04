@@ -40,6 +40,8 @@ class Parser{
  write(text){for(const ch of text){if(this.string){this.token+=ch;if(this.escape)this.escape=false;else if(ch==='\\')this.escape=true;else if(ch==='"'){this.string=false;this.accept(this.token);this.token=''}continue}if(ch==='"'){if(this.token)throw Error('Invalid streamed JSON.');this.token=ch;this.string=true;continue}if(/[\s{}\[\],:]/.test(ch)){if(this.token){this.accept(this.token);this.token=''}if(!/\s/.test(ch))this.accept(ch)}else this.token+=ch}}
  finish(){if(this.string)throw Error('Incomplete JSON string.');if(this.token)this.accept(this.token);if(this.stack.length||!this.hasRoot)throw Error('Incomplete JSON document.');return this.value}
 }
-const api={json,textChunks,SHA256,Parser,hashChunks,updateChunks,hashJSON:(v,sorted=false)=>hashChunks(json(v,sorted)),hashText:t=>hashChunks(textChunks(t))};
+class TextSHA256{constructor(){this.sha=new SHA256();this.tail=''}update(text){text=this.tail+text;this.tail='';if(text.length&&/[\uD800-\uDBFF]/.test(text[text.length-1])){this.tail=text.slice(-1);text=text.slice(0,-1)}this.sha.update(encoder.encode(text));return this}digest(){if(this.tail)this.sha.update(encoder.encode(this.tail));this.tail='';return this.sha.digest()}}
+async function hashAsyncChunks(chunks,initial){const sha=initial?.clone()||new SHA256();let pending='',processed=0;for await(const text of chunks){pending+=text;if(pending.length>=65536){sha.update(encoder.encode(pending));processed+=pending.length;pending='';if(processed>=1024*1024){await new Promise(r=>setTimeout(r,0));processed=0}}}if(pending)sha.update(encoder.encode(pending));return sha.digest()}
+const api={TextSHA256,hashAsyncChunks,json,textChunks,SHA256,Parser,hashChunks,updateChunks,hashJSON:(v,sorted=false)=>hashChunks(json(v,sorted)),hashText:t=>hashChunks(textChunks(t))};
 if(typeof module!=='undefined')module.exports=api;else root.SilverlightStream=api;
 })(globalThis);

@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
     private long downloadId = -1;
     private Uri readyApk;
     private DriveSync driveSync;
+    private BackupFiles backupFiles;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -75,7 +76,12 @@ public class MainActivity extends Activity {
             }
         });
         driveSync = new DriveSync(this);
+        backupFiles = new BackupFiles(this);
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            WebViewCompat.addWebMessageListener(webView, "ArcanumBackup", java.util.Collections.singleton("https://appassets.androidplatform.net"),
+                (view, message, origin, mainFrame, proxy) -> {
+                    if (mainFrame && "https".equals(origin.getScheme()) && "appassets.androidplatform.net".equals(origin.getHost()) && (origin.getPort() == -1 || origin.getPort() == 443)) backupFiles.receive(message.getData(), proxy);
+                });
             WebViewCompat.addWebMessageListener(webView, "SilverlightClipboard", java.util.Collections.singleton("https://appassets.androidplatform.net"),
                 (view, message, origin, mainFrame, proxy) -> {
                     if (mainFrame && "https".equals(origin.getScheme()) && "appassets.androidplatform.net".equals(origin.getHost()) && (origin.getPort() == -1 || origin.getPort() == 443)) ClipboardBridge.read(this, message.getData(), proxy);
@@ -190,7 +196,8 @@ public class MainActivity extends Activity {
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == DriveSync.AUTHORIZE) {
+        if (requestCode == BackupFiles.CREATE) { backupFiles.result(resultCode, data); }
+        else if (requestCode == DriveSync.AUTHORIZE) {
             driveSync.authorizationResult(resultCode, data);
         } else if (requestCode == PICK_FILE && fileCallback != null) {
             fileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
@@ -208,11 +215,13 @@ public class MainActivity extends Activity {
             }
         });
     }
+    @Override protected void onPause() { if(backupFiles!=null)backupFiles.pause(); super.onPause(); }
     @Override protected void onResume() {
         super.onResume();
         if (webView != null) webView.evaluateJavascript("window.dispatchEvent(new Event('silverlight-resume'))", null);
     }
     @Override protected void onDestroy() {
+        if (backupFiles != null) backupFiles.close();
         if (driveSync != null) driveSync.close();
         super.onDestroy();
     }

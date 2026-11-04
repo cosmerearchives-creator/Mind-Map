@@ -25,11 +25,15 @@ jobs:
           node-version: '22'
       - name: Validate snapshots and automatic merge
         run: node tests/validate.cjs
+      - name: Verify physical backup beyond the old string ceiling
+        run: node tests/backup-stream.cjs --stress
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
       - name: Verify updater file handling
         run: dotnet run --project tests/updater/Updater.Tests.csproj -c Release
+      - name: Verify atomic streaming backup files
+        run: dotnet run --project tests/backup-native/Backup.Tests.csproj -c Release
       - name: Verify Windows desktop OAuth and encrypted sessions
         run: dotnet run --project tests/auth/Auth.Tests.csproj -c Release
       - name: Verify large-workspace persistence and two-device transfers
@@ -69,7 +73,7 @@ jobs:
       - name: Publish Windows application
         shell: pwsh
         run: |
-          dotnet publish windows/Silverlight.Windows.csproj -c Release -r win-x64 --self-contained true -p:Version=0.13.6 -p:AssemblyVersion=0.13.6.0 -o windows/publish
+          dotnet publish windows/Silverlight.Windows.csproj -c Release -r win-x64 --self-contained true -p:Version=0.14.0 -p:AssemblyVersion=0.14.0.0 -o windows/publish
       - name: Verify Codex assets are packaged
         shell: pwsh
         run: |
@@ -82,7 +86,7 @@ jobs:
       - name: Build setup installer
         shell: pwsh
         run: |
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.13.6" "windows/installer.iss"
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.14.0" "windows/installer.iss"
       - uses: actions/upload-artifact@v4
         with:
           name: Silverlight-Windows-Installer

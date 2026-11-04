@@ -1,0 +1,56 @@
+using System.Security.Cryptography;
+using System.Text.Json;
+namespace Silverlight.Windows;
+
+// Only the trusted main frame can reach this bridge. One bounded write per acknowledgement.
+internal sealed class BackupFiles : IDisposable
+{
+    private FileStream? stream;
+    private string? temporary, target, token;
+    public async Task<object> ExecuteAsync(JsonElement request, IWin32Window owner)
+    {
+        string op = request.GetProperty("op").GetString() ?? "";
+        if (op == "begin")
+        {
+            if (stream != null) throw new InvalidOperationException("A backup is already running.");
+            using var dialog = new SaveFileDialog { Filter = "Archives backup (*.jsonl)|*.jsonl", FileName = "archives-backup.jsonl", OverwritePrompt = true };
+            if (dialog.ShowDialog(owner) != DialogResult.OK) throw new OperationCanceledException("Backup cancelled.");
+            return Begin(dialog.FileName);
+        }
+        if (token == null || request.GetProperty("token").GetString() != token) throw new InvalidOperationException("Backup session expired.");
+        try
+        {
+            if (op == "write")
+            {
+                string data = request.GetProperty("data").GetString() ?? "";
+                if (data.Length > 400000) throw new InvalidOperationException("Backup block is too large.");
+                var bytes = Convert.FromBase64String(data); await stream!.WriteAsync(bytes); return new { written = bytes.Length };
+            }
+            if (op == "commit")
+            {
+                await stream!.FlushAsync(); stream.Flush(true); stream.Position = 0;
+                string digest = Convert.ToHexString(await SHA256.HashDataAsync(stream)).ToLowerInvariant();
+                if (digest != request.GetProperty("hash").GetString()) throw new InvalidOperationException("Backup file failed verification.");
+                await stream.DisposeAsync(); stream = null;
+                File.Move(temporary!, target!, true); temporary = target = token = null;
+                return new { verified = true };
+            }
+            if (op == "abort") { Dispose(); return new { cancelled = true }; }
+            throw new InvalidOperationException("Unsupported backup operation.");
+        }
+        catch { Dispose(); throw; }
+    }
+    internal object Begin(string path)
+    {
+        if (stream != null) throw new InvalidOperationException("A backup is already running.");
+        target = path; temporary = target + "." + Guid.NewGuid().ToString("N") + ".partial";
+        stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, 65536, true);
+        token = Guid.NewGuid().ToString("N"); return new { token };
+    }
+    public void Dispose()
+    {
+        stream?.Dispose(); stream = null;
+        if (temporary != null) { try { File.Delete(temporary); } catch { } }
+        temporary = target = token = null;
+    }
+}

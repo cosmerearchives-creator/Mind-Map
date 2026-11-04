@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),crypto=require('node:crypto'),fs=require('node:fs'),vm=require('node:vm');
 const S=require('../app/src/main/assets/stream-json.js'),A=require('../app/src/main/assets/assets-core.js'),C=require('../app/src/main/assets/sync-core.js'),Auto=require('../app/src/main/assets/auto-sync-core.js');
 const digest=t=>crypto.createHash('sha256').update(t).digest('hex');
-async function main(){
+async function main(){const textHash=new S.TextSHA256();textHash.update('data:image/svg+xml,\ud83d');textHash.update('\ude00');assert.equal(textHash.digest(),digest('data:image/svg+xml,😀'));
  for(const text of ['', 'abc','a'.repeat(55),'a'.repeat(56),'a'.repeat(64),'a'.repeat(1000000),'x'.repeat(16383)+'😀\ud800終'])assert.equal(await S.hashText(text),digest(text));
  for(const cryptoAPI of [undefined,{subtle:{digest:async()=>{throw Error('native unavailable')}}}]){const sandbox={TextEncoder,setTimeout,crypto:cryptoAPI};vm.runInNewContext(fs.readFileSync('app/src/main/assets/stream-json.js','utf8'),sandbox);assert.equal(await sandbox.SilverlightStream.hashText('Native fallback 😀'),digest('Native fallback 😀'))}
  const bounded='Z'.repeat(33*1024*1024);assert.equal(await S.hashText(bounded),digest(bounded),'larger hashes fall back without unbounded native buffers');

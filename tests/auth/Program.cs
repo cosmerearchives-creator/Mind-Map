@@ -109,6 +109,7 @@ try {
   var bad = JsonSerializer.SerializeToElement(new { op="batch", silent=true, expectedAccount="test-account", requests=new[]{new { op="upload", snapshot="{\"format\":\"silverlight-snapshot-v1\"}" }} });
   var refused = JsonSerializer.SerializeToElement(await partsDrive.ExecuteAsync(bad, null!));
   Check(refused.GetProperty("results")[0].GetProperty("error").ValueKind==JsonValueKind.String && partTransport.PartUploads==3, "Batch must refuse non-part uploads");
+  partTransport.BadPartChecksum=true;var corrupt=JsonSerializer.SerializeToElement(await partsDrive.ExecuteAsync(batch,null!));Check(corrupt.GetProperty("results").EnumerateArray().All(x=>x.GetProperty("error").ValueKind==JsonValueKind.String)&&partTransport.Deletions==3,"Unverified newly uploaded parts must not be acknowledged");
  }
  await File.WriteAllBytesAsync(session, encrypted);
  var changeTransport=new FakeGoogle { Changes=true };
@@ -129,7 +130,7 @@ try {
 sealed class FakeGoogle : HttpMessageHandler {
  public string Challenge = "";
  public string? RetentionMode; public int Deletions;
- public bool Revoked, BadScope, PartTransfers, Changes; public int ChangeReads;
+ public bool Revoked, BadScope, PartTransfers, Changes, BadPartChecksum; public int ChangeReads;
  public int PartUploads, MaxActive; private int active;
  protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellation) {
   if (request.RequestUri!.Host == "oauth2.googleapis.com") {
@@ -152,8 +153,9 @@ sealed class FakeGoogle : HttpMessageHandler {
   if (PartTransfers && request.Method==HttpMethod.Post && request.RequestUri.AbsolutePath=="/upload/drive/v3/files") {
    int current=Interlocked.Increment(ref active); MaxActive=Math.Max(MaxActive,current); int id=Interlocked.Increment(ref PartUploads);
    await Task.Delay(30,cancellation); Interlocked.Decrement(ref active);
-   return new(HttpStatusCode.OK) { Content=new StringContent("{\"id\":\"part"+id+"\"}") };
+   var data=await ((MultipartContent)request.Content!).Last().ReadAsByteArrayAsync(cancellation);return new(HttpStatusCode.OK) { Content=new StringContent(JsonSerializer.Serialize(new {id="part"+id,md5Checksum=BadPartChecksum?new string('0',32):Convert.ToHexString(System.Security.Cryptography.MD5.HashData(data)).ToLowerInvariant(),size=data.Length.ToString()})) };
   }
+  if (PartTransfers && request.Method==HttpMethod.Delete) { Interlocked.Increment(ref Deletions);return new(HttpStatusCode.NoContent){Content=new StringContent("")}; }
   if (RetentionMode is not null && request.RequestUri.AbsolutePath.Contains("/files")) {
    string content;
    if (request.Method == HttpMethod.Delete) { Deletions++; return new(HttpStatusCode.NoContent) { Content = new StringContent("") }; }
