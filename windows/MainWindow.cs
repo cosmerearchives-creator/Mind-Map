@@ -82,7 +82,7 @@ public sealed class MainWindow : Form
                         var request = message.RootElement;
                         if (request.GetProperty("channel").GetString() == "arcanum-backup") {
                             string? backupId = request.GetProperty("id").GetString();
-                            try { var result = await backupFiles.ExecuteAsync(request, this); browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel="arcanum-backup", id=backupId, result })); }
+                            try { var backupResult = await backupFiles.ExecuteAsync(request, this); browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel="arcanum-backup", id=backupId, result=backupResult })); }
                             catch (Exception e) { browser.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { channel="arcanum-backup", id=backupId, error=e.Message })); }
                             return;
                         }
