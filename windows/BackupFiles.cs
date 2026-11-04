@@ -7,7 +7,7 @@ internal sealed class BackupFiles : IDisposable
 {
     private FileStream? stream;
     private string? temporary, target, token;
-    public async Task<object> ExecuteAsync(JsonElement request, IWin32Window owner)
+    public async Task<object> ExecuteAsync(JsonElement request, IWin32Window owner, Action<object>? progress = null)
     {
         string op = request.GetProperty("op").GetString() ?? "";
         if (op == "begin")
@@ -29,7 +29,9 @@ internal sealed class BackupFiles : IDisposable
             if (op == "commit")
             {
                 await stream!.FlushAsync(); stream.Flush(true); stream.Position = 0;
-                string digest = Convert.ToHexString(await SHA256.HashDataAsync(stream)).ToLowerInvariant();
+                using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);var block = new byte[65536];long total=0,lastYield=0;var tick=System.Diagnostics.Stopwatch.StartNew();progress?.Invoke(new {stage="verifying-file",bytes=0L});int read;
+                while((read=await stream.ReadAsync(block))!=0){sha.AppendData(block,0,read);total+=read;if(total-lastYield>=4*1024*1024){lastYield=total;if(tick.ElapsedMilliseconds>=500){progress?.Invoke(new {stage="verifying-file",bytes=total});tick.Restart();}await Task.Yield();}}
+                progress?.Invoke(new {stage="verifying-file",bytes=total});string digest = Convert.ToHexString(sha.GetHashAndReset()).ToLowerInvariant();
                 if (digest != request.GetProperty("hash").GetString()) throw new InvalidOperationException("Backup file failed verification.");
                 await stream.DisposeAsync(); stream = null;
                 File.Move(temporary!, target!, true); temporary = target = token = null;
@@ -38,7 +40,7 @@ internal sealed class BackupFiles : IDisposable
             if (op == "abort") { Dispose(); return new { cancelled = true }; }
             throw new InvalidOperationException("Unsupported backup operation.");
         }
-        catch { Dispose(); throw; }
+        catch (Exception error) { bool cancelled=token==null;Dispose();if(cancelled)throw new OperationCanceledException("Backup cancelled.",error);throw; }
     }
     internal object Begin(string path)
     {

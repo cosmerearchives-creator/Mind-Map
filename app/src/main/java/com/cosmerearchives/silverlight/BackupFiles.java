@@ -23,13 +23,14 @@ final class BackupFiles {
     private Uri destination;
     private String token, beginId;
     private JavaScriptReplyProxy beginReply;
-    private volatile boolean closed;
+    private volatile boolean closed,interrupted;
+    private long progressAt;
     BackupFiles(Activity activity) { this.activity = activity; }
     void receive(String message, JavaScriptReplyProxy proxy) {
         try {
             JSONObject r = new JSONObject(message);
             if (!"arcanum-backup".equals(r.optString("channel"))) return;
-            String id = r.optString("id"), op = r.optString("op");
+            String id = r.optString("id"), op = r.optString("op");if("abort".equals(op))interrupted=true;
             if ("begin".equals(op)) {
                 if (token != null || beginReply != null || closed) throw new IOException("Another backup is running.");
                 beginReply = proxy; beginId = id;
@@ -47,9 +48,9 @@ final class BackupFiles {
                     } else if ("commit".equals(op)) {
                         output.close(); output = null;
                         String expected = r.getString("hash");
-                        if (!expected.equals(BackupIO.digest(new FileInputStream(temporary)))) throw new IOException("Backup staging verification failed.");
-                        try (InputStream in = new FileInputStream(temporary); OutputStream out = activity.getContentResolver().openOutputStream(destination,"wt")) { if (out == null) throw new IOException("Backup destination unavailable."); byte[] buffer = new byte[65536]; int n; while ((n=in.read(buffer))!=-1) { if (closed) throw new IOException("Backup interrupted."); out.write(buffer,0,n); } }
-                        if (!expected.equals(BackupIO.digest(activity.getContentResolver().openInputStream(destination)))) throw new IOException("Saved backup verification failed.");
+                        if (!expected.equals(BackupIO.digest(new FileInputStream(temporary),n->pulse(proxy,id,"verifying-file",n),()->closed||interrupted))) throw new IOException("Backup staging verification failed.");
+                        try (InputStream in = new FileInputStream(temporary); OutputStream out = activity.getContentResolver().openOutputStream(destination,"wt")) { if (out == null) throw new IOException("Backup destination unavailable."); byte[] buffer = new byte[65536]; int n;long copied=0;pulse(proxy,id,"copying-file",0);while ((n=in.read(buffer))!=-1) { if (closed||interrupted) throw new IOException("Backup interrupted."); out.write(buffer,0,n);copied+=n;pulse(proxy,id,"copying-file",copied); } }
+                        if (!expected.equals(BackupIO.digest(activity.getContentResolver().openInputStream(destination),n->pulse(proxy,id,"checking-file",n),()->closed||interrupted))) throw new IOException("Saved backup verification failed.");
                         result.put("verified",true); destination = null; cleanup();
                     } else if ("abort".equals(op)) { cleanup(); result.put("cancelled",true); }
                     else throw new IOException("Unsupported backup operation.");
@@ -67,11 +68,12 @@ final class BackupFiles {
             try(android.database.Cursor info=activity.getContentResolver().query(candidate,new String[]{android.provider.OpenableColumns.SIZE},null,null,null)) {
                 if(info==null||!info.moveToFirst()||info.isNull(0)||info.getLong(0)!=0)throw new IOException("Choose a new, empty backup file so an existing backup is never overwritten.");
             }
-            destination=candidate; temporary=File.createTempFile("archives-backup-",".partial",activity.getCacheDir()); output=new FileOutputStream(temporary); token=UUID.randomUUID().toString();activity.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); respond(proxy,id,new JSONObject().put("token",token),null);
+            destination=candidate; temporary=File.createTempFile("archives-backup-",".partial",activity.getCacheDir()); output=new FileOutputStream(temporary); interrupted=false;token=UUID.randomUUID().toString();activity.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); respond(proxy,id,new JSONObject().put("token",token),null);
         } catch (Exception e) { cleanup(); respond(proxy,id,null,e.getMessage()); }
     }
+    private void pulse(JavaScriptReplyProxy proxy,String id,String stage,long bytes){long now=android.os.SystemClock.elapsedRealtime();if(bytes!=0&&now-progressAt<500)return;progressAt=now;activity.runOnUiThread(()->{if(closed)return;try{proxy.postMessage(new JSONObject().put("channel","arcanum-backup").put("id",id).put("progress",new JSONObject().put("stage",stage).put("bytes",bytes)).toString());}catch(Exception ignored){}});}
     private void respond(JavaScriptReplyProxy proxy,String id,JSONObject result,String error) { activity.runOnUiThread(()->{if(closed)return;try{JSONObject r=new JSONObject().put("channel","arcanum-backup").put("id",id);if(error!=null)r.put("error",error);else r.put("result",result);proxy.postMessage(r.toString());}catch(Exception ignored){}}); }
     private void cleanup(){try{if(output!=null)output.close();}catch(Exception ignored){}output=null;if(temporary!=null)temporary.delete();temporary=null;if(destination!=null){try{DocumentsContract.deleteDocument(activity.getContentResolver(),destination);}catch(Exception ignored){}}destination=null;token=null;activity.runOnUiThread(()->activity.getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON));}
-    void pause(){if(token!=null)executor.execute(this::cleanup);}
+    void pause(){if(token!=null){interrupted=true;executor.execute(this::cleanup);}}
     void close(){closed=true;executor.execute(this::cleanup);executor.shutdown();}
 }
