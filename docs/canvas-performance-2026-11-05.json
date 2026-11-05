@@ -1,0 +1,4116 @@
+{
+  "date": "2026-11-05",
+  "baselineCommit": "b176c607a466a0362b7187f1c130ac5da37a574e",
+  "hardware": "AMD Ryzen 9 5900X, 32 GiB RAM, Windows x64",
+  "notes": [
+    "Synthetic Boards only; no installed app data or clipboard.",
+    "Visible native WinForms WebView2 host uses the shared app assets, its own private profile, and disables the absent native bridge for canvas profiling.",
+    "Frame intervals are rAF samples, not end-to-end input latency or proof of GPU presentation.",
+    "25-card baseline overview initially mounts only 12 cards because of the small-Board culling bug; compare with that caveat.",
+    "Editor stress: first 40 cycles versus another 40 after history cap; legitimate bounded undo retention is included."
+  ],
+  "runs": {
+    "edgeBefore": [
+      {
+        "count": 25,
+        "connections": 3,
+        "overviewScale": 0.2,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 82,
+              "totalMs": 1366.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 80,
+            "styleSeconds": 0.01384
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 12,
+            "frames": {
+              "n": 42,
+              "totalMs": 699.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00409
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 25,
+            "frames": {
+              "n": 10,
+              "totalMs": 166.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 12,
+            "boardWrites": 0,
+            "layoutCount": 37,
+            "styleSeconds": 0.00965,
+            "drawCards": {
+              "n": 12,
+              "totalMs": 35.1,
+              "p50Ms": 2.5,
+              "p95Ms": 7.5,
+              "maxMs": 7.5
+            },
+            "patch": {
+              "n": 12,
+              "totalMs": 20,
+              "p50Ms": 1.7,
+              "p95Ms": 1.8,
+              "maxMs": 1.8
+            },
+            "selection": {
+              "n": 12,
+              "totalMs": 1.2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.3,
+              "maxMs": 0.3
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 25,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 60,
+            "styleSeconds": 0.01641
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 4,
+              "totalMs": 66.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 21,
+            "styleSeconds": 0.00484,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 25.1,
+              "p50Ms": 1.2,
+              "p95Ms": 1.9,
+              "maxMs": 1.9
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 17.4,
+              "p50Ms": 0.8,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 0.7,
+              "p50Ms": 0,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 26,
+              "totalMs": 483.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.9,
+              "maxMs": 66.6
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 101,
+            "styleSeconds": 0.04786,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 51.8,
+              "p50Ms": 1.2,
+              "p95Ms": 8.2,
+              "maxMs": 8.2
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 17.1,
+              "p50Ms": 0.9,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.1,
+              "p50Ms": 0,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 24,
+              "totalMs": 400,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 1,
+            "layoutCount": 75,
+            "styleSeconds": 0.00964,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 10.9,
+              "p50Ms": 1.2,
+              "p95Ms": 6.2,
+              "maxMs": 6.2
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.1,
+              "p50Ms": 0.8,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.1,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          }
+        ],
+        "errors": [
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError"
+        ]
+      },
+      {
+        "count": 115,
+        "connections": 7,
+        "overviewScale": 0.08888888888888889,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 115,
+            "frames": {
+              "n": 82,
+              "totalMs": 1433.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.3
+            },
+            "draws": 2,
+            "boardWrites": 0,
+            "layoutCount": 80,
+            "styleSeconds": 0.09762,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 23,
+              "p50Ms": 12.4,
+              "p95Ms": 12.4,
+              "maxMs": 12.4
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 14.6,
+              "p50Ms": 7.8,
+              "p95Ms": 7.8,
+              "maxMs": 7.8
+            },
+            "selection": {
+              "n": 2,
+              "totalMs": 0.8,
+              "p50Ms": 0.5,
+              "p95Ms": 0.5,
+              "maxMs": 0.5
+            }
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 115,
+            "frames": {
+              "n": 54,
+              "totalMs": 900.1,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.9
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.02556,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 197.7,
+              "p50Ms": 9.8,
+              "p95Ms": 10.8,
+              "maxMs": 10.8
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 136.1,
+              "p50Ms": 6.8,
+              "p95Ms": 7.2,
+              "maxMs": 7.2
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 7.1,
+              "p50Ms": 0.4,
+              "p95Ms": 0.4,
+              "maxMs": 0.4
+            }
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 115,
+            "frames": {
+              "n": 22,
+              "totalMs": 366.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 12,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.02481,
+            "drawCards": {
+              "n": 12,
+              "totalMs": 123.8,
+              "p50Ms": 10.3,
+              "p95Ms": 11.7,
+              "maxMs": 11.7
+            },
+            "patch": {
+              "n": 12,
+              "totalMs": 88.4,
+              "p50Ms": 7.3,
+              "p95Ms": 8.1,
+              "maxMs": 8.1
+            },
+            "selection": {
+              "n": 12,
+              "totalMs": 3.8,
+              "p50Ms": 0.3,
+              "p95Ms": 0.5,
+              "maxMs": 0.5
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 60,
+            "styleSeconds": 0.00939
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 4,
+              "totalMs": 66.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00479,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 22.4,
+              "p50Ms": 1.1,
+              "p95Ms": 1.3,
+              "maxMs": 1.3
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 15.1,
+              "p50Ms": 0.8,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 0.7,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 27,
+              "totalMs": 450.1,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 106,
+            "styleSeconds": 0.04875,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 53.8,
+              "p50Ms": 1.3,
+              "p95Ms": 8.1,
+              "maxMs": 8.1
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 15.9,
+              "p50Ms": 0.8,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 24,
+              "totalMs": 399.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 1,
+            "layoutCount": 76,
+            "styleSeconds": 0.00934,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 11.2,
+              "p50Ms": 1.3,
+              "p95Ms": 6.3,
+              "maxMs": 6.3
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4,
+              "p50Ms": 0.8,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.4,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          }
+        ],
+        "errors": [
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError"
+        ]
+      },
+      {
+        "count": 500,
+        "connections": 35,
+        "overviewScale": 0.05,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 500,
+            "frames": {
+              "n": 84,
+              "totalMs": 8400.3,
+              "p50Ms": 100,
+              "p95Ms": 200,
+              "maxMs": 216.6
+            },
+            "draws": 2,
+            "boardWrites": 0,
+            "layoutCount": 80,
+            "styleSeconds": 0.46874,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 124.1,
+              "p50Ms": 64.2,
+              "p95Ms": 64.2,
+              "maxMs": 64.2
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 69.9,
+              "p50Ms": 36.9,
+              "p95Ms": 36.9,
+              "maxMs": 36.9
+            },
+            "selection": {
+              "n": 2,
+              "totalMs": 10.4,
+              "p50Ms": 5.3,
+              "p95Ms": 5.3,
+              "maxMs": 5.3
+            }
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 500,
+            "frames": {
+              "n": 77,
+              "totalMs": 2916.6,
+              "p50Ms": 16.7,
+              "p95Ms": 116.7,
+              "maxMs": 133.3
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.11707,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 1136.7,
+              "p50Ms": 55.7,
+              "p95Ms": 69.6,
+              "maxMs": 69.6
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 748.3,
+              "p50Ms": 36.3,
+              "p95Ms": 51.1,
+              "maxMs": 51.1
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 67.8,
+              "p50Ms": 3.5,
+              "p95Ms": 5,
+              "maxMs": 5
+            }
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 500,
+            "frames": {
+              "n": 47,
+              "totalMs": 1566.8,
+              "p50Ms": 33.3,
+              "p95Ms": 66.7,
+              "maxMs": 66.7
+            },
+            "draws": 12,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.10329,
+            "drawCards": {
+              "n": 12,
+              "totalMs": 579.9,
+              "p50Ms": 48.5,
+              "p95Ms": 56.5,
+              "maxMs": 56.5
+            },
+            "patch": {
+              "n": 12,
+              "totalMs": 399.4,
+              "p50Ms": 32.8,
+              "p95Ms": 38.6,
+              "maxMs": 38.6
+            },
+            "selection": {
+              "n": 12,
+              "totalMs": 23.9,
+              "p50Ms": 2,
+              "p95Ms": 2.3,
+              "maxMs": 2.3
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 60,
+            "styleSeconds": 0.01435
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 5,
+              "totalMs": 83.4,
+              "p50Ms": 16.6,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00517,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 28,
+              "p50Ms": 1.3,
+              "p95Ms": 2,
+              "maxMs": 2
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 17.5,
+              "p50Ms": 0.8,
+              "p95Ms": 1.3,
+              "maxMs": 1.3
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.7,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 32,
+              "totalMs": 533.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 106,
+            "styleSeconds": 0.05859,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 73.5,
+              "p50Ms": 1.7,
+              "p95Ms": 12.6,
+              "maxMs": 12.6
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 16.4,
+              "p50Ms": 0.8,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 3.2,
+              "p50Ms": 0.2,
+              "p95Ms": 0.3,
+              "maxMs": 0.3
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 26,
+              "totalMs": 450,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.3
+            },
+            "draws": 5,
+            "boardWrites": 1,
+            "layoutCount": 76,
+            "styleSeconds": 0.01354,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 21.7,
+              "p50Ms": 2,
+              "p95Ms": 14,
+              "maxMs": 14
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 5,
+              "p50Ms": 1,
+              "p95Ms": 1.4,
+              "maxMs": 1.4
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.9,
+              "p50Ms": 0.1,
+              "p95Ms": 0.4,
+              "maxMs": 0.4
+            }
+          }
+        ],
+        "errors": [
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError"
+        ]
+      }
+    ],
+    "edgeAfter": [
+      {
+        "count": 25,
+        "connections": 3,
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+          "hardwareConcurrency": 24,
+          "devicePixelRatio": 1,
+          "viewport": [
+            1400,
+            1000
+          ],
+          "visibility": "visible"
+        },
+        "overviewScale": 0.2,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 25,
+            "frames": {
+              "n": 83,
+              "totalMs": 1383.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.0023
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 25,
+            "frames": {
+              "n": 42,
+              "totalMs": 699.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 6,
+            "styleSeconds": 0.00271
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 25,
+            "frames": {
+              "n": 7,
+              "totalMs": 116.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.00837,
+            "selection": {
+              "n": 12,
+              "totalMs": 0.5,
+              "p50Ms": 0,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00252
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 3,
+              "totalMs": 50,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00408,
+            "selection": {
+              "n": 20,
+              "totalMs": 0.7,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "sticky-drag",
+            "mounted": 12,
+            "frames": {
+              "n": 36,
+              "totalMs": 599.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 1,
+            "boardWrites": 1,
+            "layoutCount": 22,
+            "styleSeconds": 0.01089,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 2.8,
+              "p50Ms": 0,
+              "p95Ms": 2.6,
+              "maxMs": 2.6
+            },
+            "patch": {
+              "n": 1,
+              "totalMs": 1,
+              "p50Ms": 1,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 21,
+              "totalMs": 1.6,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 32,
+              "totalMs": 599.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 83.2
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 75,
+            "styleSeconds": 0.0471,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 11.9,
+              "p50Ms": 1.6,
+              "p95Ms": 5.5,
+              "maxMs": 5.5
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.3,
+              "p50Ms": 0.9,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 25,
+              "totalMs": 1.5,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 27,
+              "totalMs": 449.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 2,
+            "layoutCount": 71,
+            "styleSeconds": 0.01347,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 4.7,
+              "p50Ms": 3.1,
+              "p95Ms": 3.1,
+              "maxMs": 3.1
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 2.2,
+              "p50Ms": 1.1,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.2,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 41,
+              "totalMs": 683.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 70,
+            "styleSeconds": 0.04277,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 8.3,
+              "p50Ms": 1.6,
+              "p95Ms": 2.1,
+              "maxMs": 2.1
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.9,
+              "p50Ms": 1,
+              "p95Ms": 1.3,
+              "maxMs": 1.3
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1289,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 2523,
+            "jsEventListeners": 171
+          },
+          "heapBefore": 3303240,
+          "heapAfter": 5552916,
+          "canvasPreserved": true
+        },
+        "repeatMemory": null,
+        "errors": []
+      },
+      {
+        "count": 115,
+        "connections": 7,
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+          "hardwareConcurrency": 24,
+          "devicePixelRatio": 1,
+          "viewport": [
+            1400,
+            1000
+          ],
+          "visibility": "visible"
+        },
+        "overviewScale": 0.08888888888888889,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 115,
+            "frames": {
+              "n": 83,
+              "totalMs": 1383.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00222
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 115,
+            "frames": {
+              "n": 42,
+              "totalMs": 700,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 2,
+            "styleSeconds": 0.00248
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 115,
+            "frames": {
+              "n": 14,
+              "totalMs": 233.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.02519,
+            "selection": {
+              "n": 12,
+              "totalMs": 4.6,
+              "p50Ms": 0.4,
+              "p95Ms": 0.5,
+              "maxMs": 0.5
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00233
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 3,
+              "totalMs": 49.9,
+              "p50Ms": 16.6,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.0046,
+            "selection": {
+              "n": 20,
+              "totalMs": 1.3,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "sticky-drag",
+            "mounted": 12,
+            "frames": {
+              "n": 37,
+              "totalMs": 616.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 1,
+            "boardWrites": 1,
+            "layoutCount": 22,
+            "styleSeconds": 0.01131,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 4.1,
+              "p50Ms": 0,
+              "p95Ms": 3.5,
+              "maxMs": 3.5
+            },
+            "patch": {
+              "n": 1,
+              "totalMs": 1.2,
+              "p50Ms": 1.2,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "selection": {
+              "n": 21,
+              "totalMs": 2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 35,
+              "totalMs": 583.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 75,
+            "styleSeconds": 0.04932,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 14.7,
+              "p50Ms": 2.4,
+              "p95Ms": 5.5,
+              "maxMs": 5.5
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.9,
+              "p50Ms": 1,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 25,
+              "totalMs": 2.1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 27,
+              "totalMs": 450,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 1,
+            "layoutCount": 71,
+            "styleSeconds": 0.01335,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 4.8,
+              "p50Ms": 3,
+              "p95Ms": 3,
+              "maxMs": 3
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 1.8,
+              "p50Ms": 0.9,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.3,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 41,
+              "totalMs": 683.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 70,
+            "styleSeconds": 0.04132,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 10.3,
+              "p50Ms": 1.9,
+              "p95Ms": 2.6,
+              "maxMs": 2.6
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.4,
+              "p50Ms": 0.8,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.5,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1289,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 2523,
+            "jsEventListeners": 171
+          },
+          "heapBefore": 4402168,
+          "heapAfter": 10872524,
+          "canvasPreserved": true
+        },
+        "repeatMemory": null,
+        "errors": []
+      },
+      {
+        "count": 500,
+        "connections": 35,
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+          "hardwareConcurrency": 24,
+          "devicePixelRatio": 1,
+          "viewport": [
+            1400,
+            1000
+          ],
+          "visibility": "visible"
+        },
+        "overviewScale": 0.05,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 500,
+            "frames": {
+              "n": 103,
+              "totalMs": 2016.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 316.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00284
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 500,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 2,
+            "styleSeconds": 0.01036
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 500,
+            "frames": {
+              "n": 46,
+              "totalMs": 1050.1,
+              "p50Ms": 16.7,
+              "p95Ms": 33.4,
+              "maxMs": 50.1
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.10191,
+            "selection": {
+              "n": 12,
+              "totalMs": 35.5,
+              "p50Ms": 2.3,
+              "p95Ms": 5.8,
+              "maxMs": 5.8
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00237
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 3,
+              "totalMs": 50,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00437,
+            "selection": {
+              "n": 20,
+              "totalMs": 1.6,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "sticky-drag",
+            "mounted": 12,
+            "frames": {
+              "n": 38,
+              "totalMs": 633.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 1,
+            "boardWrites": 1,
+            "layoutCount": 22,
+            "styleSeconds": 0.01111,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 6.5,
+              "p50Ms": 0,
+              "p95Ms": 6.1,
+              "maxMs": 6.1
+            },
+            "patch": {
+              "n": 1,
+              "totalMs": 1.5,
+              "p50Ms": 1.5,
+              "p95Ms": 1.5,
+              "maxMs": 1.5
+            },
+            "selection": {
+              "n": 21,
+              "totalMs": 2.2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 38,
+              "totalMs": 633.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 75,
+            "styleSeconds": 0.04712,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 24.2,
+              "p50Ms": 3.8,
+              "p95Ms": 8.4,
+              "maxMs": 8.4
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 5,
+              "p50Ms": 0.9,
+              "p95Ms": 1.5,
+              "maxMs": 1.5
+            },
+            "selection": {
+              "n": 25,
+              "totalMs": 4,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.6
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 28,
+              "totalMs": 466.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 1,
+            "layoutCount": 71,
+            "styleSeconds": 0.01485,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 6,
+              "p50Ms": 4.3,
+              "p95Ms": 4.3,
+              "maxMs": 4.3
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 1.6,
+              "p50Ms": 0.9,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.5,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 51,
+              "totalMs": 850.1,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 70,
+            "styleSeconds": 0.04329,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 21.1,
+              "p50Ms": 3.9,
+              "p95Ms": 5.1,
+              "maxMs": 5.1
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 6.5,
+              "p50Ms": 1.3,
+              "p95Ms": 1.5,
+              "maxMs": 1.5
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 3.2,
+              "p50Ms": 0.2,
+              "p95Ms": 0.3,
+              "maxMs": 0.3
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1310,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 2565,
+            "jsEventListeners": 171
+          },
+          "heapBefore": 9053388,
+          "heapAfter": 33840372,
+          "canvasPreserved": true
+        },
+        "repeatMemory": null,
+        "errors": []
+      }
+    ],
+    "visibleWebView2Before": [
+      {
+        "count": 25,
+        "connections": 3,
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+          "hardwareConcurrency": 24,
+          "devicePixelRatio": 1,
+          "viewport": [
+            1400,
+            1000
+          ],
+          "visibility": "visible"
+        },
+        "overviewScale": 0.2,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 103,
+              "totalMs": 1716.8,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 80,
+            "styleSeconds": 0.01582
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 12,
+            "frames": {
+              "n": 57,
+              "totalMs": 950.1,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00414
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 25,
+            "frames": {
+              "n": 22,
+              "totalMs": 366.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 12,
+            "boardWrites": 0,
+            "layoutCount": 37,
+            "styleSeconds": 0.01092,
+            "drawCards": {
+              "n": 12,
+              "totalMs": 36.6,
+              "p50Ms": 2.6,
+              "p95Ms": 8.5,
+              "maxMs": 8.5
+            },
+            "patch": {
+              "n": 12,
+              "totalMs": 20,
+              "p50Ms": 1.6,
+              "p95Ms": 2,
+              "maxMs": 2
+            },
+            "selection": {
+              "n": 12,
+              "totalMs": 1.1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.4,
+              "maxMs": 0.4
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 25,
+            "frames": {
+              "n": 90,
+              "totalMs": 1500,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 60,
+            "styleSeconds": 0.01902
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 7,
+              "totalMs": 116.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 21,
+            "styleSeconds": 0.00518,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 26.7,
+              "p50Ms": 1.2,
+              "p95Ms": 3.7,
+              "maxMs": 3.7
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 17.9,
+              "p50Ms": 0.8,
+              "p95Ms": 3,
+              "maxMs": 3
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "sticky-drag",
+            "mounted": 12,
+            "frames": {
+              "n": 40,
+              "totalMs": 666.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 1,
+            "layoutCount": 23,
+            "styleSeconds": 0.00919,
+            "drawCards": {
+              "n": 21,
+              "totalMs": 8.6,
+              "p50Ms": 0,
+              "p95Ms": 1.3,
+              "maxMs": 7
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 1.8,
+              "p50Ms": 1,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 21,
+              "totalMs": 1.9,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 58,
+              "totalMs": 983.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.4
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 100,
+            "styleSeconds": 0.06624,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 56.7,
+              "p50Ms": 1.4,
+              "p95Ms": 9,
+              "maxMs": 9
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 17.1,
+              "p50Ms": 0.9,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.1,
+              "p50Ms": 0,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 34,
+              "totalMs": 566.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 2,
+            "layoutCount": 75,
+            "styleSeconds": 0.01364,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 11.4,
+              "p50Ms": 1.2,
+              "p95Ms": 6.9,
+              "maxMs": 6.9
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 3.9,
+              "p50Ms": 0.7,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.2,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 70,
+              "totalMs": 1166.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 20,
+            "boardWrites": 2,
+            "layoutCount": 115,
+            "styleSeconds": 0.06486,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 51.2,
+              "p50Ms": 1.2,
+              "p95Ms": 6.8,
+              "maxMs": 6.8
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 16.6,
+              "p50Ms": 0.9,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1,
+              "p50Ms": 0,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1289,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 3661,
+            "jsEventListeners": 187
+          },
+          "heapBefore": 4731252,
+          "heapAfter": 6992040,
+          "canvasPreserved": false
+        },
+        "repeatMemory": null,
+        "errors": [
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError"
+        ]
+      },
+      {
+        "count": 115,
+        "connections": 7,
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+          "hardwareConcurrency": 24,
+          "devicePixelRatio": 1,
+          "viewport": [
+            1400,
+            1000
+          ],
+          "visibility": "visible"
+        },
+        "overviewScale": 0.08888888888888889,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 115,
+            "frames": {
+              "n": 158,
+              "totalMs": 2649.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.2
+            },
+            "draws": 2,
+            "boardWrites": 0,
+            "layoutCount": 80,
+            "styleSeconds": 0.10993,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 23.3,
+              "p50Ms": 12.2,
+              "p95Ms": 12.2,
+              "maxMs": 12.2
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 14.8,
+              "p50Ms": 7.5,
+              "p95Ms": 7.5,
+              "maxMs": 7.5
+            },
+            "selection": {
+              "n": 2,
+              "totalMs": 0.9,
+              "p50Ms": 0.5,
+              "p95Ms": 0.5,
+              "maxMs": 0.5
+            }
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 115,
+            "frames": {
+              "n": 124,
+              "totalMs": 2066.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.02703,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 206.4,
+              "p50Ms": 10.2,
+              "p95Ms": 11.3,
+              "maxMs": 11.3
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 143.4,
+              "p50Ms": 7.1,
+              "p95Ms": 7.6,
+              "maxMs": 7.6
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 7.6,
+              "p50Ms": 0.4,
+              "p95Ms": 0.5,
+              "maxMs": 0.5
+            }
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 115,
+            "frames": {
+              "n": 59,
+              "totalMs": 983.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 12,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.02773,
+            "drawCards": {
+              "n": 12,
+              "totalMs": 122.9,
+              "p50Ms": 10.2,
+              "p95Ms": 10.9,
+              "maxMs": 10.9
+            },
+            "patch": {
+              "n": 12,
+              "totalMs": 85.7,
+              "p50Ms": 7.2,
+              "p95Ms": 7.4,
+              "maxMs": 7.4
+            },
+            "selection": {
+              "n": 12,
+              "totalMs": 3.6,
+              "p50Ms": 0.3,
+              "p95Ms": 0.4,
+              "maxMs": 0.4
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 71,
+              "totalMs": 1183.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 60,
+            "styleSeconds": 0.01178
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 7,
+              "totalMs": 116.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.005,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 22.7,
+              "p50Ms": 1.1,
+              "p95Ms": 1.3,
+              "maxMs": 1.3
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 15.4,
+              "p50Ms": 0.8,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 0.4,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "sticky-drag",
+            "mounted": 12,
+            "frames": {
+              "n": 41,
+              "totalMs": 683.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 1,
+            "layoutCount": 24,
+            "styleSeconds": 0.00987,
+            "drawCards": {
+              "n": 21,
+              "totalMs": 8.9,
+              "p50Ms": 0,
+              "p95Ms": 1.2,
+              "maxMs": 7.1
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 2,
+              "p50Ms": 1.1,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 21,
+              "totalMs": 1.4,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 60,
+              "totalMs": 1016.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.3
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 105,
+            "styleSeconds": 0.06485,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 56.1,
+              "p50Ms": 1.3,
+              "p95Ms": 8.5,
+              "maxMs": 8.5
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 17.1,
+              "p50Ms": 0.9,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.7,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 32,
+              "totalMs": 533.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 2,
+            "layoutCount": 76,
+            "styleSeconds": 0.01435,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 12.1,
+              "p50Ms": 1.2,
+              "p95Ms": 7.3,
+              "maxMs": 7.3
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.1,
+              "p50Ms": 0.8,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.2,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 72,
+              "totalMs": 1200,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 20,
+            "boardWrites": 2,
+            "layoutCount": 120,
+            "styleSeconds": 0.06714,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 54.8,
+              "p50Ms": 1.4,
+              "p95Ms": 7.4,
+              "maxMs": 7.4
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 15.9,
+              "p50Ms": 0.8,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1337,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 3661,
+            "jsEventListeners": 187
+          },
+          "heapBefore": 5928116,
+          "heapAfter": 12945292,
+          "canvasPreserved": false
+        },
+        "repeatMemory": null,
+        "errors": [
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError"
+        ]
+      },
+      {
+        "count": 500,
+        "connections": 35,
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+          "hardwareConcurrency": 24,
+          "devicePixelRatio": 1,
+          "viewport": [
+            1400,
+            1000
+          ],
+          "visibility": "visible"
+        },
+        "overviewScale": 0.05,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 500,
+            "frames": {
+              "n": 894,
+              "totalMs": 22633.9,
+              "p50Ms": 16.7,
+              "p95Ms": 83.3,
+              "maxMs": 850
+            },
+            "draws": 2,
+            "boardWrites": 0,
+            "layoutCount": 80,
+            "styleSeconds": 0.43746,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 119.1,
+              "p50Ms": 59.8,
+              "p95Ms": 59.8,
+              "maxMs": 59.8
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 64.1,
+              "p50Ms": 32.8,
+              "p95Ms": 32.8,
+              "maxMs": 32.8
+            },
+            "selection": {
+              "n": 2,
+              "totalMs": 10.3,
+              "p50Ms": 5.7,
+              "p95Ms": 5.7,
+              "maxMs": 5.7
+            }
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 500,
+            "frames": {
+              "n": 427,
+              "totalMs": 8700.2,
+              "p50Ms": 16.7,
+              "p95Ms": 66.7,
+              "maxMs": 116.7
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.11003,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 1014.9,
+              "p50Ms": 48.6,
+              "p95Ms": 59.1,
+              "maxMs": 59.1
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 662.3,
+              "p50Ms": 33,
+              "p95Ms": 35.4,
+              "maxMs": 35.4
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 60.3,
+              "p50Ms": 2.3,
+              "p95Ms": 5.2,
+              "maxMs": 5.2
+            }
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 500,
+            "frames": {
+              "n": 266,
+              "totalMs": 5200,
+              "p50Ms": 16.7,
+              "p95Ms": 50,
+              "maxMs": 66.7
+            },
+            "draws": 12,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.09905,
+            "drawCards": {
+              "n": 12,
+              "totalMs": 559.5,
+              "p50Ms": 47.1,
+              "p95Ms": 49.7,
+              "maxMs": 49.7
+            },
+            "patch": {
+              "n": 12,
+              "totalMs": 377.7,
+              "p50Ms": 31.8,
+              "p95Ms": 34.6,
+              "maxMs": 34.6
+            },
+            "selection": {
+              "n": 12,
+              "totalMs": 25.5,
+              "p50Ms": 1.9,
+              "p95Ms": 4.7,
+              "maxMs": 4.7
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 73,
+              "totalMs": 1216.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 60,
+            "styleSeconds": 0.0125
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 6,
+              "totalMs": 100,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 20,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00556,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 25.6,
+              "p50Ms": 1.3,
+              "p95Ms": 1.5,
+              "maxMs": 1.5
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 16.2,
+              "p50Ms": 0.8,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.3,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "sticky-drag",
+            "mounted": 12,
+            "frames": {
+              "n": 45,
+              "totalMs": 750,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 1,
+            "layoutCount": 24,
+            "styleSeconds": 0.00992,
+            "drawCards": {
+              "n": 21,
+              "totalMs": 10.9,
+              "p50Ms": 0,
+              "p95Ms": 1.2,
+              "maxMs": 9.3
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 1.8,
+              "p50Ms": 1.1,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 21,
+              "totalMs": 1.9,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 64,
+              "totalMs": 1100,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.3
+            },
+            "draws": 20,
+            "boardWrites": 1,
+            "layoutCount": 105,
+            "styleSeconds": 0.0682,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 72.2,
+              "p50Ms": 1.6,
+              "p95Ms": 11.8,
+              "maxMs": 11.8
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 17.3,
+              "p50Ms": 0.8,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 3,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 35,
+              "totalMs": 600,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.4
+            },
+            "draws": 5,
+            "boardWrites": 2,
+            "layoutCount": 76,
+            "styleSeconds": 0.01465,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 15.9,
+              "p50Ms": 1.6,
+              "p95Ms": 9.7,
+              "maxMs": 9.7
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.1,
+              "p50Ms": 0.8,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.7,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 73,
+              "totalMs": 1283.4,
+              "p50Ms": 16.7,
+              "p95Ms": 33.3,
+              "maxMs": 33.4
+            },
+            "draws": 20,
+            "boardWrites": 2,
+            "layoutCount": 120,
+            "styleSeconds": 0.07636,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 71.2,
+              "p50Ms": 1.7,
+              "p95Ms": 10.7,
+              "maxMs": 10.7
+            },
+            "patch": {
+              "n": 20,
+              "totalMs": 17.6,
+              "p50Ms": 0.9,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 2.3,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1358,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 3724,
+            "jsEventListeners": 187
+          },
+          "heapBefore": 10611732,
+          "heapAfter": 35399412,
+          "canvasPreserved": false
+        },
+        "repeatMemory": null,
+        "errors": [
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError",
+          "Failed to execute 'setPointerCapture' on 'Element': InvalidStateError"
+        ]
+      }
+    ],
+    "visibleWebView2After": [
+      {
+        "count": 25,
+        "connections": 3,
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+          "hardwareConcurrency": 24,
+          "devicePixelRatio": 1,
+          "viewport": [
+            1400,
+            1000
+          ],
+          "visibility": "visible"
+        },
+        "overviewScale": 0.2,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 25,
+            "frames": {
+              "n": 100,
+              "totalMs": 1666.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00229
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 25,
+            "frames": {
+              "n": 67,
+              "totalMs": 1116.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 6,
+            "styleSeconds": 0.00237
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 25,
+            "frames": {
+              "n": 12,
+              "totalMs": 200,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.00793,
+            "selection": {
+              "n": 12,
+              "totalMs": 0.4,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 67,
+              "totalMs": 1116.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.0023
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 6,
+              "totalMs": 100,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00371,
+            "selection": {
+              "n": 20,
+              "totalMs": 0.6,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "sticky-drag",
+            "mounted": 12,
+            "frames": {
+              "n": 41,
+              "totalMs": 683.2,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 1,
+            "boardWrites": 1,
+            "layoutCount": 22,
+            "styleSeconds": 0.00914,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 2.9,
+              "p50Ms": 0,
+              "p95Ms": 2.4,
+              "maxMs": 2.4
+            },
+            "patch": {
+              "n": 1,
+              "totalMs": 0.9,
+              "p50Ms": 0.9,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 21,
+              "totalMs": 1.6,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 46,
+              "totalMs": 766.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 75,
+            "styleSeconds": 0.0439,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 9.3,
+              "p50Ms": 1.4,
+              "p95Ms": 3.8,
+              "maxMs": 3.8
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.3,
+              "p50Ms": 0.9,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 25,
+              "totalMs": 1.2,
+              "p50Ms": 0,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 33,
+              "totalMs": 549.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 2,
+            "layoutCount": 71,
+            "styleSeconds": 0.01165,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 3.6,
+              "p50Ms": 2.2,
+              "p95Ms": 2.2,
+              "maxMs": 2.2
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 1.9,
+              "p50Ms": 1,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.1,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 55,
+              "totalMs": 916.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 70,
+            "styleSeconds": 0.03898,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 6.9,
+              "p50Ms": 1.4,
+              "p95Ms": 1.5,
+              "maxMs": 1.5
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.3,
+              "p50Ms": 0.9,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 0.6,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1289,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 2523,
+            "jsEventListeners": 171
+          },
+          "heapBefore": 5064424,
+          "heapAfter": 7198736,
+          "canvasPreserved": true
+        },
+        "repeatMemory": null,
+        "errors": []
+      },
+      {
+        "count": 115,
+        "connections": 7,
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+          "hardwareConcurrency": 24,
+          "devicePixelRatio": 1,
+          "viewport": [
+            1400,
+            1000
+          ],
+          "visibility": "visible"
+        },
+        "overviewScale": 0.08888888888888889,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 115,
+            "frames": {
+              "n": 174,
+              "totalMs": 2900,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00239
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 115,
+            "frames": {
+              "n": 91,
+              "totalMs": 1516.8,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 2,
+            "styleSeconds": 0.00299
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 115,
+            "frames": {
+              "n": 14,
+              "totalMs": 233.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.02298,
+            "selection": {
+              "n": 12,
+              "totalMs": 4.2,
+              "p50Ms": 0.4,
+              "p95Ms": 0.4,
+              "maxMs": 0.4
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 71,
+              "totalMs": 1183.2,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00235
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 6,
+              "totalMs": 100.1,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00381,
+            "selection": {
+              "n": 20,
+              "totalMs": 0.6,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "sticky-drag",
+            "mounted": 12,
+            "frames": {
+              "n": 45,
+              "totalMs": 749.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.9
+            },
+            "draws": 1,
+            "boardWrites": 1,
+            "layoutCount": 22,
+            "styleSeconds": 0.01006,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 3.1,
+              "p50Ms": 0,
+              "p95Ms": 2.7,
+              "maxMs": 2.7
+            },
+            "patch": {
+              "n": 1,
+              "totalMs": 1.1,
+              "p50Ms": 1.1,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 21,
+              "totalMs": 2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 47,
+              "totalMs": 783.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 75,
+            "styleSeconds": 0.04405,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 11.9,
+              "p50Ms": 1.8,
+              "p95Ms": 4.6,
+              "maxMs": 4.6
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.2,
+              "p50Ms": 0.9,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 25,
+              "totalMs": 1.3,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 33,
+              "totalMs": 550.1,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 2,
+            "layoutCount": 71,
+            "styleSeconds": 0.01175,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 4.7,
+              "p50Ms": 2.6,
+              "p95Ms": 2.6,
+              "maxMs": 2.6
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 2,
+              "p50Ms": 1.1,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.3,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 54,
+              "totalMs": 900,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 70,
+            "styleSeconds": 0.03924,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 8.8,
+              "p50Ms": 1.7,
+              "p95Ms": 1.9,
+              "maxMs": 1.9
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4,
+              "p50Ms": 0.8,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.3,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1289,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 2523,
+            "jsEventListeners": 171
+          },
+          "heapBefore": 6215508,
+          "heapAfter": 12580428,
+          "canvasPreserved": true
+        },
+        "repeatMemory": null,
+        "errors": []
+      },
+      {
+        "count": 500,
+        "connections": 35,
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+          "hardwareConcurrency": 24,
+          "devicePixelRatio": 1,
+          "viewport": [
+            1400,
+            1000
+          ],
+          "visibility": "visible"
+        },
+        "overviewScale": 0.05,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 500,
+            "frames": {
+              "n": 444,
+              "totalMs": 8250.1,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 850.1
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00286
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 500,
+            "frames": {
+              "n": 212,
+              "totalMs": 3533.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 2,
+            "styleSeconds": 0.00869
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 500,
+            "frames": {
+              "n": 199,
+              "totalMs": 3633.4,
+              "p50Ms": 16.7,
+              "p95Ms": 33.3,
+              "maxMs": 50.1
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.10255,
+            "selection": {
+              "n": 12,
+              "totalMs": 35.7,
+              "p50Ms": 1.9,
+              "p95Ms": 6.5,
+              "maxMs": 6.5
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 68,
+              "totalMs": 1133.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.9
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00265
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 6,
+              "totalMs": 99.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00401,
+            "selection": {
+              "n": 20,
+              "totalMs": 1.5,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "sticky-drag",
+            "mounted": 12,
+            "frames": {
+              "n": 45,
+              "totalMs": 750,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 1,
+            "boardWrites": 1,
+            "layoutCount": 22,
+            "styleSeconds": 0.01038,
+            "drawCards": {
+              "n": 20,
+              "totalMs": 5,
+              "p50Ms": 0,
+              "p95Ms": 4.9,
+              "maxMs": 4.9
+            },
+            "patch": {
+              "n": 1,
+              "totalMs": 1.1,
+              "p50Ms": 1.1,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "selection": {
+              "n": 21,
+              "totalMs": 2.1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 51,
+              "totalMs": 866.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.3
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 75,
+            "styleSeconds": 0.04465,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 20.6,
+              "p50Ms": 3.4,
+              "p95Ms": 7,
+              "maxMs": 7
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.1,
+              "p50Ms": 0.8,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 25,
+              "totalMs": 3.7,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.3
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 37,
+              "totalMs": 616.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 2,
+            "layoutCount": 71,
+            "styleSeconds": 0.01278,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 5.9,
+              "p50Ms": 4.1,
+              "p95Ms": 4.1,
+              "maxMs": 4.1
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 1.7,
+              "p50Ms": 0.9,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.5,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 66,
+              "totalMs": 1100,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 70,
+            "styleSeconds": 0.0399,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 17.2,
+              "p50Ms": 3.4,
+              "p95Ms": 4,
+              "maxMs": 4
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.5,
+              "p50Ms": 0.9,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 2.2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1310,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 2565,
+            "jsEventListeners": 171
+          },
+          "heapBefore": 10915256,
+          "heapAfter": 35587240,
+          "canvasPreserved": true
+        },
+        "repeatMemory": null,
+        "errors": []
+      }
+    ],
+    "editorStress": [
+      {
+        "count": 25,
+        "connections": 3,
+        "overviewScale": 0.2,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 25,
+            "frames": {
+              "n": 83,
+              "totalMs": 1383.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00194
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 25,
+            "frames": {
+              "n": 42,
+              "totalMs": 700,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 6,
+            "styleSeconds": 0.00274
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 25,
+            "frames": {
+              "n": 8,
+              "totalMs": 133.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.00984,
+            "selection": {
+              "n": 12,
+              "totalMs": 1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00227
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 3,
+              "totalMs": 50,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00426,
+            "selection": {
+              "n": 20,
+              "totalMs": 0.7,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 243,
+              "totalMs": 4133.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 83.3
+            },
+            "draws": 40,
+            "boardWrites": 0,
+            "layoutCount": 601,
+            "styleSeconds": 0.33512,
+            "drawCards": {
+              "n": 40,
+              "totalMs": 84.4,
+              "p50Ms": 1.9,
+              "p95Ms": 6.1,
+              "maxMs": 6.2
+            },
+            "patch": {
+              "n": 40,
+              "totalMs": 48.9,
+              "p50Ms": 1.1,
+              "p95Ms": 1.4,
+              "maxMs": 5.1
+            },
+            "selection": {
+              "n": 200,
+              "totalMs": 8.1,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "focus-repeat",
+            "mounted": 12,
+            "frames": {
+              "n": 246,
+              "totalMs": 4100.1,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 40,
+            "boardWrites": 0,
+            "layoutCount": 600,
+            "styleSeconds": 0.33137,
+            "drawCards": {
+              "n": 40,
+              "totalMs": 81.1,
+              "p50Ms": 1.9,
+              "p95Ms": 2.8,
+              "maxMs": 6.3
+            },
+            "patch": {
+              "n": 40,
+              "totalMs": 52.3,
+              "p50Ms": 1.2,
+              "p95Ms": 1.5,
+              "maxMs": 5.4
+            },
+            "selection": {
+              "n": 200,
+              "totalMs": 8,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 28,
+              "totalMs": 466.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 2,
+            "boardWrites": 2,
+            "layoutCount": 71,
+            "styleSeconds": 0.01208,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 3.8,
+              "p50Ms": 2.3,
+              "p95Ms": 2.3,
+              "maxMs": 2.3
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 1.9,
+              "p50Ms": 1,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.2,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 41,
+              "totalMs": 683.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 70,
+            "styleSeconds": 0.03985,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 8.9,
+              "p50Ms": 1.8,
+              "p95Ms": 2.1,
+              "maxMs": 2.1
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 4.9,
+              "p50Ms": 0.9,
+              "p95Ms": 1.3,
+              "maxMs": 1.3
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 0.6,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1289,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 1337,
+            "jsEventListeners": 155
+          },
+          "heapBefore": 3297716,
+          "heapAfter": 8469468,
+          "canvasPreserved": true
+        },
+        "repeatMemory": {
+          "first": {
+            "documents": 2,
+            "nodes": 1337,
+            "jsEventListeners": 155,
+            "heap": 8353540
+          },
+          "second": {
+            "documents": 2,
+            "nodes": 1337,
+            "jsEventListeners": 155,
+            "heap": 8490172
+          }
+        },
+        "errors": []
+      },
+      {
+        "count": 115,
+        "connections": 7,
+        "overviewScale": 0.08888888888888889,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 115,
+            "frames": {
+              "n": 83,
+              "totalMs": 1383.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00201
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 115,
+            "frames": {
+              "n": 42,
+              "totalMs": 700.1,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 2,
+            "styleSeconds": 0.0025
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 115,
+            "frames": {
+              "n": 14,
+              "totalMs": 233.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.02391,
+            "selection": {
+              "n": 12,
+              "totalMs": 4.8,
+              "p50Ms": 0.4,
+              "p95Ms": 0.6,
+              "maxMs": 0.6
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.3,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00208
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 3,
+              "totalMs": 49.9,
+              "p50Ms": 16.6,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00419,
+            "selection": {
+              "n": 20,
+              "totalMs": 1.7,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 259,
+              "totalMs": 4316.8,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 40,
+            "boardWrites": 0,
+            "layoutCount": 601,
+            "styleSeconds": 0.34203,
+            "drawCards": {
+              "n": 40,
+              "totalMs": 88.2,
+              "p50Ms": 2.1,
+              "p95Ms": 2.9,
+              "maxMs": 5.6
+            },
+            "patch": {
+              "n": 40,
+              "totalMs": 38.8,
+              "p50Ms": 1,
+              "p95Ms": 1.3,
+              "maxMs": 1.3
+            },
+            "selection": {
+              "n": 200,
+              "totalMs": 13,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "focus-repeat",
+            "mounted": 12,
+            "frames": {
+              "n": 254,
+              "totalMs": 4233.5,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 40,
+            "boardWrites": 0,
+            "layoutCount": 600,
+            "styleSeconds": 0.33278,
+            "drawCards": {
+              "n": 40,
+              "totalMs": 79.9,
+              "p50Ms": 1.9,
+              "p95Ms": 2.7,
+              "maxMs": 3
+            },
+            "patch": {
+              "n": 40,
+              "totalMs": 39.3,
+              "p50Ms": 1,
+              "p95Ms": 1.3,
+              "maxMs": 1.4
+            },
+            "selection": {
+              "n": 200,
+              "totalMs": 10.3,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 27,
+              "totalMs": 449.9,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 2,
+            "boardWrites": 2,
+            "layoutCount": 71,
+            "styleSeconds": 0.0125,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 5.4,
+              "p50Ms": 4,
+              "p95Ms": 4,
+              "maxMs": 4
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 2.3,
+              "p50Ms": 1.2,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.2,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 44,
+              "totalMs": 733.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 70,
+            "styleSeconds": 0.04086,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 12,
+              "p50Ms": 2.3,
+              "p95Ms": 3.5,
+              "maxMs": 3.5
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 5.5,
+              "p50Ms": 1.1,
+              "p95Ms": 1.5,
+              "maxMs": 1.5
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1289,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 1337,
+            "jsEventListeners": 155
+          },
+          "heapBefore": 4397204,
+          "heapAfter": 23756856,
+          "canvasPreserved": true
+        },
+        "repeatMemory": {
+          "first": {
+            "documents": 2,
+            "nodes": 1337,
+            "jsEventListeners": 155,
+            "heap": 23683360
+          },
+          "second": {
+            "documents": 2,
+            "nodes": 1337,
+            "jsEventListeners": 155,
+            "heap": 23805820
+          }
+        },
+        "errors": []
+      },
+      {
+        "count": 500,
+        "connections": 35,
+        "overviewScale": 0.05,
+        "phases": [
+          {
+            "name": "overview-pan",
+            "mounted": 500,
+            "frames": {
+              "n": 103,
+              "totalMs": 2016.7,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 316.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00282
+          },
+          {
+            "name": "overview-zoom",
+            "mounted": 500,
+            "frames": {
+              "n": 62,
+              "totalMs": 1033.4,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 2,
+            "styleSeconds": 0.00858
+          },
+          {
+            "name": "overview-selection",
+            "mounted": 500,
+            "frames": {
+              "n": 47,
+              "totalMs": 1016.6,
+              "p50Ms": 16.7,
+              "p95Ms": 33.4,
+              "maxMs": 50
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 36,
+            "styleSeconds": 0.08936,
+            "selection": {
+              "n": 12,
+              "totalMs": 45.6,
+              "p50Ms": 3.5,
+              "p95Ms": 5.9,
+              "maxMs": 5.9
+            }
+          },
+          {
+            "name": "normal-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 63,
+              "totalMs": 1050,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 0,
+            "styleSeconds": 0.00247
+          },
+          {
+            "name": "normal-selection",
+            "mounted": 12,
+            "frames": {
+              "n": 3,
+              "totalMs": 50,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 0,
+            "boardWrites": 0,
+            "layoutCount": 20,
+            "styleSeconds": 0.00466,
+            "selection": {
+              "n": 20,
+              "totalMs": 1.4,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            }
+          },
+          {
+            "name": "editor-canvas-focus",
+            "mounted": 12,
+            "frames": {
+              "n": 285,
+              "totalMs": 4816.8,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.3
+            },
+            "draws": 40,
+            "boardWrites": 0,
+            "layoutCount": 601,
+            "styleSeconds": 0.34187,
+            "drawCards": {
+              "n": 40,
+              "totalMs": 163.4,
+              "p50Ms": 3.9,
+              "p95Ms": 5.3,
+              "maxMs": 8.1
+            },
+            "patch": {
+              "n": 40,
+              "totalMs": 42.7,
+              "p50Ms": 1.1,
+              "p95Ms": 1.4,
+              "maxMs": 1.6
+            },
+            "selection": {
+              "n": 200,
+              "totalMs": 28.4,
+              "p50Ms": 0.1,
+              "p95Ms": 0.3,
+              "maxMs": 0.4
+            }
+          },
+          {
+            "name": "focus-repeat",
+            "mounted": 12,
+            "frames": {
+              "n": 290,
+              "totalMs": 4866.8,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "maxMs": 33.3
+            },
+            "draws": 40,
+            "boardWrites": 1,
+            "layoutCount": 600,
+            "styleSeconds": 0.34274,
+            "drawCards": {
+              "n": 40,
+              "totalMs": 148.1,
+              "p50Ms": 3.5,
+              "p95Ms": 4.8,
+              "maxMs": 5.2
+            },
+            "patch": {
+              "n": 40,
+              "totalMs": 41,
+              "p50Ms": 0.9,
+              "p95Ms": 1.4,
+              "maxMs": 1.5
+            },
+            "selection": {
+              "n": 200,
+              "totalMs": 24.6,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.4
+            }
+          },
+          {
+            "name": "typing-and-save",
+            "mounted": 12,
+            "frames": {
+              "n": 30,
+              "totalMs": 500,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.7
+            },
+            "draws": 2,
+            "boardWrites": 2,
+            "layoutCount": 71,
+            "styleSeconds": 0.01262,
+            "drawCards": {
+              "n": 2,
+              "totalMs": 7.4,
+              "p50Ms": 5.5,
+              "p95Ms": 5.5,
+              "maxMs": 5.5
+            },
+            "patch": {
+              "n": 2,
+              "totalMs": 2.3,
+              "p50Ms": 1.2,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "selection": {
+              "n": 5,
+              "totalMs": 0.2,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            }
+          },
+          {
+            "name": "editor-to-pan",
+            "mounted": 12,
+            "frames": {
+              "n": 55,
+              "totalMs": 916.6,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "maxMs": 16.8
+            },
+            "draws": 5,
+            "boardWrites": 0,
+            "layoutCount": 70,
+            "styleSeconds": 0.0409,
+            "drawCards": {
+              "n": 5,
+              "totalMs": 16.9,
+              "p50Ms": 3.4,
+              "p95Ms": 4.2,
+              "maxMs": 4.2
+            },
+            "patch": {
+              "n": 5,
+              "totalMs": 5,
+              "p50Ms": 0.9,
+              "p95Ms": 1.4,
+              "maxMs": 1.4
+            },
+            "selection": {
+              "n": 20,
+              "totalMs": 1.5,
+              "p50Ms": 0.1,
+              "p95Ms": 0.4,
+              "maxMs": 0.4
+            }
+          }
+        ],
+        "memory": {
+          "before": {
+            "documents": 2,
+            "nodes": 1310,
+            "jsEventListeners": 154
+          },
+          "after": {
+            "documents": 2,
+            "nodes": 1358,
+            "jsEventListeners": 155
+          },
+          "heapBefore": 9048372,
+          "heapAfter": 88949444,
+          "canvasPreserved": true
+        },
+        "repeatMemory": {
+          "first": {
+            "documents": 2,
+            "nodes": 1358,
+            "jsEventListeners": 155,
+            "heap": 90298380
+          },
+          "second": {
+            "documents": 2,
+            "nodes": 1358,
+            "jsEventListeners": 155,
+            "heap": 89201368
+          }
+        },
+        "errors": []
+      }
+    ]
+  }
+}
