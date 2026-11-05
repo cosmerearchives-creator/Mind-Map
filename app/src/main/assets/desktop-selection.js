@@ -12,7 +12,7 @@ window.installDesktopSelection=function(app){
   if(e.button!==0||e.target.closest('button:not(.nestedFullButton),.wireHit,.wireLabel,[data-junction]'))return;if(e.target.closest('a')&&!selected.has(e.target.closest('[data-card]')?.dataset.card))return;
   const el=e.target.closest('[data-card]');if((e.ctrlKey||e.metaKey)&&el&&['nested','shortcut'].includes(app.card(el.dataset.card)?.kind))return;
   if(el){const id=el.dataset.card;if(e.shiftKey){stop(e);selected.has(id)?selected.delete(id):selected.add(id);sync();return}
-   if(!selected.has(id)){selected=new Set([id]);sync();return}
+   if(!selected.has(id)){selected=SelectionCore.expand(app.board(),[id]);sync();if(selected.size<2)return}
    if(selected.size<2)return;
    stop(e);canvas().setPointerCapture(e.pointerId);const ids=SelectionCore.expand(app.board(),selected);drag={kind:'move',id:e.pointerId,start:point(e),before:SilverlightAssets.clone?SilverlightAssets.clone(app.board().cards):JSON.parse(JSON.stringify(app.board().cards)),beforeJunctions:JSON.parse(JSON.stringify(app.board().junctions||{})),ids,moved:false};return;
   }

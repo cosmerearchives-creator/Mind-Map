@@ -19,6 +19,8 @@ final class ArcanumShare {
     private String token;
     private PendingIntent ack;
     private boolean copying;
+    private volatile long copied;
+    private String error;
     ArcanumShare(Activity activity, Bundle saved) {
         this.activity = activity;
         if (saved != null && saved.containsKey("arcanumToken")) {
@@ -38,16 +40,17 @@ final class ArcanumShare {
         if (uri == null || !"content".equals(uri.getScheme())) { message("Share a .arcanum file using a content URI."); return; }
         PendingIntent callback = intent.getParcelableExtra(ACK);
         copying = true;
+        copied = 0; error = null;
         new Thread(() -> {
             String next = UUID.randomUUID().toString();
             File target = new File(activity.getCacheDir(), "arcanum-" + next + ".zip");
             try (InputStream input = activity.getContentResolver().openInputStream(uri); OutputStream output = new FileOutputStream(target)) {
                 if (input == null) throw new IOException("Cannot read shared file.");
                 byte[] buf = new byte[32768]; long total = 0; int n;
-                while ((n = input.read(buf)) != -1) { total += n; if (total > 32L*1024*1024) throw new IOException("Transfer exceeds 32 MiB."); output.write(buf, 0, n); }
+                while ((n = input.read(buf)) != -1) { total += n; if (total > 32L*1024*1024) throw new IOException("Transfer exceeds 32 MiB."); output.write(buf, 0, n); copied = total; }
                 if (total == 0) throw new IOException("Empty transfer.");
                 synchronized (this) { token = next; ack = callback; file = target; }
-            } catch (Exception e) { target.delete(); message("Archives import could not start: " + e.getMessage()); }
+            } catch (Exception e) { target.delete(); synchronized(this){error="Archives import could not start: " + e.getMessage();}message(error); }
             finally { synchronized (this) { copying = false; } }
         }, "arcanum-share-copy").start();
     }
@@ -60,7 +63,7 @@ final class ArcanumShare {
         try {
             JSONObject request = new JSONObject(raw);
             if ("poll".equals(request.optString("action"))) {
-                proxy.postMessage(new JSONObject().put("token", file == null ? "" : token).toString());
+                proxy.postMessage(new JSONObject().put("token", file == null ? "" : token).put("copying",copying).put("bytes",copied).put("error",error == null ? "" : error).toString());
             } else if (file != null && token.equals(request.optString("token")) && "saved".equals(request.optString("action"))) {
                 // Only the trusted main-frame importer invokes this after atomic durable save.
                 if (ack != null) try { ack.send(activity, Activity.RESULT_OK, null); } catch (PendingIntent.CanceledException ignored) { }

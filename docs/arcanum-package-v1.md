@@ -25,3 +25,21 @@ WoB Tracker keeps a durable snapshot of exported records. Its private receiver p
 `tests/arcanum-import-ui.cjs`: real IndexedDB save before acknowledgment, restart dedup, injected disk-full failure with no acknowledgment or partial workspace change.
 
 Android instrumented sharing test: offline content-URI delivery to a new Activity and an existing Activity, real save acknowledgment, one saved copy after repeated delivery. Existing large-workspace backup, sync and browser regressions remain release gates.
+
+## Optional structured Stickies (Archives 0.14.2+)
+
+Version 1 accepts optional `itemId` (defaults to `sourceId`) and `appearance: {"background":"#cfe8ff"}` on each item. A top-level optional `relationships` array contains `{"id":"wob:1:personal-note-link","from":"wob:1","to":"wob:1:personal-note","label":"Personal note","moveTogether":true}`. IDs are strings, not array positions. Appearance is limited to a six-digit hex background; arbitrary styles/HTML are rejected. Unknown or duplicate relationship IDs/endpoints, self-links and dangling references are rejected before saving. At most 4000 relationships are accepted. Old packages need none of these fields.
+
+Every item retains its independent source ID. Import maps exported IDs onto collision-checked internal Sticky IDs. Connected components use a content revision so a changed note versions its associated source and relationship together without overwriting local research. Repeated imports deduplicate across Boards. Relationships already moved with their Stickies remain where placed; endpoints deliberately separated across Boards/Unsorted are not wired across Boards and a warning is shown.
+
+Only explicitly grouped relationships expand selection/cut operations. Desktop dragging selects the related group. On either platform, choose **Move related group to Board** on an imported Sticky to move it and connected partners with their wires and wait for a durable save. Ordinary manually drawn wires do not automatically group unrelated Stickies.
+
+The 1000-item transfer limit counts both source and personal-note Stickies. A transfer with notes for every WoB supports up to 500 WoBs; the 4 MiB manifest limit also applies. Tracker requires the official Archives 0.14.2+ receiver for this structured flow.
+
+## Operation feedback audit
+
+Archives: Android content URI copy, package validation/decompression/checksums, source scan, Sticky preparation, atomic local commit, group placement, backup creation/restoration including legacy files, and PDF/ZIP commit now expose stages or strengthened feedback. Existing resumable Drive sync diagnostics, byte progress and checkpoints are retained. Backup writes remain bounded and restores transactional. Completion remains visible or requires dismissing a confirmation. Cancellation is disabled at the atomic commit boundary; failed/cancelled imports never acknowledge saving.
+
+Tracker: record collection, package assembly/compression, pending receipt preparation, Android handoff/waiting/acknowledgment, file export, backup creation, restore verification/merge/commit, sample import and updater download now show counts/bytes, percentages when known, or indeterminate indicators. File exports/backups stage privately and verify saved bytes before completion. Cancelled restores roll back; review records remain intact. A process-wide operation guard and progress state survive Activity recreation. Progress updates are throttled to at most ten per second per stage. Existing Archive Browser import progress and source-footnote loading indicators were inspected and retained.
+
+No other companion repository was inspected or modified. Other companions should adopt the same operation states when they implement this interchange flow. Process interruption may require retry; an incomplete newly created external file is not a valid backup and must pass verification before restore.

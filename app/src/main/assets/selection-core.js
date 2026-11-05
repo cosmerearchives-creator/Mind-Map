@@ -2,7 +2,7 @@
 const assets=typeof module!=='undefined'?require('./assets-core.js'):null;
 const FORMAT='silverlight-selection-v1',MIME='application/x-silverlight-selection';
 const clone=x=>JSON.parse(JSON.stringify(x));
-function expand(board,ids){const set=new Set(ids);let changed=true;while(changed){changed=false;for(const c of board.cards)if((c.collectionId&&set.has(c.collectionId)||c.imageRegion&&set.has(c.imageRegion.ownerId))&&!set.has(c.id)){set.add(c.id);changed=true}}return set}
+function expand(board,ids){const set=new Set(ids);let changed=true;while(changed){changed=false;for(const e of board.connections||[])if(e.moveTogether===true&&set.has(e.from)!==set.has(e.to)){set.add(e.from);set.add(e.to);changed=true}for(const c of board.cards)if((c.collectionId&&set.has(c.collectionId)||c.imageRegion&&set.has(c.imageRegion.ownerId))&&!set.has(c.id)){set.add(c.id);changed=true}}return set}
 function make(board,ids,boards){const set=expand(board,ids),cards=board.cards.filter(c=>set.has(c.id)).map(clone),included=new Set();let changed=true;
  while(changed){changed=false;for(const c of [...cards,...boards.filter(b=>included.has(b.id)).flatMap(b=>[...b.cards,...(b.unsorted||[])])])if(c.kind==='nested'&&boards.some(b=>b.id===c.boardId)&&!included.has(c.boardId)){included.add(c.boardId);changed=true}}
  return {format:FORMAT,cards,connections:(board.connections||[]).filter(e=>set.has(e.from)&&set.has(e.to)).map(clone),junctions:Object.fromEntries(Object.entries(board.junctions||{}).filter(([id])=>set.has(id)).map(([id,v])=>[id,clone(v)])),boards:boards.filter(b=>included.has(b.id)).map(clone)};

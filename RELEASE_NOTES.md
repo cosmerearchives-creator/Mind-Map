@@ -1,3 +1,12 @@
+# Archives of Arcanum 0.14.2 — related research and operation progress
+
+- Optional package item IDs, validated Sticky background colors and stable-ID relationships. WoB Tracker exports blue source Stickies with separate connected white personal notes.
+- Related groups move together through selection, cut/paste and the new Move related group to Board action. Existing ordinary connections retain their behavior.
+- Backward-compatible v1 imports; repeated packages and moved groups deduplicate. Changed connected versions preserve complete prior versions.
+- Visible package receiving/reading/expanding/verifying/preparing/saving stages, real counts/bytes, cancellation before commit, duplicate guards, persistent completion/error messages and retry.
+- Backups show feedback before the native file picker, stage progress, read counts and existing native verification bytes. Legacy and PDF/ZIP imports wait for durable local saving before completion.
+- Chunked backup, resumable sync, storage identity and signing keys remain unchanged. Both Windows and Android remain offline-first.
+
 # Archives of Arcanum 0.14.1 — offline Android app sharing
 
 - Import versioned .arcanum ZIP packages with titles, plain-text notes, tags, complete source metadata, images and attachments.
