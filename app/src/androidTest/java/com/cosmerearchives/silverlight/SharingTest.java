@@ -49,9 +49,10 @@ public class SharingTest {
             Intent intent=new Intent(Intent.ACTION_SEND).setClass(target,MainActivity.class).setType("application/vnd.arcanum.package+zip").putExtra(Intent.EXTRA_STREAM,uri).putExtra("org.arcanum.extra.SAVE_ACK",ack).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_GRANT_READ_URI_PERMISSION);intent.setClipData(ClipData.newRawUri("fixture",uri));
             if(round==0)activity=instrumentation.startActivitySync(intent);else target.startActivity(intent);
             assertTrue("Saved acknowledgment must arrive",acked.await(90,TimeUnit.SECONDS));assertEquals(Activity.RESULT_OK,code[0]);target.unregisterReceiver(receiver);
+            // Dismiss the success alert before evaluating JS; browser alerts suspend its event loop.
+            Thread.sleep(500);try(InputStream command=new ParcelFileDescriptor.AutoCloseInputStream(instrumentation.getUiAutomation().executeShellCommand("input keyevent 4"))){command.readAllBytes();}
             js(activity,"window.testSaved=null;var q=indexedDB.open('openboard-workspace');q.onsuccess=()=>SilverlightAssetStore.read(q.result,'main',true).then(r=>window.testSaved=r.state.boards.find(b=>b.id==='arcanum-global-dumping-ground').cards.filter(c=>c.source?.id==='instrumentation:wob1').length)");
             long until=System.currentTimeMillis()+10000;String count="null";while(System.currentTimeMillis()<until){count=js(activity,"window.testSaved");if("1".equals(count))break;Thread.sleep(100);}assertEquals("Durably saved exactly one copy", "1",count);
-            instrumentation.getUiAutomation().executeShellCommand("input keyevent 4").close();
         }
     }
 }
