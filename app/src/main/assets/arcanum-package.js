@@ -32,7 +32,7 @@ async function plan(workspace,pkg,uid,{signal,onProgress=()=>{}}={}){
  const relationships=m.relationships||[],byItem=new Map(m.items.map(item=>[item.itemId??item.sourceId,item])),groups=new Map();
  // A changed member versions its complete connected component, preserving complete associations.
  for(const key of byItem.keys()){if(groups.has(key))continue;const members=new Set([key]);let change=true;while(change){change=false;for(const e of relationships)if(members.has(e.from)!==members.has(e.to)){members.add(e.from);members.add(e.to);change=true}}
-  const revision=members.size>1?await hash(new TextEncoder().encode(canonical({items:[...members].sort().map(id=>byItem.get(id)),relationships:relationships.filter(e=>members.has(e.from)&&members.has(e.to)).sort((a,b)=>a.id.localeCompare(b.id))}))):null;for(const id of members)groups.set(id,revision);
+  const revision=members.size>1?await hash(new TextEncoder().encode(canonical({items:[...members].sort().map(id=>byItem.get(id)),relationships:relationships.filter(e=>members.has(e.from)&&members.has(e.to)).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0)}))):null;for(const id of members)groups.set(id,revision);
  }
  const ground=workspace.boards.find(b=>b.id===GROUND),used=new Set([...(ground?.cards||[]),...(ground?.unsorted||[])].map(c=>c.id)),allocate=preferred=>{while(used.has(preferred))preferred=uid();used.add(preferred);return preferred},cards=[],resolved=new Map();let skipped=0;
  for(const item of m.items){cancelled(signal);const exportedId=item.itemId??item.sourceId,digest=await hash(new TextEncoder().encode(canonical(item))),key=JSON.stringify([m.origin,item.sourceId,digest,...(groups.get(exportedId)?[groups.get(exportedId)]:[])]);
