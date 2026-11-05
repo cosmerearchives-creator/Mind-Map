@@ -2,6 +2,9 @@ using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
 // Synthetic profiling only: a fresh private browser profile, no app/native data bridge.
+internal static class Program {
+[STAThread]
+private static void Main(string[] args) {
 ApplicationConfiguration.Initialize();
 var port = args.Length == 1 && int.TryParse(args[0], out var parsed) ? parsed : 9228;
 if (port < 1024 || port > 65535) throw new ArgumentException("Invalid local debugging port");
@@ -16,3 +19,5 @@ form.Shown += async (_, _) => {
     web.Source = new Uri("about:blank");
 };
 Application.Run(form);
+}
+}
