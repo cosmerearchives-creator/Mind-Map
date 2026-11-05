@@ -21,7 +21,9 @@ public class SharingTest {
     public static class FixtureProvider extends ContentProvider {
         public boolean onCreate(){return true;}
         public String getType(Uri uri){return "application/vnd.arcanum.package+zip";}
-        public ParcelFileDescriptor openFile(Uri uri,String mode)throws FileNotFoundException{return ParcelFileDescriptor.open(new File(getContext().getCacheDir(),uri.getLastPathSegment()),ParcelFileDescriptor.MODE_READ_ONLY);}
+        public ParcelFileDescriptor openFile(Uri uri,String mode)throws FileNotFoundException{
+            try {var pipe=ParcelFileDescriptor.createPipe();new Thread(()->{try(ZipOutputStream zip=new ZipOutputStream(new ParcelFileDescriptor.AutoCloseOutputStream(pipe[1]))){zip.putNextEntry(new ZipEntry("manifest.json"));zip.write(fixture().toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));zip.closeEntry();}catch(Exception e){throw new RuntimeException(e);}}).start();return pipe[0];}catch(IOException e){throw new FileNotFoundException(e.getMessage());}
+        }
         public android.database.Cursor query(Uri u,String[] p,String s,String[] a,String o){return null;}
         public Uri insert(Uri u,ContentValues v){return null;} public int delete(Uri u,String s,String[] a){return 0;}public int update(Uri u,ContentValues v,String s,String[] a){return 0;}
     }
@@ -30,12 +32,13 @@ public class SharingTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(()->((WebView)((android.view.ViewGroup)activity.findViewById(android.R.id.content)).getChildAt(0)).evaluateJavascript(script,v->{value[0]=v;latch.countDown();}));
         assertTrue(latch.await(5,TimeUnit.SECONDS));return value[0];
     }
-    @Test public void coldActivityShareSavesBeforeAcknowledgingAndWarmShareDeduplicates()throws Exception{
-        var instrumentation=InstrumentationRegistry.getInstrumentation();Context sender=instrumentation.getContext(),target=instrumentation.getTargetContext();
-        File fixture=new File(sender.getCacheDir(),"fixture.arcanum");
+    private static JSONObject fixture()throws JSONException{
         JSONObject item=new JSONObject().put("sourceId","instrumentation:wob1").put("title","Offline shared WoB").put("body","Transcript and personal notes").put("tags",new JSONArray().put("Cosmere")).put("sourceUrl","https://wob.coppermind.net/entry/1/").put("metadata",new JSONObject().put("needs_review",1)).put("assets",new JSONArray());
         JSONObject manifest=new JSONObject().put("format","arcanum-package").put("version",1).put("packageId","instrumentation").put("origin","android-test").put("items",new JSONArray().put(item));
-        try(ZipOutputStream zip=new ZipOutputStream(new FileOutputStream(fixture))){zip.putNextEntry(new ZipEntry("manifest.json"));zip.write(manifest.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));zip.closeEntry();}
+        return manifest;
+    }
+    @Test public void coldActivityShareSavesBeforeAcknowledgingAndWarmShareDeduplicates()throws Exception{
+        var instrumentation=InstrumentationRegistry.getInstrumentation();Context sender=instrumentation.getContext(),target=instrumentation.getTargetContext();
         Activity activity=null;
         for(int round=0;round<2;round++){
             CountDownLatch acked=new CountDownLatch(1);int[] code={0};String action=target.getPackageName()+".TEST_ACK_"+round;
