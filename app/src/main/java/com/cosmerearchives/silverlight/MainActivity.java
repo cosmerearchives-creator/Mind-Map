@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         arcanumShare = new ArcanumShare(this, state);
-        if (state == null) arcanumShare.accept(getIntent());
+        if (state == null || !state.containsKey("arcanumToken")) arcanumShare.accept(getIntent());
         manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         webView = new WebView(this);
         setContentView(webView);
