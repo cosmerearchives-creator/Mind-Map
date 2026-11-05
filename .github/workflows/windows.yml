@@ -1,7 +1,7 @@
 name: Build Windows installer
 on:
   push:
-    branches: [silverlight-interaction-fixes-20261026,feature/tab-editors-family-tree,feature/canvas-sheets-timelines-sources, feature/codex-library-search-highlights, fix/codex-link-lazy-targets, fix/navigation-performance-codex-links, fix/editor-selection-drag-dismiss, feature/codex-chapter-artwork-tiles, fix/epub-toc-chapter-titles, feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, fix/large-drive-sync-desktop-auth, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
+    branches: [feature/arcanum-sharing, silverlight-interaction-fixes-20261026,feature/tab-editors-family-tree,feature/canvas-sheets-timelines-sources, feature/codex-library-search-highlights, fix/codex-link-lazy-targets, fix/navigation-performance-codex-links, fix/editor-selection-drag-dismiss, feature/codex-chapter-artwork-tiles, fix/epub-toc-chapter-titles, feature/codex-artwork-context-menus, feature/codex-reading-research, feature/next-release-polish, fix/large-drive-sync-desktop-auth, main, feature/rich-notes-board-navigation, feature/workspace-polish, feature/milanote-import, feature/milanote-clipboard, feature/clipboard-layout-selection]
     paths:
       - 'app/**'
       - 'gradle/**'

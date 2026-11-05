@@ -34,7 +34,11 @@ final class BackupFiles {
             if ("begin".equals(op)) {
                 if (token != null || beginReply != null || closed) throw new IOException("Another backup is running.");
                 beginReply = proxy; beginId = id;
-                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT).setType("application/x-ndjson").addCategory(Intent.CATEGORY_OPENABLE).putExtra(Intent.EXTRA_TITLE,"archives-backup.jsonl");
+                String name = r.optString("name", "archives-backup.jsonl").replaceAll("[^a-zA-Z0-9._ -]", "_");
+                if (name.length() > 200) name = name.substring(0, 200);
+                String mime = r.optString("mime", "application/x-ndjson");
+                if (!mime.matches("[a-zA-Z0-9.+-]+/[a-zA-Z0-9.+-]+")) mime = "application/octet-stream";
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT).setType(mime).addCategory(Intent.CATEGORY_OPENABLE).putExtra(Intent.EXTRA_TITLE,name);
                 try { activity.startActivityForResult(intent, CREATE); } catch (Exception e) { beginReply = null; throw e; }
                 return;
             }

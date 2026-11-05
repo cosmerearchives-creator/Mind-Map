@@ -41,9 +41,12 @@ public class MainActivity extends Activity {
     private Uri readyApk;
     private DriveSync driveSync;
     private BackupFiles backupFiles;
+    private ArcanumShare arcanumShare;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        arcanumShare = new ArcanumShare(this, state);
+        if (state == null) arcanumShare.accept(getIntent());
         manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         webView = new WebView(this);
         setContentView(webView);
@@ -64,7 +67,8 @@ public class MainActivity extends Activity {
                 return true;
             }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
-                return loader.shouldInterceptRequest(req.getUrl());
+                WebResourceResponse share = arcanumShare.resource(req.getUrl());
+                return share != null ? share : loader.shouldInterceptRequest(req.getUrl());
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -78,6 +82,10 @@ public class MainActivity extends Activity {
         driveSync = new DriveSync(this);
         backupFiles = new BackupFiles(this);
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            WebViewCompat.addWebMessageListener(webView, "ArcanumShare", java.util.Collections.singleton("https://appassets.androidplatform.net"),
+                (view, message, origin, mainFrame, proxy) -> {
+                    if (mainFrame && "https".equals(origin.getScheme()) && "appassets.androidplatform.net".equals(origin.getHost()) && (origin.getPort() == -1 || origin.getPort() == 443)) arcanumShare.receive(message.getData(), proxy);
+                });
             WebViewCompat.addWebMessageListener(webView, "ArcanumBackup", java.util.Collections.singleton("https://appassets.androidplatform.net"),
                 (view, message, origin, mainFrame, proxy) -> {
                     if (mainFrame && "https".equals(origin.getScheme()) && "appassets.androidplatform.net".equals(origin.getHost()) && (origin.getPort() == -1 || origin.getPort() == 443)) backupFiles.receive(message.getData(), proxy);
@@ -94,6 +102,9 @@ public class MainActivity extends Activity {
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
         checkUpdates();
     }
+
+    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); arcanumShare.accept(intent); }
+    @Override protected void onSaveInstanceState(Bundle state) { super.onSaveInstanceState(state); arcanumShare.save(state); }
 
     private void checkUpdates() {
         new Thread(() -> {

@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+ <application>
+  <provider android:name="com.cosmerearchives.silverlight.SharingTest$FixtureProvider" android:authorities="com.cosmerearchives.silverlight.test.fixtures" android:exported="true" android:grantUriPermissions="true"/>
+ </application>
+</manifest>

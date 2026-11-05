@@ -7,8 +7,9 @@ android {
   applicationId 'com.cosmerearchives.silverlight'
   minSdk 26
   targetSdk 35
-  versionCode 1400000
-  versionName '0.14.0'
+  testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+  versionCode 1400001
+  versionName '0.14.1'
  }
  signingConfigs {
   release {
@@ -33,6 +34,8 @@ android {
  }
 }
 dependencies {
+ androidTestImplementation 'androidx.test:runner:1.6.2'
+ androidTestImplementation 'androidx.test.ext:junit:1.2.1'
  implementation 'androidx.webkit:webkit:1.12.1'
  implementation 'com.google.android.gms:play-services-auth:22.0.0'
 }
