@@ -13,7 +13,11 @@ internal sealed class BackupFiles : IDisposable
         if (op == "begin")
         {
             if (stream != null) throw new InvalidOperationException("A backup is already running.");
-            using var dialog = new SaveFileDialog { Filter = "Archives backup (*.jsonl)|*.jsonl", FileName = "archives-backup.jsonl", OverwritePrompt = true };
+            string name = request.TryGetProperty("name", out var named) ? Path.GetFileName(named.GetString() ?? "attachment.bin") : "archives-backup.jsonl";
+            foreach (char invalid in Path.GetInvalidFileNameChars()) name = name.Replace(invalid, '_');
+            if (string.IsNullOrWhiteSpace(name)) name = "attachment.bin";
+            if (name.Length > 200) name = name[..200];
+            using var dialog = new SaveFileDialog { Filter = request.TryGetProperty("name", out _) ? "Attachment (*.*)|*.*" : "Archives backup (*.jsonl)|*.jsonl", FileName = name, OverwritePrompt = true };
             if (dialog.ShowDialog(owner) != DialogResult.OK) throw new OperationCanceledException("Backup cancelled.");
             return Begin(dialog.FileName);
         }
@@ -29,8 +33,8 @@ internal sealed class BackupFiles : IDisposable
             if (op == "commit")
             {
                 await stream!.FlushAsync(); stream.Flush(true); stream.Position = 0;
-                using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);var block = new byte[65536];long total=0,lastYield=0;var tick=System.Diagnostics.Stopwatch.StartNew();progress?.Invoke(new {stage="verifying-file",bytes=0L});int read;
-                while((read=await stream.ReadAsync(block))!=0){sha.AppendData(block,0,read);total+=read;if(total-lastYield>=4*1024*1024){lastYield=total;if(tick.ElapsedMilliseconds>=500){progress?.Invoke(new {stage="verifying-file",bytes=total});tick.Restart();}await Task.Yield();}}
+                using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);var block = new byte[65536];long fileLength=stream.Length;long total=0,lastYield=0;var tick=System.Diagnostics.Stopwatch.StartNew();progress?.Invoke(new {stage="verifying-file",bytes=0L,total=fileLength});int read;
+                while((read=await stream.ReadAsync(block))!=0){sha.AppendData(block,0,read);total+=read;if(total-lastYield>=4*1024*1024){lastYield=total;if(tick.ElapsedMilliseconds>=500){progress?.Invoke(new {stage="verifying-file",bytes=total,total=fileLength});tick.Restart();}await Task.Yield();}}
                 progress?.Invoke(new {stage="verifying-file",bytes=total});string digest = Convert.ToHexString(sha.GetHashAndReset()).ToLowerInvariant();
                 if (digest != request.GetProperty("hash").GetString()) throw new InvalidOperationException("Backup file failed verification.");
                 await stream.DisposeAsync(); stream = null;
