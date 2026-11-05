@@ -1,7 +1,7 @@
 name: Build and publish Mind-Map APK
 on:
   push:
-    branches: [main, feature/sticky-relationships-progress, feature/arcanum-sharing]
+    branches: [fix/canvas-interaction-performance, main, feature/sticky-relationships-progress, feature/arcanum-sharing]
     paths:
       - 'app/**'
       - 'windows/**'

@@ -8,8 +8,8 @@ android {
   minSdk 26
   targetSdk 35
   testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-  versionCode 1400002
-  versionName '0.14.2'
+  versionCode 1400003
+  versionName '0.14.3'
  }
  signingConfigs {
   release {

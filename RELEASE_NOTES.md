@@ -1,3 +1,12 @@
+# Archives of Arcanum 0.14.3 — canvas interaction performance
+
+- Pan and zoom keep the canvas on a compositor layer; unchanged viewport membership no longer reparses every visible Sticky.
+- Selection updates existing cards directly. Canvas dimensions and unchanged navigation labels no longer force repeated layout work.
+- Saving ordinary Sticky notes preserves the canvas, fixing lost pointer gestures when returning from inline editing. Editing, undo history and durable saves remain intact.
+- Small Boards correctly refresh culled Stickies when zooming out.
+- Synthetic 25/115/500-Sticky interaction profiling, repeated editor and retained-memory checks; existing backup, sync, import and Android compatibility checks retained.
+- Offline storage, package identifiers, signing keys, backup/sync formats and updater asset names remain compatible.
+
 # Archives of Arcanum 0.14.2 — related research and operation progress
 
 - Optional package item IDs, validated Sticky background colors and stable-ID relationships. WoB Tracker exports blue source Stickies with separate connected white personal notes.
