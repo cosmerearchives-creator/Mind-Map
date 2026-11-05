@@ -1,0 +1,21 @@
+name: Build isolated WebView2 profiling host
+on:
+  push:
+    branches: [fix/canvas-interaction-performance]
+    paths: ['tests/canvas-native/**', '.github/workflows/canvas-profile-host.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  host:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet publish tests/canvas-native/Canvas.ProfileHost.csproj -c Release -r win-x64 --self-contained true -o tmp/profile-host
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Canvas-ProfileHost
+          path: tmp/profile-host
