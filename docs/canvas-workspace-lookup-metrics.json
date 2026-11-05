@@ -1,0 +1,1438 @@
+{
+  "baseline": "0.14.3",
+  "fix": "0.14.4",
+  "notes": [
+    "Aggregate measurements only; no private Board data, content, identifiers, titles, image bytes, or backup is included.",
+    "Private backup-derived model retains all 512 deferred Board documents. Native account and data bridges are disabled.",
+    "Animation callback intervals are not direct input-to-photon latency.",
+    "All after measurements retain normal viewport culling."
+  ],
+  "cases": {
+    "case37": {
+      "cards": 37,
+      "connections": 19,
+      "workspaceBoards": 512,
+      "engine": "Headless Edge",
+      "viewport": [
+        1920,
+        970
+      ],
+      "before": [
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "pan",
+          "elapsed": 5505,
+          "mounted": 33,
+          "frames": {
+            "n": 227,
+            "totalMs": 5466.7,
+            "p50Ms": 16.7,
+            "p95Ms": 33.4,
+            "maxMs": 233.4
+          },
+          "longTasks": [
+            {
+              "start": 1608.6000000238419,
+              "duration": 68
+            },
+            {
+              "start": 1990,
+              "duration": 194
+            },
+            {
+              "start": 2473.2999999523163,
+              "duration": 175
+            },
+            {
+              "start": 2940,
+              "duration": 138
+            },
+            {
+              "start": 3390,
+              "duration": 175
+            },
+            {
+              "start": 3790.100000023842,
+              "duration": 194
+            },
+            {
+              "start": 4206.699999928474,
+              "duration": 232
+            },
+            {
+              "start": 4656.699999928474,
+              "duration": 238
+            },
+            {
+              "start": 5123.399999976158,
+              "duration": 250
+            },
+            {
+              "start": 6240.100000023842,
+              "duration": 239
+            },
+            {
+              "start": 6799.199999928474,
+              "duration": 70
+            }
+          ],
+          "functions": {
+            "size": {
+              "n": 1337,
+              "totalMs": 0.6,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 9,
+              "totalMs": 19.2,
+              "p50Ms": 2.1,
+              "p95Ms": 2.2,
+              "maxMs": 2.2
+            },
+            "runtime.patch": {
+              "n": 9,
+              "totalMs": 9.4,
+              "p50Ms": 1,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "drawWires": {
+              "n": 9,
+              "totalMs": 19.8,
+              "p50Ms": 2.2,
+              "p95Ms": 2.3,
+              "maxMs": 2.3
+            },
+            "drawCards": {
+              "n": 9,
+              "totalMs": 1723.9,
+              "p50Ms": 182.4,
+              "p95Ms": 237.5,
+              "maxMs": 237.5
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "zoom",
+          "elapsed": 4375,
+          "mounted": 31,
+          "frames": {
+            "n": 95,
+            "totalMs": 4350.1,
+            "p50Ms": 16.7,
+            "p95Ms": 199.9,
+            "maxMs": 216.7
+          },
+          "longTasks": [
+            {
+              "start": 7140.100000023842,
+              "duration": 213
+            },
+            {
+              "start": 7390.199999928474,
+              "duration": 207
+            },
+            {
+              "start": 7606.799999952316,
+              "duration": 194
+            },
+            {
+              "start": 7906.799999952316,
+              "duration": 181
+            },
+            {
+              "start": 8090.100000023842,
+              "duration": 168
+            },
+            {
+              "start": 8373.5,
+              "duration": 162
+            },
+            {
+              "start": 8573.600000023842,
+              "duration": 156
+            },
+            {
+              "start": 8740.199999928474,
+              "duration": 150
+            },
+            {
+              "start": 9006.899999976158,
+              "duration": 144
+            },
+            {
+              "start": 9156.899999976158,
+              "duration": 150
+            },
+            {
+              "start": 9423.5,
+              "duration": 156
+            },
+            {
+              "start": 9590.199999928474,
+              "duration": 163
+            },
+            {
+              "start": 9790.199999928474,
+              "duration": 168
+            },
+            {
+              "start": 10073.5,
+              "duration": 181
+            },
+            {
+              "start": 10256.899999976158,
+              "duration": 194
+            },
+            {
+              "start": 10556.899999976158,
+              "duration": 207
+            },
+            {
+              "start": 10773.5,
+              "duration": 213
+            },
+            {
+              "start": 11023.600000023842,
+              "duration": 229
+            }
+          ],
+          "functions": {
+            "updateTransform": {
+              "n": 40,
+              "totalMs": 84.1,
+              "p50Ms": 2.1,
+              "p95Ms": 2.2,
+              "maxMs": 2.2
+            },
+            "saveNavigation": {
+              "n": 40,
+              "totalMs": 5.2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "size": {
+              "n": 3178,
+              "totalMs": 0.5,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 18,
+              "totalMs": 38.6,
+              "p50Ms": 2.2,
+              "p95Ms": 2.2,
+              "maxMs": 2.2
+            },
+            "runtime.patch": {
+              "n": 18,
+              "totalMs": 16.1,
+              "p50Ms": 0.9,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "drawWires": {
+              "n": 18,
+              "totalMs": 40.1,
+              "p50Ms": 2.2,
+              "p95Ms": 2.3,
+              "maxMs": 2.3
+            },
+            "drawCards": {
+              "n": 18,
+              "totalMs": 3017.6,
+              "p50Ms": 169.1,
+              "p95Ms": 216.6,
+              "maxMs": 216.6
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 0.33,
+          "action": "pan",
+          "elapsed": 4289,
+          "mounted": 37,
+          "frames": {
+            "n": 226,
+            "totalMs": 4266.8,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 249.9
+          },
+          "longTasks": [
+            {
+              "start": 12157.600000023842,
+              "duration": 81
+            },
+            {
+              "start": 14507,
+              "duration": 206
+            },
+            {
+              "start": 15573.699999928474,
+              "duration": 264
+            },
+            {
+              "start": 16149.399999976158,
+              "duration": 78
+            }
+          ],
+          "functions": {
+            "size": {
+              "n": 575,
+              "totalMs": 0.4,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 2,
+              "totalMs": 4.4,
+              "p50Ms": 2.2,
+              "p95Ms": 2.2,
+              "maxMs": 2.2
+            },
+            "runtime.patch": {
+              "n": 2,
+              "totalMs": 2.3,
+              "p50Ms": 1.2,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "drawWires": {
+              "n": 2,
+              "totalMs": 4.6,
+              "p50Ms": 2.3,
+              "p95Ms": 2.3,
+              "maxMs": 2.3
+            },
+            "drawCards": {
+              "n": 2,
+              "totalMs": 445.2,
+              "p50Ms": 251,
+              "p95Ms": 251,
+              "maxMs": 251
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 0.33,
+          "action": "zoom",
+          "elapsed": 1981,
+          "mounted": 37,
+          "frames": {
+            "n": 93,
+            "totalMs": 1966.6,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 250.1
+          },
+          "longTasks": [
+            {
+              "start": 16940.399999976158,
+              "duration": 206
+            },
+            {
+              "start": 17490.399999976158,
+              "duration": 264
+            }
+          ],
+          "functions": {
+            "updateTransform": {
+              "n": 40,
+              "totalMs": 84.5,
+              "p50Ms": 2.1,
+              "p95Ms": 2.2,
+              "maxMs": 2.2
+            },
+            "saveNavigation": {
+              "n": 40,
+              "totalMs": 4.7,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "size": {
+              "n": 1686,
+              "totalMs": 0.8,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 2,
+              "totalMs": 4.4,
+              "p50Ms": 2.2,
+              "p95Ms": 2.2,
+              "maxMs": 2.2
+            },
+            "runtime.patch": {
+              "n": 2,
+              "totalMs": 2.3,
+              "p50Ms": 1.2,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "drawWires": {
+              "n": 2,
+              "totalMs": 5,
+              "p50Ms": 2.8,
+              "p95Ms": 2.8,
+              "maxMs": 2.8
+            },
+            "drawCards": {
+              "n": 2,
+              "totalMs": 444.8,
+              "p50Ms": 250.7,
+              "p95Ms": 250.7,
+              "maxMs": 250.7
+            }
+          }
+        }
+      ],
+      "after": [
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "pan",
+          "elapsed": 3733,
+          "mounted": 33,
+          "frames": {
+            "n": 223,
+            "totalMs": 3716.8,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 16.8
+          },
+          "longTasks": [],
+          "functions": {
+            "size": {
+              "n": 1337,
+              "totalMs": 0.3,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 9,
+              "totalMs": 0.7,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            },
+            "runtime.patch": {
+              "n": 9,
+              "totalMs": 9.1,
+              "p50Ms": 1,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "drawWires": {
+              "n": 9,
+              "totalMs": 1.4,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "drawCards": {
+              "n": 9,
+              "totalMs": 31.6,
+              "p50Ms": 3.5,
+              "p95Ms": 4.1,
+              "maxMs": 4.1
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "zoom",
+          "elapsed": 1579,
+          "mounted": 31,
+          "frames": {
+            "n": 92,
+            "totalMs": 1533.4,
+            "p50Ms": 16.7,
+            "p95Ms": 16.7,
+            "maxMs": 16.8
+          },
+          "longTasks": [],
+          "functions": {
+            "updateTransform": {
+              "n": 40,
+              "totalMs": 2.8,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            },
+            "saveNavigation": {
+              "n": 40,
+              "totalMs": 5.3,
+              "p50Ms": 0.1,
+              "p95Ms": 0.3,
+              "maxMs": 0.4
+            },
+            "size": {
+              "n": 3178,
+              "totalMs": 1.1,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 18,
+              "totalMs": 0.8,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            },
+            "runtime.patch": {
+              "n": 18,
+              "totalMs": 16.4,
+              "p50Ms": 0.9,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "drawWires": {
+              "n": 18,
+              "totalMs": 3.2,
+              "p50Ms": 0.2,
+              "p95Ms": 0.3,
+              "maxMs": 0.3
+            },
+            "drawCards": {
+              "n": 18,
+              "totalMs": 54.6,
+              "p50Ms": 3,
+              "p95Ms": 3.7,
+              "maxMs": 3.7
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 0.33,
+          "action": "pan",
+          "elapsed": 3734,
+          "mounted": 37,
+          "frames": {
+            "n": 222,
+            "totalMs": 3700.1,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 16.9
+          },
+          "longTasks": [],
+          "functions": {
+            "size": {
+              "n": 575,
+              "totalMs": 0.4,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 2,
+              "totalMs": 0.1,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            },
+            "runtime.patch": {
+              "n": 2,
+              "totalMs": 2.5,
+              "p50Ms": 1.3,
+              "p95Ms": 1.3,
+              "maxMs": 1.3
+            },
+            "drawWires": {
+              "n": 2,
+              "totalMs": 0.3,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "drawCards": {
+              "n": 2,
+              "totalMs": 8.4,
+              "p50Ms": 4.7,
+              "p95Ms": 4.7,
+              "maxMs": 4.7
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 0.33,
+          "action": "zoom",
+          "elapsed": 1561,
+          "mounted": 37,
+          "frames": {
+            "n": 92,
+            "totalMs": 1533.4,
+            "p50Ms": 16.7,
+            "p95Ms": 16.7,
+            "maxMs": 16.8
+          },
+          "longTasks": [],
+          "functions": {
+            "updateTransform": {
+              "n": 40,
+              "totalMs": 3.2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "saveNavigation": {
+              "n": 40,
+              "totalMs": 5.2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.3
+            },
+            "size": {
+              "n": 1686,
+              "totalMs": 0.7,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 2,
+              "totalMs": 0.2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            },
+            "runtime.patch": {
+              "n": 2,
+              "totalMs": 2.3,
+              "p50Ms": 1.2,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "drawWires": {
+              "n": 2,
+              "totalMs": 0.3,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "drawCards": {
+              "n": 2,
+              "totalMs": 7.8,
+              "p50Ms": 4.1,
+              "p95Ms": 4.1,
+              "maxMs": 4.1
+            }
+          }
+        }
+      ]
+    },
+    "case115": {
+      "cards": 115,
+      "connections": 7,
+      "workspaceBoards": 512,
+      "engine": "Headless Edge",
+      "viewport": [
+        1920,
+        970
+      ],
+      "before": [
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "pan",
+          "elapsed": 11134,
+          "mounted": 16,
+          "frames": {
+            "n": 226,
+            "totalMs": 11100.4,
+            "p50Ms": 33.4,
+            "p95Ms": 50.1,
+            "maxMs": 733.3
+          },
+          "longTasks": [
+            {
+              "start": 3527.7000000476837,
+              "duration": 170
+            },
+            {
+              "start": 4403.399999976158,
+              "duration": 66
+            },
+            {
+              "start": 5166.200000047684,
+              "duration": 66
+            },
+            {
+              "start": 5924.899999976158,
+              "duration": 504
+            },
+            {
+              "start": 7159.399999976158,
+              "duration": 624
+            },
+            {
+              "start": 8322.299999952316,
+              "duration": 66
+            },
+            {
+              "start": 8928.299999952316,
+              "duration": 66
+            },
+            {
+              "start": 9533.399999976158,
+              "duration": 67
+            },
+            {
+              "start": 10138.200000047684,
+              "duration": 734
+            },
+            {
+              "start": 12874.200000047684,
+              "duration": 616
+            },
+            {
+              "start": 14268.299999952316,
+              "duration": 162
+            }
+          ],
+          "functions": {
+            "size": {
+              "n": 388,
+              "totalMs": 1,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 4,
+              "totalMs": 38.1,
+              "p50Ms": 9.5,
+              "p95Ms": 9.6,
+              "maxMs": 9.6
+            },
+            "runtime.patch": {
+              "n": 4,
+              "totalMs": 4.3,
+              "p50Ms": 1.2,
+              "p95Ms": 1.2,
+              "maxMs": 1.2
+            },
+            "drawWires": {
+              "n": 4,
+              "totalMs": 75.9,
+              "p50Ms": 19,
+              "p95Ms": 19.1,
+              "maxMs": 19.1
+            },
+            "drawCards": {
+              "n": 4,
+              "totalMs": 2240.8,
+              "p50Ms": 561.9,
+              "p95Ms": 673.8,
+              "maxMs": 673.8
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "zoom",
+          "elapsed": 5421,
+          "mounted": 16,
+          "frames": {
+            "n": 93,
+            "totalMs": 5400.1,
+            "p50Ms": 16.7,
+            "p95Ms": 66.8,
+            "maxMs": 616.6
+          },
+          "longTasks": [
+            {
+              "start": 14692.799999952316,
+              "duration": 68
+            },
+            {
+              "start": 14776,
+              "duration": 67
+            },
+            {
+              "start": 14859.299999952316,
+              "duration": 68
+            },
+            {
+              "start": 14942.700000047684,
+              "duration": 68
+            },
+            {
+              "start": 15026,
+              "duration": 67
+            },
+            {
+              "start": 15109.299999952316,
+              "duration": 68
+            },
+            {
+              "start": 15192.700000047684,
+              "duration": 503
+            },
+            {
+              "start": 15709.299999952316,
+              "duration": 68
+            },
+            {
+              "start": 15792.700000047684,
+              "duration": 503
+            },
+            {
+              "start": 16309.399999976158,
+              "duration": 68
+            },
+            {
+              "start": 16392.700000047684,
+              "duration": 69
+            },
+            {
+              "start": 16476.100000023842,
+              "duration": 68
+            },
+            {
+              "start": 16559.399999976158,
+              "duration": 67
+            },
+            {
+              "start": 16642.799999952316,
+              "duration": 68
+            },
+            {
+              "start": 16726.100000023842,
+              "duration": 67
+            },
+            {
+              "start": 16809.399999976158,
+              "duration": 68
+            },
+            {
+              "start": 16892.799999952316,
+              "duration": 67
+            },
+            {
+              "start": 16976.100000023842,
+              "duration": 68
+            },
+            {
+              "start": 17059.399999976158,
+              "duration": 67
+            },
+            {
+              "start": 17142.799999952316,
+              "duration": 67
+            },
+            {
+              "start": 17226.100000023842,
+              "duration": 67
+            },
+            {
+              "start": 17309.399999976158,
+              "duration": 67
+            },
+            {
+              "start": 17392.700000047684,
+              "duration": 67
+            },
+            {
+              "start": 17476.100000023842,
+              "duration": 68
+            },
+            {
+              "start": 17559.399999976158,
+              "duration": 67
+            },
+            {
+              "start": 17642.700000047684,
+              "duration": 68
+            },
+            {
+              "start": 17726.200000047684,
+              "duration": 73
+            },
+            {
+              "start": 17809.5,
+              "duration": 68
+            },
+            {
+              "start": 17892.799999952316,
+              "duration": 67
+            },
+            {
+              "start": 17976.100000023842,
+              "duration": 68
+            },
+            {
+              "start": 18059.5,
+              "duration": 67
+            },
+            {
+              "start": 18142.799999952316,
+              "duration": 503
+            },
+            {
+              "start": 18659.399999976158,
+              "duration": 74
+            },
+            {
+              "start": 18743,
+              "duration": 621
+            },
+            {
+              "start": 19376.200000047684,
+              "duration": 67
+            },
+            {
+              "start": 19459.5,
+              "duration": 68
+            },
+            {
+              "start": 19542.799999952316,
+              "duration": 67
+            },
+            {
+              "start": 19626.200000047684,
+              "duration": 68
+            },
+            {
+              "start": 19709.5,
+              "duration": 68
+            },
+            {
+              "start": 19792.799999952316,
+              "duration": 67
+            }
+          ],
+          "functions": {
+            "updateTransform": {
+              "n": 40,
+              "totalMs": 380.6,
+              "p50Ms": 9.5,
+              "p95Ms": 9.8,
+              "maxMs": 9.9
+            },
+            "saveNavigation": {
+              "n": 40,
+              "totalMs": 5.6,
+              "p50Ms": 0.1,
+              "p95Ms": 0.3,
+              "maxMs": 0.3
+            },
+            "size": {
+              "n": 846,
+              "totalMs": 2.5,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 4,
+              "totalMs": 38.7,
+              "p50Ms": 9.7,
+              "p95Ms": 9.7,
+              "maxMs": 9.7
+            },
+            "runtime.patch": {
+              "n": 4,
+              "totalMs": 3.5,
+              "p50Ms": 0.9,
+              "p95Ms": 1.1,
+              "maxMs": 1.1
+            },
+            "drawWires": {
+              "n": 4,
+              "totalMs": 76.6,
+              "p50Ms": 19,
+              "p95Ms": 19.8,
+              "maxMs": 19.8
+            },
+            "drawCards": {
+              "n": 4,
+              "totalMs": 1893.9,
+              "p50Ms": 445.3,
+              "p95Ms": 560.1,
+              "maxMs": 560.1
+            }
+          }
+        }
+      ],
+      "after": [
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "pan",
+          "elapsed": 3722,
+          "mounted": 16,
+          "frames": {
+            "n": 222,
+            "totalMs": 3700.1,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 16.8
+          },
+          "longTasks": [],
+          "functions": {
+            "size": {
+              "n": 388,
+              "totalMs": 1.5,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 4,
+              "totalMs": 0.7,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "runtime.patch": {
+              "n": 4,
+              "totalMs": 4.5,
+              "p50Ms": 1.2,
+              "p95Ms": 1.3,
+              "maxMs": 1.3
+            },
+            "drawWires": {
+              "n": 4,
+              "totalMs": 0.9,
+              "p50Ms": 0.2,
+              "p95Ms": 0.3,
+              "maxMs": 0.3
+            },
+            "drawCards": {
+              "n": 4,
+              "totalMs": 17.6,
+              "p50Ms": 4.5,
+              "p95Ms": 4.9,
+              "maxMs": 4.9
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "zoom",
+          "elapsed": 1555,
+          "mounted": 16,
+          "frames": {
+            "n": 92,
+            "totalMs": 1533.4,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 16.8
+          },
+          "longTasks": [],
+          "functions": {
+            "updateTransform": {
+              "n": 40,
+              "totalMs": 4.9,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.3
+            },
+            "saveNavigation": {
+              "n": 40,
+              "totalMs": 6.4,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.3
+            },
+            "size": {
+              "n": 846,
+              "totalMs": 2.6,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 4,
+              "totalMs": 0.5,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "runtime.patch": {
+              "n": 4,
+              "totalMs": 3.4,
+              "p50Ms": 0.9,
+              "p95Ms": 1,
+              "maxMs": 1
+            },
+            "drawWires": {
+              "n": 4,
+              "totalMs": 0.6,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "drawCards": {
+              "n": 4,
+              "totalMs": 14.1,
+              "p50Ms": 3.5,
+              "p95Ms": 4.2,
+              "maxMs": 4.2
+            }
+          }
+        }
+      ]
+    },
+    "native37": {
+      "cards": 37,
+      "connections": 19,
+      "workspaceBoards": 512,
+      "engine": "Visible WinForms WebView2",
+      "viewport": [
+        1400,
+        1000
+      ],
+      "before": [
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "pan",
+          "elapsed": 4554,
+          "mounted": 16,
+          "frames": {
+            "n": 226,
+            "totalMs": 4516.7,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 166.6
+          },
+          "longTasks": [
+            {
+              "start": 1644.8000000715256,
+              "duration": 87
+            },
+            {
+              "start": 2028.2000000476837,
+              "duration": 74
+            },
+            {
+              "start": 2394.8000000715256,
+              "duration": 68
+            },
+            {
+              "start": 2778.2000000476837,
+              "duration": 81
+            },
+            {
+              "start": 3078.2000000476837,
+              "duration": 93
+            },
+            {
+              "start": 3394.9000000953674,
+              "duration": 120
+            },
+            {
+              "start": 3744.8000000715256,
+              "duration": 138
+            },
+            {
+              "start": 4111.5,
+              "duration": 180
+            },
+            {
+              "start": 5144.900000095367,
+              "duration": 131
+            }
+          ],
+          "functions": {
+            "size": {
+              "n": 833,
+              "totalMs": 0.3,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 9,
+              "totalMs": 18.6,
+              "p50Ms": 2.1,
+              "p95Ms": 2.2,
+              "maxMs": 2.2
+            },
+            "runtime.patch": {
+              "n": 9,
+              "totalMs": 4.9,
+              "p50Ms": 0.5,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "drawWires": {
+              "n": 9,
+              "totalMs": 20.2,
+              "p50Ms": 2.2,
+              "p95Ms": 2.3,
+              "maxMs": 2.3
+            },
+            "drawCards": {
+              "n": 9,
+              "totalMs": 862.1,
+              "p50Ms": 81.7,
+              "p95Ms": 163.5,
+              "maxMs": 163.5
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "zoom",
+          "elapsed": 2501,
+          "mounted": 13,
+          "frames": {
+            "n": 94,
+            "totalMs": 2483.4,
+            "p50Ms": 16.7,
+            "p95Ms": 83.4,
+            "maxMs": 100
+          },
+          "longTasks": [
+            {
+              "start": 5894.900000095367,
+              "duration": 113
+            },
+            {
+              "start": 6011.600000023842,
+              "duration": 106
+            },
+            {
+              "start": 6161.600000023842,
+              "duration": 100
+            },
+            {
+              "start": 6378.200000047684,
+              "duration": 93
+            },
+            {
+              "start": 6644.900000095367,
+              "duration": 87
+            },
+            {
+              "start": 6778.200000047684,
+              "duration": 81
+            },
+            {
+              "start": 6928.300000071526,
+              "duration": 74
+            },
+            {
+              "start": 7078.300000071526,
+              "duration": 81
+            },
+            {
+              "start": 7228.300000071526,
+              "duration": 87
+            },
+            {
+              "start": 7361.700000047684,
+              "duration": 94
+            },
+            {
+              "start": 7628.300000071526,
+              "duration": 100
+            },
+            {
+              "start": 7845,
+              "duration": 106
+            },
+            {
+              "start": 7995.100000023842,
+              "duration": 114
+            }
+          ],
+          "functions": {
+            "updateTransform": {
+              "n": 40,
+              "totalMs": 86,
+              "p50Ms": 2.1,
+              "p95Ms": 2.3,
+              "maxMs": 2.6
+            },
+            "saveNavigation": {
+              "n": 40,
+              "totalMs": 5.2,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.3
+            },
+            "size": {
+              "n": 1904,
+              "totalMs": 0.8,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 13,
+              "totalMs": 27.3,
+              "p50Ms": 2.1,
+              "p95Ms": 2.2,
+              "maxMs": 2.2
+            },
+            "runtime.patch": {
+              "n": 13,
+              "totalMs": 6.4,
+              "p50Ms": 0.5,
+              "p95Ms": 0.6,
+              "maxMs": 0.6
+            },
+            "drawWires": {
+              "n": 13,
+              "totalMs": 29.2,
+              "p50Ms": 2.2,
+              "p95Ms": 2.3,
+              "maxMs": 2.3
+            },
+            "drawCards": {
+              "n": 13,
+              "totalMs": 1082.5,
+              "p50Ms": 81.7,
+              "p95Ms": 101.9,
+              "maxMs": 101.9
+            }
+          }
+        }
+      ],
+      "after": [
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "pan",
+          "elapsed": 3744,
+          "mounted": 16,
+          "frames": {
+            "n": 222,
+            "totalMs": 3700.1,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 16.8
+          },
+          "longTasks": [],
+          "functions": {
+            "size": {
+              "n": 833,
+              "totalMs": 0.7,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 9,
+              "totalMs": 0.7,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "runtime.patch": {
+              "n": 9,
+              "totalMs": 5.3,
+              "p50Ms": 0.6,
+              "p95Ms": 0.9,
+              "maxMs": 0.9
+            },
+            "drawWires": {
+              "n": 9,
+              "totalMs": 1.6,
+              "p50Ms": 0.2,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "drawCards": {
+              "n": 9,
+              "totalMs": 19.7,
+              "p50Ms": 2,
+              "p95Ms": 3.5,
+              "maxMs": 3.5
+            }
+          }
+        },
+        {
+          "mode": "normal",
+          "scale": 1,
+          "action": "zoom",
+          "elapsed": 1574,
+          "mounted": 13,
+          "frames": {
+            "n": 93,
+            "totalMs": 1550,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 16.8
+          },
+          "longTasks": [],
+          "functions": {
+            "updateTransform": {
+              "n": 40,
+              "totalMs": 3.4,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "saveNavigation": {
+              "n": 40,
+              "totalMs": 5.6,
+              "p50Ms": 0.1,
+              "p95Ms": 0.2,
+              "maxMs": 0.2
+            },
+            "size": {
+              "n": 1904,
+              "totalMs": 0.6,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 0.1
+            },
+            "runtime.visible": {
+              "n": 13,
+              "totalMs": 0.6,
+              "p50Ms": 0,
+              "p95Ms": 0.1,
+              "maxMs": 0.1
+            },
+            "runtime.patch": {
+              "n": 13,
+              "totalMs": 6,
+              "p50Ms": 0.5,
+              "p95Ms": 0.6,
+              "maxMs": 0.6
+            },
+            "drawWires": {
+              "n": 13,
+              "totalMs": 2.5,
+              "p50Ms": 0.2,
+              "p95Ms": 0.3,
+              "maxMs": 0.3
+            },
+            "drawCards": {
+              "n": 13,
+              "totalMs": 22.6,
+              "p50Ms": 1.7,
+              "p95Ms": 2.1,
+              "maxMs": 2.1
+            }
+          }
+        }
+      ]
+    }
+  }
+}

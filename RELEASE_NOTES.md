@@ -1,3 +1,10 @@
+# Archives of Arcanum 0.14.4 — continuous pan and zoom in large workspaces
+
+- Resolve the active canvas Board once per lookup. Previously, every entry examined during a Board search recalculated its target, making pan and visibility redraws increasingly expensive as the workspace grew.
+- Verified continuous middle-mouse panning and Ctrl-wheel zoom against an isolated opt-in backup, including the 37-Sticky and 115-Sticky cases. Existing viewport culling remains enabled.
+- Add a synthetic 512-Board regression covering a late-position active Board, bounded target resolution, preserved Board data, and navigation after reload.
+- Offline storage, undo, sync, backups, package IDs, signing identity and normal updater asset names remain compatible.
+
 # Archives of Arcanum 0.14.3 — canvas interaction performance
 
 - Pan and zoom keep the canvas on a compositor layer; unchanged viewport membership no longer reparses every visible Sticky.
