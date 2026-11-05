@@ -1,3 +1,13 @@
+# Archives of Arcanum 0.14.1 — offline Android app sharing
+
+- Import versioned .arcanum ZIP packages with titles, plain-text notes, tags, complete source metadata, images and attachments.
+- Global Dumping Ground inbox separate from every Board's existing Unsorted Library; included in existing backups and optional sync.
+- Android ACTION_SEND content-URI receiver works with a newly launched or already open app. Import validation and bounded ZIP expansion protect workspace data.
+- Exact source retries deduplicate across all Boards; changed source versions append without overwriting existing notes.
+- WoB Tracker can share directly with the official signed Archives app. Only a successful atomic local save triggers its one-use acknowledgment. Canceled/failed transfers stay queued; entries edited during delivery stay queued; review notes and highlights are preserved.
+- Existing package IDs, signing identity, storage, massive-workspace backups and sync formats remain compatible. Windows and Android assets publish together.
+- Transfer limits: 32 MiB ZIP, 64 MiB expanded, 16 MiB per asset, 4 MiB manifest, 1000 source items. See docs/arcanum-package-v1.md. These are transfer limits, not workspace limits.
+
 ## Archives of Arcanum 0.14.0 — large-workspace reliability
 
 - Replace whole-workspace JSON backup generation with streaming, checksummed JSON-lines backups (.jsonl). Board metadata and original images travel in bounded records; no full backup Blob, giant JSON string or all-image worker bundle is created. Include workspace metadata, connections, nested Boards, Family Trees/portraits, Codex sources/artwork and original image bytes.

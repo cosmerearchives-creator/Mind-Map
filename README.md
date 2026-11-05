@@ -24,9 +24,9 @@ Donations and shout-outs are welcome, entirely voluntary, and never required for
 
 [Latest Windows release](https://github.com/cosmerearchives-creator/Mind-Map/releases/latest)
 
-[Existing Android 0.10.1 APK](https://github.com/cosmerearchives-creator/Mind-Map/releases/download/v0.10.1/Silverlight.apk)
+[Latest Android and Windows releases](https://github.com/cosmerearchives-creator/Mind-Map/releases/latest)
 
-Desktop development is the current focus. Mobile-specific fixes and new APK releases are paused; existing Android installations retain access and Google Drive compatibility. See [development focus](docs/development-focus.md).
+Android app-to-app sharing is available from 0.14.1. Send .arcanum files from WoB Tracker or choose Import .arcanum on Home. Research arrives in the global Dumping Ground. [Transfer format and acknowledgment behavior](docs/arcanum-package-v1.md).
 
 ## Update behavior
 
@@ -36,6 +36,6 @@ Windows checks published releases for a newer **Silverlight-Setup.exe**. Android
 
 ## Development
 
-Changes pushed to `main` trigger the Windows validation and installer build. The release workflow publishes the active platforms from `release-version.json` only after their exact-main builds succeed. Android builds are manual while mobile development is paused. Shared application source is in `app/src/main/assets/`.
+Changes pushed to `main` trigger the Windows validation and installer build. The release workflow publishes the active platforms from `release-version.json` only after their exact-main builds succeed. Android builds and offline sharing tests run with coordinated updates. Shared application source is in `app/src/main/assets/`.
 
 Android application ID remains `com.cosmerearchives.silverlight` to preserve package identity.
