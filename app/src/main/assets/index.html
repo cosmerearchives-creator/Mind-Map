@@ -234,7 +234,7 @@ const milanoteImporter=MilanoteImport.install({modal,close:closeModal,esc,state:
 const homeCanvas=installHomeCanvas({move:(bid,p)=>mutate(()=>{const b=state.boards.find(b=>b.id===bid);if(b){b.homePosition=p;b.updated=Date.now()}})});
 const imageRegions=installImageRegions({board:activeBoard,targets:c=>boardRuntime.prepare(activeBoard()).imageRegions.get(c.id)||[],esc,modal,close:closeModal,mutate,size:stickySize,imageSize,create:(...args)=>createCardAt(...args),edit:cid=>editCard(cid),go:(...args)=>noteTools.go(...args)});
 const workspaceUI=installWorkspaceUI();
-installArcanumImport({state:()=>state,esc,modal,close:closeModal,
+installArcanumImport({state:()=>state,board:activeBoard,esc,modal,close:closeModal,
  ready:()=>databaseReady&&!backupBusy&&!restoringWorkspace&&!tabEditors?.busy()&&!tabEditors?.parked()&&!gesture&&!paintSession,
  open:()=>{if(!state.boards.some(b=>b.id===ArcanumPackage.GROUND))mutate(()=>state.boards.push({id:ArcanumPackage.GROUND,title:'Dumping Ground',cards:[],unsorted:[],connections:[],created:Date.now(),updated:Date.now()}));ensureTab(ArcanumPackage.GROUND)},
  commit:async pkg=>{if(driveController.isRunning())throw Error('Wait for the current sync to finish, then retry.');const expected=SilverlightAssets.syncFingerprint(state);const result=await ArcanumPackage.plan(state,pkg,id);if(driveController.isRunning())throw Error('Wait for sync to finish, then retry.');if(SilverlightAssets.syncFingerprint(state)!==expected)throw Error('Workspace changed; retry import.');
