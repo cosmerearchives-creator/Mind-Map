@@ -35,6 +35,6 @@ All fixtures are synthetic. No user backup or installed app workspace was edited
 
 ## Remaining release work
 
-Native Windows/Android builds and actual-device checks remain outstanding: this machine has a .NET runtime but no installed .NET SDK, Java or Android build tools. Browser native-bridge simulations do not establish actual-device behavior. No version metadata has been bumped and no installer/APK has been built or published for this change.
+Native Windows/Android builds and actual-device checks remain outstanding: this machine has a .NET runtime but no installed .NET SDK, Java or Android build tools. Browser native-bridge simulations do not establish actual-device behavior. Release 0.15.0 is now prepared locally: Windows version 0.15.0 and Android version 0.15.0 / versionCode 1500000. No installer/APK has been built or published for this change. The coordinated main-branch pipeline requires both platforms before publishing the updater-visible latest release.
 
 User requires a two-step push gate: the user first says to push; then the assistant confirms the exact intended push and waits for explicit confirmation. This local implementation is not either step. Keep release publication and version changes pending that review.

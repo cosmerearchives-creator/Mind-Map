@@ -1,3 +1,15 @@
+# Archives of Arcanum 0.15.0 — first prerelease UI update
+
+- Double-click text Stickies to edit at the clicked character. Imported WoB HTML displays supported paragraphs, emphasis, lists, entities and source hyperlinks.
+- Rename the canvas brush control to Paint Canvas. Reserve image frames with placeholders and replace them later while preserving identity, position, size, notes and connections.
+- Add offline Smart shape proposals for circular/elliptical and rectangular image regions, with manual handles, pixel margins, keyboard adjustment and Undo.
+- Move selected Dumping Ground items to existing or new Boards only after a successful workspace save. Related groups and imported companion images travel together; source metadata and deduplication IDs remain intact.
+- Condense project controls into a home-only horizontal row alongside the app name. Condense Drive controls into a scrolling action row and grouped menus; retain live progress, last-sync status and operation feedback, with timing diagnostics collapsed.
+- Export a self-contained read-only Board HTML file and iframe snippet. Select which nested Boards to include; excluded Board content, references and assets are absent from the generated file. A separate sanitized viewer supports navigation and pan/zoom without workspace editors or save/native operations. Attachments are opt-in. HTML exports are limited to 5,000 Stickies and 64 MiB.
+- Preserve offline operation, existing accounts/storage, Android package/signing identity, backup and sync formats, and updater asset names. Windows and Android release together after both build gates pass.
+
+Validation: all 52 existing browser suites (including reruns after correcting compact sync-row overflow/menu behavior), three new feature suites, shared import/backup/sync checks, and a 552,463,216-byte physical backup round-trip/corruption/cancellation stress test. Test fixtures are synthetic. The release workflows also run Windows native checks, signed Android builds, offline Android cold/warm share tests and packaged-asset verification. Physical-device UI and live Google Drive behavior still require device testing.
+
 # Archives of Arcanum 0.14.4 — continuous pan and zoom in large workspaces
 
 - Resolve the active canvas Board once per lookup. Previously, every entry examined during a Board search recalculated its target, making pan and visibility redraws increasingly expensive as the workspace grew.
