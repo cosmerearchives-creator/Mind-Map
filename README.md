@@ -18,7 +18,7 @@ Independent individual creators may monetize their output and keep using Archive
 
 Modification and free noncommercial redistribution are permitted subject to the license, notices, and source requirements. Commercial adoption by nonqualifying organizations, including large media companies, and software resale, paid hosting, or commercially supplied rebranded forks require a separate negotiated paid license. See [qualification rules, examples, and review limitations](docs/community-licensing.md). Third-party licenses and contributor rights remain separate; no completed rights audit or brand clearance is claimed.
 
-Donations and shout-outs are welcome, entirely voluntary, and never required for access, continued use, or monetizing your creative output. No donation destination is currently listed. For support or commercial licensing, [open a GitHub issue](https://github.com/cosmerearchives-creator/Mind-Map/issues); ask for a private contact route before sharing confidential details. Issues are public. No email address or payment route is implied.
+Donations and shout-outs are welcome, entirely voluntary, and never required for access, continued use, or monetizing your creative output. [Support on Ko-fi](https://ko-fi.com/cosmerearchives). For support or commercial licensing, [open a GitHub issue](https://github.com/cosmerearchives-creator/Mind-Map/issues); ask for a private contact route before sharing confidential details. Issues are public. No private email address is listed.
 
 ## Download
 

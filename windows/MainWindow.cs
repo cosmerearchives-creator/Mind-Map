@@ -44,6 +44,8 @@ public sealed class MainWindow : Form
         var hintsMenu = new ToolStripMenuItem("Canvas &tips") { Checked = true, CheckOnClick = true };
         hintsMenu.Click += async (_, _) => { if (browser.CoreWebView2 is not null) await browser.CoreWebView2.ExecuteScriptAsync("window.SilverlightUI?.setHints(" + (hintsMenu.Checked ? "true" : "false") + ")"); };
         viewMenu.DropDownItems.Add(hintsMenu);
+        viewMenu.DropDownItems.Add(new ToolStripMenuItem("Reset editor position", null, async (_, _) => { if (browser.CoreWebView2 is not null) await browser.CoreWebView2.ExecuteScriptAsync("window.SilverlightResetEditor?.()"); }));
+        file.DropDownItems.Add(new ToolStripMenuItem("☕ Support on Ko-fi", null, (_, _) => Process.Start(new ProcessStartInfo("https://ko-fi.com/cosmerearchives") { UseShellExecute = true })));
         menu.Items.Add(viewMenu);
         MainMenuStrip = menu;
         Controls.Add(menu);
@@ -284,7 +286,7 @@ public sealed class MainWindow : Form
 
     private void ToggleMenu()
     {
-        if (modalOpen) return;
+        if (modalOpen && browser.CoreWebView2 is null) return;
         long now = Environment.TickCount64; if (now - lastMenuToggle < 120) return; lastMenuToggle = now;
         menu.Visible = !menu.Visible;
         if (menu.Visible) { menu.Focus(); menu.Items[0].Select(); } else browser.Focus();

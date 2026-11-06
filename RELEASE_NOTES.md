@@ -1,3 +1,13 @@
+# Archives of Arcanum 0.16.1 — smoother canvas interactions
+
+- Single-click spreadsheets and image placeholders to select and drag them. Double-click a spreadsheet cell to edit, or an image placeholder to choose its image. Keyboard Enter remains available. Delete removes a selected spreadsheet; while editing, Delete affects cell text.
+- Floating Sticky settings open beside the Sticky where space permits. Drag freely using the top grip, which stays reachable on-screen. View → Reset editor position in the Windows Alt menu restores placement. Narrow screens may require overlap; contents remain scrollable.
+- Remove the extra Open Board button and its reserved height from new Nested Board Stickies. Inline title editing and double-click Board navigation remain available.
+- Connectors approach a facing edge instead of aiming through the Sticky centre. Compact automatic arrangement uses 24-unit vertical and 56-unit layer gaps. This improves stacked branches without changing saved links, labels, manual junctions, or the existing one-curve routing fallback; it is not a general obstacle-avoidance solver.
+- Checkbox toggles preserve the canvas and focus. Direct creation avoids rebuilding the application shell; saves from these interactions check the affected Board rather than serializing every unchanged Board. Template controls use saved Board summaries so entering an editor does not load unrelated Board contents. Selection defers copying drag state until movement begins.
+- Add an unobtrusive Support on Ko-fi icon in the app header and Windows Alt menu, linking to https://ko-fi.com/cosmerearchives. The project website receives the same header link. No external content loads for the icon.
+- Preserve rich drafts and formatting when switching between inline and floating settings. Existing backup, sync, workspace identity and offline core continue through the existing storage owners; no account or data migration is introduced.
+
 # Archives of Arcanum 0.16.0 — canvas creation and compact editors
 
 - Place blank Nested Boards, Collections, frameless image placeholders, Family Trees, spreadsheets, checklists and location pins directly on the canvas. Edit Board, Collection, tree, spreadsheet and checklist titles and pin labels in place. Links appear with a compact settings editor; Codex and timeline preparation retain their existing workflows.
