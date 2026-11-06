@@ -1,0 +1,2 @@
+// Exercise the visible grouped controls instead of clicking hidden menu items.
+module.exports=async function(page,id){const target=page.locator('#'+id),panel=target.locator('xpath=ancestor::*[contains(@class,"syncMenuPanel")]');if(await panel.count()&& !await panel.isVisible()){const panelId=await panel.getAttribute('id');await page.locator('[aria-controls="'+panelId+'"]').click()}await target.click()};
