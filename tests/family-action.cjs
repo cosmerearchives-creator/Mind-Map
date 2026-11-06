@@ -1,0 +1,1 @@
+module.exports=async(page,id)=>{const button=page.locator('#'+id),details=button.locator('xpath=ancestor::details[1]');if(await details.count()&&!await details.evaluate(e=>e.open))await details.locator(':scope > summary').click();await button.click()};

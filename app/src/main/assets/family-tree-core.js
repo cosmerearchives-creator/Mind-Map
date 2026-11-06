@@ -8,11 +8,11 @@
  // This avoids implying parentage for half siblings or mixed relationship types.
  function routes(t,positions=layout(t)){
   const parents=new Map(),groups=new Map(),paths=[];
-  for(const r of t.relationships){if(TYPES[r.type].ancestry||r.type==='custom'&&r.ancestry){const key=JSON.stringify([r.to,r.type,r.label]);if(!parents.has(key))parents.set(key,[]);parents.get(key).push(r)}else{const a=positions.get(r.from),b=positions.get(r.to),right=b.x>=a.x,x1=a.x+(right?180:0),x2=b.x+(right?0:180);paths.push({type:r.type,label:r.label||TYPES[r.type].label,d:`M ${x1} ${a.y+50} L ${x2} ${b.y+50}`,x:(x1+x2)/2,y:(a.y+b.y)/2+43})}}
-  for(const rs of parents.values()){const ids=[...new Set(rs.map(r=>r.from))].sort(),r=rs[0],key=JSON.stringify([ids,r.type,r.label]);if(!groups.has(key))groups.set(key,{ids,children:[],type:r.type,label:r.label});groups.get(key).children.push(r.to)}
+  for(const r of t.relationships){if(TYPES[r.type].ancestry||r.type==='custom'&&r.ancestry){const key=JSON.stringify([r.to,r.type,r.label]);if(!parents.has(key))parents.set(key,[]);parents.get(key).push(r)}else{const a=positions.get(r.from),b=positions.get(r.to),right=b.x>=a.x,x1=a.x+(right?180:0),x2=b.x+(right?0:180);paths.push({relationshipIds:[r.id],type:r.type,label:r.label||TYPES[r.type].label,d:`M ${x1} ${a.y+50} L ${x2} ${b.y+50}`,x:(x1+x2)/2,y:(a.y+b.y)/2+43})}}
+  for(const rs of parents.values()){const ids=[...new Set(rs.map(r=>r.from))].sort(),r=rs[0],key=JSON.stringify([ids,r.type,r.label]);if(!groups.has(key))groups.set(key,{ids,children:[],relationshipIds:[],type:r.type,label:r.label});groups.get(key).children.push(r.to);groups.get(key).relationshipIds.push(...rs.map(r=>r.id))}
   for(const g of groups.values()){const ps=g.ids.map(id=>positions.get(id)),cs=[...new Set(g.children)].map(id=>positions.get(id)),x=ps.reduce((n,p)=>n+p.x+90,0)/ps.length,y=Math.max(...ps.map(p=>p.y+100)),childTop=Math.min(...cs.map(p=>p.y)),junction=y+(childTop-y)/2;
    const segments=ps.map(p=>`M ${p.x+90} ${p.y+100} L ${p.x+90} ${y} L ${x} ${y}`);segments.push(`M ${x} ${y} L ${x} ${junction}`);for(const c of cs)segments.push(`M ${x} ${junction} L ${c.x+90} ${junction} L ${c.x+90} ${c.y}`);
-   paths.push({type:g.type,label:g.label||TYPES[g.type].label,d:segments.join(' '),x,y:junction-7})}
+   paths.push({relationshipIds:g.relationshipIds,type:g.type,label:g.label||TYPES[g.type].label,d:segments.join(' '),x,y:junction-7})}
   return paths;
  }
  const api={TYPES,empty,validate,generations,layout,routes};if(typeof module!=='undefined')module.exports=api;else root.SilverlightFamilyTree=api;

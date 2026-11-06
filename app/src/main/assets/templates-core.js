@@ -18,7 +18,7 @@
   const old=next.body||'',rich=String(layout.body||'').startsWith('silverlight-rich-v1:');
   for(const key of ['sizeMode','title','body','color','backgroundImageData','backgroundFit','backgroundOverlay','width','height'])if(Object.hasOwn(layout,key))next[key]=key==='body'||key==='title'?substitute(layout[key],key==='body'&&rich):layout[key];
   if(preserve){next.title=card.title||next.title;const toHTML=body=>body.startsWith('silverlight-rich-v1:')?body.slice(19):escape(body).replace(/\n/g,'<br>');if(old)next.body='silverlight-rich-v1:'+toHTML(next.body||'')+'<p><br></p>'+toHTML(old)}
-  if((!next.kind||['text','task'].includes(next.kind))&&next.title){const title=escape(next.title),body=next.body||'';next.body='silverlight-rich-v1:<p><strong>'+title+'</strong></p>'+(body.startsWith('silverlight-rich-v1:')?body.slice(19):escape(body).replace(/\n/g,'<br>'));next.title='';next.hideTitle=true}return next;
+  if((!next.kind||(['text','task'].includes(next.kind)&&!next.checklist))&&next.title){const title=escape(next.title),body=next.body||'';next.body='silverlight-rich-v1:<p><strong>'+title+'</strong></p>'+(body.startsWith('silverlight-rich-v1:')?body.slice(19):escape(body).replace(/\n/g,'<br>'));next.title='';next.hideTitle=true}return next;
  }
  const api={capture,apply,note};if(typeof module!=='undefined')module.exports=api;else root.SilverlightTemplates=api;
 })(globalThis);

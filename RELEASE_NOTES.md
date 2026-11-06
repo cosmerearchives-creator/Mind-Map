@@ -1,3 +1,18 @@
+# Archives of Arcanum 0.16.0 — canvas creation and compact editors
+
+- Place blank Nested Boards, Collections, frameless image placeholders, Family Trees, spreadsheets, checklists and location pins directly on the canvas. Edit Board, Collection, tree, spreadsheet and checklist titles and pin labels in place. Links appear with a compact settings editor; Codex and timeline preparation retain their existing workflows.
+- Move compact editors by their top grip. Use a single-line title at the top, collapsed Notes, and sizing/layer selectors beside their labels. Image and Collection settings open in this compact presentation.
+- Edit checklist titles and entries on the canvas. Enter adds another entry; each checkbox toggles directly. Keep appearance/tag settings available, preserve entry IDs and retain original legacy checklist bodies when converting them on first edit.
+- Make Family Tree diagrams the canvas interface: Add first person, contextual relative/details/existing-person actions, direct person dragging, clickable relationship lines, portraits, collapsed notes and an expanded view. Shared parental routes and existing relationship validation remain intact.
+- Edit spreadsheet cells directly with formatting, formulas, range copy/paste, row/column controls and paging in the top toolbar. Keep the expanded editor available for detailed work.
+- Use compact location markers with inline labels, icon/color settings and copyable links that center and highlight the destination.
+- Save a Board starting position/zoom. First visits use it; subsequent visits remember the last position. Reset view returns to that saved start.
+- Fill a placeholder by dropping a local file or website image onto it. Retain frame, identity, notes, tags, attachments and connections; fit the image proportionally. Failed imports leave the placeholder intact.
+- Match exported note typography, spacing and content placement to the application. Avoid unnecessary embedded scrollbars while retaining scrolling for genuinely overflowing notes. Preserve read-only export restrictions and physical exclusion of unselected Boards.
+- Keep application/signing identities, local storage, backup/sync formats, offline operation and updater asset names compatible. Windows and Android publish together after their release gates pass.
+
+Validation covers synthetic desktop and touch-size interactions, preserved metadata and concurrent-device edits, dropped-image failure/Undo/reload, Board navigation, export privacy/CSP, and the existing backup, sync, canvas and document regressions. Physical-device UI and live website/Drive access remain environment-dependent.
+
 # Archives of Arcanum 0.15.0 — first prerelease UI update
 
 - Double-click text Stickies to edit at the clicked character. Imported WoB HTML displays supported paragraphs, emphasis, lists, entities and source hyperlinks.

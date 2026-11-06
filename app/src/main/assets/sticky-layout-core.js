@@ -1,7 +1,7 @@
 /* One-time, per-record presentation migration. Recovery data stays with the record. */
 (function(root){'use strict';const VERSION=1,PREFIX='silverlight-rich-v1:';
  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const isNote=c=>!c.kind||c.kind==='text'||c.kind==='task';
+ const isNote=c=>!c.kind||c.kind==='text'||c.kind==='task'&&!c.checklist;
  function plain(s){return String(s||'').replace(/^silverlight-rich-v1:/,'').replace(/<br\s*\/?\s*>|<\/?(?:p|div|li|h[1-6])(?:\s[^>]*)?>/gi,'\n').replace(/<[^>]*>/g,'').replace(/&#(x[\da-f]+|\d+);/gi,(_,n)=>{const code=n[0].toLowerCase()==='x'?parseInt(n.slice(1),16):Number(n);return code<=0x10ffff?String.fromCodePoint(code):''}).replace(/&(amp|lt|gt|quot|apos|nbsp);/g,(_,n)=>({amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' '})[n]).trim()}
  function card(c){if(c.stickyLayoutVersion===VERSION&&!(isNote(c)&&c.title)&&!(c.kind==='nested'&&c.body))return false;if(c.codex||!isNote(c)&&c.kind!=='nested')return false;const title=String(c.title||''),body=String(c.body||'');
   if((title||body)&&!c.legacyStickyLayout)c.legacyStickyLayout={title,body};
