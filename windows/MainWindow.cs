@@ -284,9 +284,17 @@ public sealed class MainWindow : Form
         }
     }
 
-    private void ToggleMenu()
+    private async void ToggleMenu()
     {
-        if (modalOpen && browser.CoreWebView2 is null) return;
+        if (modalOpen)
+        {
+            if (browser.CoreWebView2 is null) return;
+            try
+            {
+                if (await browser.CoreWebView2.ExecuteScriptAsync("!!document.querySelector('#modalRoot .canvasFloating')") != "true") return;
+            }
+            catch { return; }
+        }
         long now = Environment.TickCount64; if (now - lastMenuToggle < 120) return; lastMenuToggle = now;
         menu.Visible = !menu.Visible;
         if (menu.Visible) { menu.Focus(); menu.Items[0].Select(); } else browser.Focus();
