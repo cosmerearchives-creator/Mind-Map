@@ -36,6 +36,8 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Verify updater file handling
         run: dotnet run --project tests/updater/Updater.Tests.csproj -c Release
+      - name: Verify native mirrored-copy shortcut
+        run: dotnet run --project tests/mirror-shortcut/MirrorShortcut.Tests.csproj -c Release
       - name: Verify atomic streaming backup files
         run: dotnet run --project tests/backup-native/Backup.Tests.csproj -c Release
       - name: Verify Windows desktop OAuth and encrypted sessions

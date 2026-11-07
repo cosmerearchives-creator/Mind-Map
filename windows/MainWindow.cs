@@ -20,6 +20,7 @@ public sealed class MainWindow : Form
     private readonly HttpClient http = new() { Timeout = TimeSpan.FromMinutes(5) };
     private bool checking;
     private bool modalOpen;
+    private bool mirrorKeyDown;
     private IMessageFilter? menuKeys;
     private long lastMenuToggle;
     private readonly MenuStrip menu = new() { Visible = false };
@@ -65,6 +66,22 @@ public sealed class MainWindow : Form
                 Directory.CreateDirectory(data);
                 await browser.EnsureCoreWebView2Async(await CoreWebView2Environment.CreateAsync(userDataFolder: data));
                 browser.CoreWebView2.Settings.IsZoomControlEnabled = false;
+                // WebView2 reserves Ctrl+Shift+C for Inspect. Route only this chord
+                // to the workspace; defer script work until the accelerator callback returns.
+                browser.KeyDown += (_, key) =>
+                {
+                    if (!MirrorShortcut.Matches((uint)key.KeyCode, key.Control, key.Shift, key.Alt, true)) return;
+                    key.Handled = true;
+                    if (mirrorKeyDown) return;
+                    mirrorKeyDown = true;
+                    BeginInvoke(new Action(async () =>
+                    {
+                        try { if (browser.CoreWebView2 is not null) await browser.CoreWebView2.ExecuteScriptAsync("window.ArchivesCopyMirror?.()"); }
+                        catch { /* A closing or not-yet-loaded workspace cannot copy. */ }
+                    }));
+                };
+                browser.KeyUp += (_, key) => { if (key.KeyCode == Keys.C) mirrorKeyDown = false; };
+                browser.LostFocus += (_, _) => mirrorKeyDown = false;
                 browser.CoreWebView2.SetVirtualHostNameToFolderMapping("silverlight.local", Path.Combine(AppContext.BaseDirectory, "web"), CoreWebView2HostResourceAccessKind.DenyCors);
                 await browser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"window.SilverlightClipboard={canWrite:true,postMessage:function(text){var request=JSON.parse(text);window.chrome.webview.postMessage({channel:'silverlight-clipboard',id:request.id,op:request.op,url:request.url,text:request.text});}};window.chrome.webview.addEventListener('message',function(e){if(e.data.channel==='silverlight-clipboard'&&window.SilverlightClipboard.onmessage)window.SilverlightClipboard.onmessage({data:JSON.stringify(e.data)});});");
                 browser.CoreWebView2.NavigationStarting += (_, args) => {

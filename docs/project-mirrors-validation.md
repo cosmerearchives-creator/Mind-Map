@@ -4,6 +4,7 @@ The user completed both publication confirmations for these four changes: legacy
 
 ## Behavior and storage
 
+- Windows intercepts only the WebView2-reserved Ctrl+Shift+C chord, suppresses repeats, and defers the workspace copy call until after the native accelerator callback. A native policy test covers the modifier/key-up cases; ordinary Ctrl+C and other browser shortcuts remain unchanged.
 - Ctrl+Shift+C or context-menu Copy mirror prepares a reference clipboard payload and creates project-owned shared records only after the clipboard write succeeds. Ctrl+V adds placements within that project. Ordinary copying and Canvas templates detach mirror bindings and preserve current content.
 - Shared data lives in the project's root Board metadata, keyed by stable mirror ID. Placements retain readable fallback content in serialized files for recovery. Runtime access redirects content reads/writes to the shared record; the active Board and its shared owner are protected together while an editor is open. Existing save and Undo transactions remain the owners of persistence.
 - Geometry, image framing/crop, Collection membership, image-region geometry and connections are local to a placement. When an existing Collection/image group is mirrored, its selected dependent Stickies are mirrored too, with local membership/owner IDs remapped. Newly added placements/members are not automatically created in other Collections.
