@@ -1,3 +1,15 @@
+# Archives of Arcanum 0.18.0 — selection and compact canvas editing
+
+- Marquee selection includes any partially overlapping Sticky. Pointer movement is coalesced per animation frame and the marquee element is reused, avoiding card redraws and geometry rebuilds during repeated selections.
+- Drag directly on a Sticky to move it, including any ordinary area of a selected Sticky. Resize handles, checkboxes, diagram controls and active text/cell editors retain their specific actions.
+- New Nested Boards start as 100 × 100 canvas-unit squares with titles underneath. Click the existing title to edit it in place, without an extra input box or changed frame; one outside click ends editing. Right-click → Edit opens the small floating settings editor. Existing Board sizes and title-position choices are preserved.
+- All Sticky frames can be resized down to 20 canvas units per axis. Existing frame sizes stay unchanged. Auto-fit contents and Collection contents may still require additional space.
+- Board settings → Project color defaults provides independent Standard, Fixed color and Random color modes for new note Stickies and new Nested Boards. Settings belong to the whole project, including nested Boards; existing items and copies retain their colors. Random colors are selected from the built-in palette once at creation.
+- Rename Import tags to this board to Find Relevant Boards.
+- Tagged reference previews interpret supported imported WoB HTML safely, preserving paragraphs and emphasis instead of exposing tags. Preview truncation occurs after parsing.
+- Clipboard image imports decode original dimensions and begin with an unframed, manually sized image at its original pixel dimensions/aspect ratio. Original bytes are retained. This applies to new pastes; existing images are not rewritten. The existing 8 MiB clipboard image limit remains.
+- No account requirement, installed workspace migration, website change or backup-format replacement is introduced.
+
 # Archives of Arcanum 0.17.0 — project mirrors and compact imports
 
 - Ctrl+Shift+C copies selected Stickies as mirrors; Ctrl+V places them within the same project. Copy mirror is also available in the context menu. Titles, notes, tags, styling, images/attachments, checklist state, spreadsheet data and Family Tree data share one project-owned record. Each placement retains its position, frame/crop, Collection membership, image-region geometry and connections. Mirrored Nested Boards open the same underlying Board.
