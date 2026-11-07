@@ -6,6 +6,7 @@
 - Click the visible name of an older icon-style Nested Board to edit it directly without changing the icon frame. Visible below-icon labels take precedence over hidden internal titles. Double-click outside the label to open the Board. Existing editor preferences are unchanged.
 - The main projects page now has one Import menu containing Import .arcanum, Retry shared import, Import PDF / ZIP and Import backup. Original import handlers and native file pickers are retained; the menu supports keyboard navigation and dismisses outside/on Escape.
 - Board actions → Link all matching tags connects any pair of current-Board Stickies sharing at least one normalized tag, skips existing pairs, and adds one undirected connection per pair in a single Undo step. It never moves Stickies or changes existing ribbons. To bound large operations, it rejects more than 50,000 new connections or 2,000,000 candidate comparisons before adding any connections.
+- Visible title, checklist, checkbox and spreadsheet mirrors refresh immediately during inline changes without replacing the editor receiving input. Full rich-note drafts retain their existing Save/Cancel behavior.
 - A completed mirror-copy notice is dismissed after a successful paste so it cannot cover mobile editor controls. No new always-visible Sticky buttons are added.
 
 # Archives of Arcanum 0.16.1 — smoother canvas interactions
