@@ -17,7 +17,7 @@ function paste(payload,uid=()=>crypto.randomUUID(),options={}){
  for(const key of ['connections','importPendingLinks'])board[key]=(board[key]||[]).filter(e=>ids.has(e.from)&&ids.has(e.to)).map(e=>({...e,id:uid(),from:ids.get(e.from),to:ids.get(e.to)}));
  if(board.junctions)board.junctions=Object.fromEntries(Object.entries(board.junctions).filter(([id])=>ids.has(id)).map(([id,v])=>[ids.get(id),v]));
  }
- options.onRemap?.(boardMap);remap(result);for(const b of result.boards){remap(b);b.id=boardMap.get(b.id);b.updated=Date.now()}return result;
+ for(const b of [result,...result.boards]){delete b.mirrors;for(const c of [...(b.cards||[]),...(b.unsorted||[])])delete c.mirror}options.onRemap?.(boardMap);remap(result);for(const b of result.boards){remap(b);b.id=boardMap.get(b.id);b.updated=Date.now()}return result;
 }
 const api={FORMAT,MIME,expand,make,paste};if(typeof module!=='undefined')module.exports=api;else root.SelectionCore=api;
 })(globalThis);

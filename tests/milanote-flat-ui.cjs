@@ -13,7 +13,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
   const main='Archive/canvas_Dustbringers-261023_0531.pdf',child='Archive/canvas_Dustbringer Radiants-261023_0539.pdf',duplicate='Archive/canvas_Dustbringer Radiants-261022_0539.pdf';
   const zip=fflate.zipSync({[main]:dust,[child]:vasher,[duplicate]:vasher},{level:1});
   await page.goto('http://127.0.0.1:'+server.address().port+'/index.html');
-  const chooser=page.waitForEvent('filechooser');await page.locator('#pdfImport').click();await(await chooser).setFiles({name:'Flat.zip',mimeType:'application/zip',buffer:Buffer.from(zip)});
+  const chooser=page.waitForEvent('filechooser');await page.locator('#projectImportButton').click();await page.locator('#pdfImport').click();await(await chooser).setFiles({name:'Flat.zip',mimeType:'application/zip',buffer:Buffer.from(zip)});
   await page.locator('#importLayout').waitFor();assert.equal(await page.locator('#importLayout').inputValue(),'flat');assert.equal(await page.locator('#analyzeImport').isDisabled(),true);
   await page.locator('[data-root-group="0"]').selectOption(main);await page.locator('#analyzeImport').click();await page.locator('#commitMilanote').waitFor({timeout:60000});
   assert.equal(await page.locator('#commitMilanote').isDisabled(),true);assert.ok((await page.locator('#milanoteSummary').innerText()).includes('more than one filename'));

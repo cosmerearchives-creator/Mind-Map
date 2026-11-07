@@ -14,7 +14,8 @@ function tick(clock,device){const m=new Map(clock);m.set(device,(m.get(device)||
 // Per-property registers let compatible changes within a BOARD converge.
 function flatten(board){const out={};if(!board)return out;
  const put=(path,value)=>out[JSON.stringify(path)]=copy(value);
- for(const [k,v]of Object.entries(semantic(board)))if(!['cards','connections','junctions'].includes(k))put(['board',k],v);
+ for(const [k,v]of Object.entries(semantic(board)))if(!['cards','connections','junctions','mirrors'].includes(k))put(['board',k],v);
+ for(const [id,record]of Object.entries(board.mirrors||{}))put(['board','mirrors',id],record);
  for(const group of ['cards','connections'])for(const entity of board[group]||[]){put([group,entity.id,'exists'],true);for(const [k,v]of Object.entries(entity))if(!['id','collectionHidden','x','y'].includes(k))put([group,entity.id,k],v);if(group==='cards')put([group,entity.id,'position'],{x:entity.x,y:entity.y});}
  for(const [k,v]of Object.entries(board.junctions||{}))put(['junctions',k],v);return out;
 }
@@ -22,7 +23,7 @@ function cellJoin(...maps){const out={};for(const map of maps)for(const [key,val
 function cellsFor(board,clock){return Object.fromEntries(Object.entries(flatten(board)).map(([k,value])=>[k,[{clock,present:true,value}]]));}
 function materialize(versions){if(!versions.length||versions.some(v=>!v.board||!v.cells))return null;const cells=cellJoin(...versions.map(v=>v.cells));if(Object.values(cells).some(values=>values.length!==1))return null;
  const board={},entities={cards:new Map(),connections:new Map()},junctions={};
- for(const [key,[cell]]of Object.entries(cells)){if(!cell.present)continue;const path=JSON.parse(key),value=copy(cell.value);if(path[0]==='board')board[path[1]]=value;else if(path[0]==='junctions')junctions[path[1]]=value;else{const map=entities[path[0]];if(!map)return null;const e=map.get(path[1])||{id:path[1]};map.set(path[1],e);if(path[2]==='exists')e.__exists=value;else if(path[2]==='position')Object.assign(e,value);else e[path[2]]=value;}}
+ for(const [key,[cell]]of Object.entries(cells)){if(!cell.present)continue;const path=JSON.parse(key),value=copy(cell.value);if(path[0]==='board'){if(path[1]==='mirrors'&&path.length===3)(board.mirrors||={})[path[2]]=value;else board[path[1]]=value;}else if(path[0]==='junctions')junctions[path[1]]=value;else{const map=entities[path[0]];if(!map)return null;const e=map.get(path[1])||{id:path[1]};map.set(path[1],e);if(path[2]==='exists')e.__exists=value;else if(path[2]==='position')Object.assign(e,value);else e[path[2]]=value;}}
  for(const group of ['cards','connections'])board[group]=[...entities[group].values()].filter(e=>e.__exists).map(e=>{delete e.__exists;return e}).sort((a,b)=>compare(a.id,b.id));if(Object.keys(junctions).length)board.junctions=junctions;
  try{const refs=new Set(board.cards.filter(c=>c.kind==='nested').map(c=>c.boardId));core.workspace({boards:[board,...[...refs].filter(id=>id!==board.id).map(id=>({id,title:'Reference',cards:[]}))]})}catch{return null}return {board,cells,clock:clockJoin(...versions.map(v=>v.clock))};
 }
@@ -83,7 +84,7 @@ function resolve(meta,id,index,keepAll=false){
  const chosen=keepAll?record.versions.find(v=>v.board):record.versions[index];if(!chosen)throw Error('Version no longer exists.');
  const clock=tick(clockJoin(...record.versions.map(v=>v.clock)),next.device);
  // Resolution never discards alternative content: preserve it as independent BOARDS.
- for(const v of record.versions){if(!v.board||same(v.board,chosen.board))continue;const board=copy(v.board),newId=crypto.randomUUID();board.id=newId;board.title+=' (conflict copy)';for(const c of board.cards)if(c.kind==='nested'&&c.boardId===id)c.boardId=newId;next.records.push({id:newId,versions:[{clock:[[next.device,1]],board}]})}
+ for(const v of record.versions){if(!v.board||same(v.board,chosen.board))continue;const board=copy(v.board),newId=crypto.randomUUID();board.id=newId;board.title+=' (conflict copy)';for(const c of [...(board.cards||[]),...(board.unsorted||[])])delete c.mirror;if(board.mirrors){for(const r of Object.values(board.mirrors))board.cards.push({...copy(r.content),id:crypto.randomUUID(),x:40,y:40+board.cards.length*220});delete board.mirrors;}for(const c of board.cards)if(c.kind==='nested'&&c.boardId===id)c.boardId=newId;next.records.push({id:newId,versions:[{clock:[[next.device,1]],board}]})}
  record.versions=[{clock,board:copy(chosen.board),...(chosen.previous?{previous:chosen.previous}:{})}];next.published='';return next;
 }
 function recoverReference(meta,id){const next=copy(meta),r=next.records.find(r=>r.id===id),board=r?.versions.find(v=>v.board)?.board||r?.versions.find(v=>v.previous)?.previous;if(!board)throw Error('Restore this missing BOARD from Local recovery or a manual cloud copy, then retry.');r.versions=[{clock:tick(clockJoin(...r.versions.map(v=>v.clock)),next.device),board:copy(board)}];next.published='';return next}
@@ -92,7 +93,7 @@ async function envelope(meta,w,changedIds,onProgress=()=>{}){
  if(changedIds){
   const ids=new Set(changedIds),byId=new Map(records.map(r=>[r.id,r]));let expanded=true;
   // Include every linked Board needed to validate retained/conflicting versions.
-  while(expanded){expanded=false;for(const id of [...ids])for(const v of byId.get(id)?.versions||[])for(const board of [v.board,v.previous].filter(Boolean))for(const c of [...board.cards,...(board.unsorted||[])])if(c.kind==='nested'&&!ids.has(c.boardId)){ids.add(c.boardId);expanded=true}}
+  while(expanded){expanded=false;for(const id of [...ids])for(const v of byId.get(id)?.versions||[])for(const board of [v.board,v.previous].filter(Boolean))for(const c of [...board.cards,...(board.unsorted||[])]){if(c.mirror?.projectId&&!ids.has(c.mirror.projectId)){ids.add(c.mirror.projectId);expanded=true}if(c.kind==='nested'&&!ids.has(c.boardId)){ids.add(c.boardId);expanded=true}}}
   records=records.filter(r=>ids.has(r.id));source={...w,boards:w.boards.filter(b=>ids.has(b.id))};
  }
  onProgress({phase:'snapshotValidate'});const auto={dataset:meta.dataset,device:meta.device,records,...(!changedIds?{coveredFiles:(meta.files||[]).slice(-10000)}:{})},workspace=core.workspace(source);return {format:FORMAT,createdAt:new Date().toISOString(),workspace,auto,revision:await core.revision({workspace,auto},onProgress)};

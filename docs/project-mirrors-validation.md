@@ -1,0 +1,28 @@
+# Project mirrors and compact imports — 0.17.0
+
+The user completed both publication confirmations for these four changes: legacy icon-title editing, grouped imports, project-restricted mirrored copying, and linking matching tags. Main and coordinated Windows/Android publication are authorized. The project website is unchanged in this update.
+
+## Behavior and storage
+
+- Ctrl+Shift+C or context-menu Copy mirror prepares a reference clipboard payload and creates project-owned shared records only after the clipboard write succeeds. Ctrl+V adds placements within that project. Ordinary copying and Canvas templates detach mirror bindings and preserve current content.
+- Shared data lives in the project's root Board metadata, keyed by stable mirror ID. Placements retain readable fallback content in serialized files for recovery. Runtime access redirects content reads/writes to the shared record; the active Board and its shared owner are protected together while an editor is open. Existing save and Undo transactions remain the owners of persistence.
+- Geometry, image framing/crop, Collection membership, image-region geometry and connections are local to a placement. When an existing Collection/image group is mirrored, its selected dependent Stickies are mirrored too, with local membership/owner IDs remapped. Newly added placements/members are not automatically created in other Collections.
+- Mirrored Nested Boards reference the same underlying Board. Recursive pastes are rejected. Deleting a mirrored placement does not delete its underlying Board or shared record. Shared records remain with their project so deleting the original does not invalidate surviving mirrors or reference clipboard payloads.
+- Retaining Boards while explicitly deleting their project materializes their latest shared content as independent copies. Cross-project mirror paste/cut and movement of Boards containing mirrors are rejected before mutation. Import validation also rejects out-of-project bindings when the complete owner record is present.
+- Sync uses one register per shared record: different mirrored Stickies merge independently; competing edits to the same record use existing conflict review. Alternative shared content is retained as independent Stickies in conflict copies. Mirror-aware editing and sync require 0.17.0 on participating devices; older builds do not understand the new shared-content registers.
+- Shared owners are added to partial transfer dependency closure. Closed unrelated Boards remain unloaded during mirror edits. Copying a mirrored image's reference does not read its original bytes. Embeds resolve only selected placements and continue using the existing public projection rather than serializing project mirror metadata.
+
+## UI changes
+
+- Visible below-icon names take precedence over hidden internal titles. A title-only input edits older Nested Boards without mounting a full-card editor or changing their frame. Title selection also selects its Sticky. Plain nested titles have a separate text span so double-clicking the surrounding area still opens the Board. Existing global editor preferences are retained.
+- The Home header has one Import menu for .arcanum, Retry shared import, PDF/ZIP and backup. The original handlers remain attached. The menu supports keyboard navigation, Escape, outside dismissal and horizontal-header clipping.
+- Link all matching tags uses the existing case-insensitive, Unicode-normalized tag parser. It adds one undirected ribbon per matching pair, skips existing pairs without altering labels/directions, and commits all additions in one Undo transaction. Actual safety limits are 50,000 new connections and 2,000,000 candidate comparisons; exceeding either rejects the operation before any connections are added. Mirrored placement construction is bounded to 64 MiB of serialized placement content per paste.
+- Successful mirror paste dismisses its completed clipboard notice so it cannot cover mobile editor Save controls. No always-visible per-Sticky buttons were added.
+
+## Verification
+
+- Data tests cover mirrored text/tags/metadata/attachments, checklist/spreadsheet/Family Tree data, lazy image references, independent geometry, same Nested Board identity, project/cycle/cut restrictions, normal copy, original deletion, project deletion with retained Boards, JSON snapshots and streaming JSONL backup round-trips, concurrent merges, retained conflict alternatives, malformed references and embed private-data exclusion.
+- Desktop UI tests cover visible legacy labels/frame stability, unchanged double-click navigation, grouped Import menus and native PDF/ZIP/.arcanum pickers, package-picker cancellation, matching-tag idempotence/Undo, Ctrl+Shift+C, mirrored paste/edit Undo/Redo, cross-project rejection, independent Ctrl+C, original deletion, unloaded unrelated Boards, and durable reload.
+- Phone-sized touch tests exercise context-menu Copy mirror, native clipboard bridge write/read contract, Paste, shared editing and reload. They are browser tests, not physical-device tests.
+- The existing 59 browser regression suites passed, alongside shared validation covering backup, import acknowledgment/integrity, snapshots, capacity, merge, checkpoints and sync. Targeted tests were rerun after final mirror safeguards.
+- The coordinated GitHub pipeline must run exact-main native Windows checks/build, large physical backup stress, all browser suites, signed Android build and emulator cold/warm offline sharing before making this release updater-visible. Local native builds are unavailable because this machine lacks the .NET SDK and Android build tools. No live Google Drive account or installed workspace was used for testing.
