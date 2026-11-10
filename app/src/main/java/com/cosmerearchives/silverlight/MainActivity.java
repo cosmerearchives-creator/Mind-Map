@@ -129,23 +129,30 @@ public class MainActivity extends Activity {
                 long candidate = major * 10000000L + minor * 100000L + patch;
                 if (candidate <= installed) return;
                 JSONArray assets = release.optJSONArray("assets");
-                if (assets == null) return;
-                for (int i = 0; i < assets.length(); i++) {
-                    JSONObject asset = assets.getJSONObject(i);
-                    if (!"Silverlight.apk".equals(asset.optString("name"))) continue;
-                    String link = asset.optString("browser_download_url", "");
-                    if (!link.startsWith("https://github.com/cosmerearchives-creator/Mind-Map/releases/download/")) continue;
+                String link = updateAssetUrl(assets);
+                if (link == null) return;
                     runOnUiThread(() -> new AlertDialog.Builder(this)
                         .setTitle("Archives of Arcanum update available")
                         .setMessage("Version " + tag + " is available. Download and install it? Android will ask you to confirm installation.")
                         .setNegativeButton("Later", null)
                         .setPositiveButton("Download", (d,w) -> downloadUpdate(link, tag))
                         .show());
-                    return;
-                }
             } catch (Exception ignored) { /* Offline: simply skip this launch's check. */ }
             finally { if (conn != null) conn.disconnect(); }
         }).start();
+    }
+
+    static String updateAssetUrl(JSONArray assets) {
+        if (assets == null) return null;
+        for (String name : new String[]{"Archives-of-Arcanum.apk", "Silverlight.apk"}) {
+            for (int i = 0; i < assets.length(); i++) {
+                JSONObject asset = assets.optJSONObject(i);
+                if (asset == null || !name.equals(asset.optString("name"))) continue;
+                String link = asset.optString("browser_download_url", "");
+                if (link.startsWith("https://github.com/cosmerearchives-creator/Mind-Map/releases/download/")) return link;
+            }
+        }
+        return null;
     }
 
     private void downloadUpdate(String link, String tag) {

@@ -30,7 +30,7 @@ Android app-to-app sharing is available from 0.14.1. Send .arcanum files from Wo
 
 ## Update behavior
 
-Windows checks published releases for a newer **Silverlight-Setup.exe**. Android checks the latest release for **Silverlight.apk** and skips releases without an APK. Existing Android installations therefore continue running without being offered desktop-only releases.
+Windows checks published releases for a newer **Silverlight-Setup.exe**. Android checks the latest release for **Archives-of-Arcanum.apk**, falling back to **Silverlight.apk** and skips releases without an APK. Both APK names contain the identical signed app for older installed updaters. Existing Android installations therefore continue running without being offered desktop-only releases.
 
 **Signing:** Android releases use the existing persistent release key from protected build secrets. The workflow verifies its certificate identity before packaging. Current signed releases support in-place updates; an installation made with a different historical key cannot be made compatible by changing the new key. Keep app data and backups intact.
 

@@ -1,3 +1,11 @@
+# Archives of Arcanum 0.18.1 — conflict resolution and Android download naming
+
+- Conflict choices wait visibly for active sync instead of silently ignoring clicks. New polls cannot overtake a queued resolution. Errors stay in the review dialog and controls become available for retry.
+- Every alternative Board remains a conflict copy. Saving the replacement workspace, recovery workspace and full pre-resolution conflict history uses one atomic local storage transaction. Failed saves leave current data and conflict history unchanged.
+- Conflict previews decode rich text into readable plain text.
+- Android now prefers Archives-of-Arcanum.apk, with Silverlight.apk retained as an identical compatibility asset for installed clients. The application ID and signing certificate remain unchanged; the visible label is verified as Archives of Arcanum.
+- Windows and Android publish together only after successful builds of the same current main commit.
+
 # Archives of Arcanum 0.18.0 — selection and compact canvas editing
 
 - Marquee selection includes any partially overlapping Sticky. Pointer movement is coalesced per animation frame and the marquee element is reused, avoiding card redraws and geometry rebuilds during repeated selections.

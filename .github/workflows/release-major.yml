@@ -50,14 +50,16 @@ jobs:
           FILES+=(dist/Archives-of-Arcanum-Setup.exe)
           if [ -n "$ANDROID_RUN" ]; then
             gh run download "$ANDROID_RUN" --name Silverlight-signed-APK --dir dist --repo "$GITHUB_REPOSITORY"
+            test -s dist/Archives-of-Arcanum.apk
             test -s dist/Silverlight.apk
-            FILES+=(dist/Silverlight.apk)
+            cmp dist/Archives-of-Arcanum.apk dist/Silverlight.apk
+            FILES+=(dist/Archives-of-Arcanum.apk dist/Silverlight.apk)
           fi
           VERSION=$(node -p "require('./release-version.json').version")
           if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" --json isDraft > existing-release.json 2>/dev/null; then
             if [ "$(node -p "require('./existing-release.json').isDraft")" = false ]; then exit 0; fi
             gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" --json targetCommitish,assets > existing-release.json
-            node -e "const r=require('./existing-release.json');if(r.targetCommitish!==process.env.RELEASE_SHA||!(process.env.ANDROID_RUN?['Silverlight.apk','Silverlight-Setup.exe','Archives-of-Arcanum-Setup.exe']:['Silverlight-Setup.exe','Archives-of-Arcanum-Setup.exe']).every(n=>r.assets.some(a=>a.name===n)))process.exit(1)"
+            node -e "const r=require('./existing-release.json');if(r.targetCommitish!==process.env.RELEASE_SHA||!(process.env.ANDROID_RUN?['Archives-of-Arcanum.apk','Silverlight.apk','Silverlight-Setup.exe','Archives-of-Arcanum-Setup.exe']:['Silverlight-Setup.exe','Archives-of-Arcanum-Setup.exe']).every(n=>r.assets.some(a=>a.name===n)))process.exit(1)"
           else
             gh release create "v$VERSION" "${FILES[@]}" --draft --title "Archives of Arcanum $VERSION" --notes-file RELEASE_NOTES.md --target "$RELEASE_SHA" --repo "$GITHUB_REPOSITORY"
           fi

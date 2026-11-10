@@ -15,7 +15,7 @@ function settled(){if(meta.missing?.length||meta.conflicts?.length)status('Needs
 function wake(){retryUntil=0;lastRepair=0;schedule(0)}
 function markPoll(files,repair){lastChecked=Date.now();if(repair)lastRepair=Date.now();for(const file of files){const created=Date.parse(file.createdTime);if(Number.isFinite(created))newest=Math.max(newest,created)}}
 
-async function persist(next,w=null,expected=state(),allowReview=false){diagnostic.stage('saving');SilverlightAssets.intern(next);await app.writeSync(w,next,expected,allowReview);next=SilverlightAssets.resolveReferences(next);delete next.__resumeDigest;meta=next;}
+async function persist(next,w=null,expected=state(),allowReview=false){diagnostic.stage('saving');SilverlightAssets.intern(next);await app.writeSync(w,next,expected,allowReview,allowReview?clone(meta):null);next=SilverlightAssets.resolveReferences(next);delete next.__resumeDigest;meta=next;}
 // Causal clocks identify verified record content; this local digest does not change wire checksums.
 const recordClocks=records=>Object.fromEntries(records.map(r=>[r.id,JSON.stringify(r.versions.map(v=>v.clock))]));
 const recordRevision=records=>core.revision(recordClocks(records));
@@ -52,6 +52,7 @@ async function observeChanged(next,incoming,protectedIds,ids){
 }
 async function cycle(){
  if(running||!meta?.enabled)return;
+ if(resolving){schedule(1000);return}
  if(!available()){schedule(1000);return}if(!navigator.onLine){status('Offline','Changes stay saved on this device');scheduler.cancel();schedule(15000);return}
  running=true;try{
   if(generation!==cleanGeneration||!recordDigest)diagnostic.begin();diagnostic.stage('session');
@@ -107,14 +108,26 @@ async function enable(){
   else {app.modal('Enable live sync','<p>Live sync sends saved changes between open, online devices using the same Google account and workspace. Compatible edits combine; competing edits are retained for review. Existing manual cloud copies remain available.</p>','<button id="autoEnableCancel" class="outline">Cancel</button><button id="autoEnableConfirm" class="primary">Enable live sync</button>');document.querySelector('#autoEnableCancel').onclick=transport.show;document.querySelector('#autoEnableConfirm').onclick=()=>join(crypto.randomUUID())}
  }catch(e){status('Needs attention',e.message)}finally{running=false}
 }
-async function resolveBoard(id,index,all=false,reference=false){
- if(running)return;running=true;try{
-  const expected=state();let next=await crdt.capture(meta,app.getState());next=reference?await crdt.recoverReference(next,id):await crdt.resolve(next,id,index,all);const projected=await crdt.projection(next.records,app.getState());if(projected.missing.length)throw Error('This choice would leave a BOARD STICKY pointing to a missing BOARD. Keep that BOARD, or remove its links first.');core.workspace(projected.workspace);next=await crdt.observed(next,projected.workspace);next.conflicts=projected.conflicts;next.missing=[];await persist(next,projected.workspace,expected,true);recordDigest=null;app.close();schedule(0);
- }catch(e){status('Needs attention',e.message)}finally{running=false}
+let resolving=false;
+async function resolveBoard(id,index,all=false,reference=false,reviewed=JSON.stringify(meta.records.find(r=>r.id===id))){
+ if(resolving)return;resolving=true;
+ const buttons=[...document.querySelectorAll('#autoConflicts button, #autoConflictClose')];buttons.forEach(b=>b.disabled=true);
+ const feedback=text=>{const el=document.querySelector('#autoResolutionStatus');if(el)el.textContent=text};
+ let acquired=false;
+ try{
+  feedback('Waiting for the current sync to finish. All versions are preserved.');
+  const deadline=Date.now()+190000;
+  while(running){if(Date.now()>deadline)throw Error('The current sync has not finished. All versions are preserved; try again after checking sync diagnostics.');await new Promise(r=>setTimeout(r,100))}
+  running=true;acquired=true;scheduler.cancel();
+  if(JSON.stringify(meta.records.find(r=>r.id===id))!==reviewed)throw Error('BOARD versions changed during review. Go Back and reopen Review conflicts before choosing.');
+  feedback('Preparing all BOARD versions and saving local recovery…');
+  const expected=state();let next=await crdt.capture(meta,app.getState());if(JSON.stringify(next.records.find(r=>r.id===id))!==reviewed)throw Error('BOARD changed locally during review. Go Back and reopen Review conflicts before choosing.');next=reference?await crdt.recoverReference(next,id):await crdt.resolve(next,id,index,all);const projected=await crdt.projection(next.records,app.getState());if(projected.missing.length)throw Error('This choice would leave a BOARD STICKY pointing to a missing BOARD. Keep that BOARD, or remove its links first.');core.workspace(projected.workspace);next=await crdt.observed(next,projected.workspace);next.conflicts=projected.conflicts;next.missing=[];await persist(next,projected.workspace,expected,true);recordDigest=null;app.close();schedule(0);
+ }catch(e){feedback('Could not resolve: '+e.message);status('Needs attention',e.message)}finally{if(acquired)running=false;resolving=false;buttons.forEach(b=>b.disabled=false);schedule(0)}
 }
+function preview(html){const doc=new DOMParser().parseFromString(String(html),'text/html');doc.querySelectorAll('script,style').forEach(el=>el.remove());doc.querySelectorAll('p,div,li,br').forEach(el=>el.append(' '));return (doc.body.textContent||'').replace(/\s+/g,' ').trim().slice(0,180)}
 function conflicts(){
- if(!meta)return;app.modal('Review BOARD conflicts','<p>Choose which version keeps the original BOARD. Other versions are saved as separate conflict-copy BOARDS. Local recovery is also saved first.</p><p id="autoStatus"></p><div id="autoConflicts"></div>','<button id="autoConflictClose" class="outline">Back</button>');document.querySelector('#autoConflictClose').onclick=transport.show;const root=document.querySelector('#autoConflicts');
- for(const r of meta.records.filter(r=>r.versions.length>1)){const heading=document.createElement('h3');heading.textContent=r.versions.find(v=>v.board)?.board.title||'Deleted BOARD';root.append(heading);r.versions.forEach((v,i)=>{const text=document.createElement('p');text.textContent=v.board?`${v.board.title} · ${v.board.cards.length} STICKIES · ${String(v.board.cards[0]?.body||v.board.cards[0]?.title||'').slice(0,180)}`:'BOARD deleted on another version';root.append(text);const b=document.createElement('button');b.className='outline';b.textContent='Use version '+(i+1)+(v.board?'':' (deletion)')+'; keep other content as copies';b.onclick=()=>resolveBoard(r.id,i);root.append(b)});const b=document.createElement('button');b.className='primary';b.textContent='Keep all BOARD versions';b.onclick=()=>resolveBoard(r.id,0,true);root.append(b)}
+ if(!meta)return;app.modal('Review BOARD conflicts','<p>Choose which version keeps the original BOARD. Other versions are saved as separate conflict-copy BOARDS. Local recovery is also saved first.</p><p id="autoStatus"></p><p id="autoResolutionStatus" role="status" aria-live="polite"></p><div id="autoConflicts"></div>','<button id="autoConflictClose" class="outline">Back</button>');document.querySelector('#autoConflictClose').onclick=transport.show;const root=document.querySelector('#autoConflicts');
+ for(const r of meta.records.filter(r=>r.versions.length>1)){const heading=document.createElement('h3');heading.textContent=r.versions.find(v=>v.board)?.board.title||'Deleted BOARD';root.append(heading);r.versions.forEach((v,i)=>{const text=document.createElement('p');text.textContent=v.board?`${v.board.title} · ${v.board.cards.length} STICKIES · ${preview(v.board.cards[0]?.body||v.board.cards[0]?.title||'')}`:'BOARD deleted on another version';root.append(text);const b=document.createElement('button');b.className='outline';b.textContent='Use version '+(i+1)+(v.board?'':' (deletion)')+'; keep other content as copies';b.onclick=()=>resolveBoard(r.id,i,false,false,JSON.stringify(r));root.append(b)});const b=document.createElement('button');b.className='primary';b.textContent='Keep all BOARD versions';b.onclick=()=>resolveBoard(r.id,0,true,false,JSON.stringify(r));root.append(b)}
  for(const id of meta.missing||[]){const b=document.createElement('button');b.className='outline';b.textContent='Keep linked BOARD: '+(meta.records.find(r=>r.id===id)?.versions.find(v=>v.previous)?.previous.title||id);b.onclick=()=>resolveBoard(id,0,false,true);root.append(b)}
  status(label,message);drawProgress(diagnostic.snapshot());
 }

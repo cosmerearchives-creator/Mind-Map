@@ -117,6 +117,7 @@ jobs:
           badging = Path(os.environ['RUNNER_TEMP'], 'apk-badging.txt').read_text()
           package = re.search(r"package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", badging)
           assert package and package.groups() == ('com.cosmerearchives.silverlight', str(config['androidVersionCode']), config['androidVersion']), 'APK update identity/version mismatch'
+          assert "application-label:'Archives of Arcanum'" in badging, 'Android visible label mismatch'
           with zipfile.ZipFile('app/build/outputs/apk/release/app-release.apk') as apk:
               for source in Path('app/src/main/assets').rglob('*'):
                   if source.is_file():
@@ -124,8 +125,11 @@ jobs:
                       assert hashlib.sha256(apk.read(target)).digest() == hashlib.sha256(source.read_bytes()).digest(), 'Packaged asset mismatch: ' + target
           print('PASS: Android package/version and every current shared asset match the release source')
           PY
+          cp "$APK" Archives-of-Arcanum.apk
           cp "$APK" Silverlight.apk
       - uses: actions/upload-artifact@v4
         with:
           name: Silverlight-signed-APK
-          path: Silverlight.apk
+          path: |
+            Archives-of-Arcanum.apk
+            Silverlight.apk
