@@ -1,3 +1,10 @@
+# Archives of Arcanum 0.18.2 — PDF import for Codex
+
+- Import PDFs with selectable text into the offline Codex reader. Read, search, highlight and annotate the imported text, with a research canvas for each readable page.
+- Page entries retain their original PDF page numbers in citations. Resolved bookmarks label their destination pages.
+- Import shows page-by-page progress and supports cancellation. Pages without extractable text are skipped and reported. Image-only PDFs need OCR before import.
+- Supports PDFs up to 32 MiB and 1,000 pages, subject to text and processing limits. Password-locked or copy-restricted PDFs require an unlocked copy that permits extraction.
+
 # Archives of Arcanum 0.18.1 — conflict resolution and Android download naming
 
 - Conflict choices wait visibly for active sync instead of silently ignoring clicks. New polls cannot overtake a queued resolution. Errors stay in the review dialog and controls become available for retry.
