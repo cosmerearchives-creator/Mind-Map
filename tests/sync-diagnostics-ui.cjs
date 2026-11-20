@@ -6,6 +6,42 @@ await page.addInitScript(name=>{const now=performance.now.bind(performance);wind
 async function synced(p){try{await p.waitForFunction(()=>document.querySelector('#driveSync').dataset.syncKind==='synced',{},{timeout:30000})}catch(e){console.log(await p.evaluate(()=>({status:document.querySelector('#driveSync').title,panel:document.querySelector('#autoProgress')?.innerText,monitor:!!document.querySelector('[data-sync-monitor]'),log:localStorage.getItem('silverlight.syncDiagnostics.v1')?.slice(-1800)})));throw e}}
 async function enable(p,join=false){await p.locator('#driveSync').click({force:true});await p.locator('#autoEnable').click();if(join)await p.locator('#autoGroups button').first().click();else await p.locator('#autoEnableConfirm').click();await synced(p)}
 const a=await device('A'),b=await device('B');await enable(a);await enable(b,true);await a.waitForFunction(async()=>{const q=indexedDB.open('openboard-workspace',1),db=await new Promise(r=>q.onsuccess=()=>r(q.result));try{return (await SilverlightAssetStore.read(db,'auto-sync-meta',false,true)).records.some(r=>r.id==='other')}finally{db.close()}});await synced(a);await b.locator('#driveSync').click({force:true});await a.locator('[data-board="b"]').click();await a.locator('[data-card="n"]').dispatchEvent('contextmenu',{clientX:400,clientY:300});await a.getByRole('menuitem',{name:'Edit note',exact:true}).click();await a.locator('.richEditor').fill('Updated with monitor open');await a.locator('#confirm').click();hold=true;await a.locator('#driveSync').click({force:true});await a.locator('#autoProgress [data-caption]').filter({hasText:'Uploading parts'}).waitFor().catch(async e=>{console.log(await a.evaluate(()=>({status:document.querySelector('#driveSync').title,progress:document.querySelector('#autoProgress')?.innerText,events:localStorage.getItem('silverlight.syncDiagnostics.v1')?.slice(-2000)})));throw e});assert.ok(await a.locator('#autoProgress progress').getAttribute('value')!==null);await a.locator('#driveClose').click();await a.locator('#driveSync').click({force:true});await a.locator('#autoProgress [data-caption]').filter({hasText:'Uploading parts'}).waitFor();
-await a.evaluate(()=>window.diagOffset+=61000);await a.locator('#autoProgress[data-stalled="true"]').waitFor();await a.screenshot({path:'tmp/sync-progress-stall.png'});release();await synced(a);await synced(b);await b.waitForFunction(async()=>{const r=await new Promise(resolve=>{const q=indexedDB.open('openboard-workspace',1);q.onsuccess=()=>resolve(q.result)});try{return (await SilverlightAssetStore.read(r,'main',true,true)).state.boards.find(b=>b.id==='b').cards.find(c=>c.id==='n')?.body?.includes('Updated with monitor open')}finally{r.close()}});
-assert.equal(await b.locator('#autoSyncPanel').count(),1,'sync monitor stays open during incoming sync');const downloadEvent=a.waitForEvent('download');await require('./sync-action.cjs')(a,'autoDiagnostics');const download=await downloadEvent,log=require('node:fs').readFileSync(await download.path(),'utf8');assert.equal(JSON.parse(log).format,'silverlight-sync-diagnostics-v1');for(const canary of ['BOARD-CANARY','PRIVATE-NOTE-CANARY','account-canary','data:image'])assert.ok(!log.includes(canary));assert.ok(JSON.parse(log).events.some(e=>e.stage==='uploading'));assert.deepEqual(errors,[]);console.log('PASS: automatic multipart progress with unique images, open/reopen continuity, stall notice, diagnostics export privacy, and incoming/outgoing sync while monitor stays open.');
+await a.evaluate(()=>window.diagOffset+=61000);await a.locator('#autoProgress[data-stalled="true"]').waitFor();await a.screenshot({path:'tmp/sync-progress-stall.png'});const downloadEvent=a.waitForEvent('download');await require('./sync-action.cjs')(a,'autoDiagnostics');const download=await downloadEvent;assert.equal(download.suggestedFilename(),'silverlight-sync-diagnostics.json');const log=require('node:fs').readFileSync(await download.path(),'utf8');assert.equal(JSON.parse(log).current.stage,'uploading');release();await synced(a);await synced(b);await b.waitForFunction(async()=>{const r=await new Promise(resolve=>{const q=indexedDB.open('openboard-workspace',1);q.onsuccess=()=>resolve(q.result)});try{return (await SilverlightAssetStore.read(r,'main',true,true)).state.boards.find(b=>b.id==='b').cards.find(c=>c.id==='n')?.body?.includes('Updated with monitor open')}finally{r.close()}});
+assert.equal(await b.locator('#autoSyncPanel').count(),1,'sync monitor stays open during incoming sync');assert.equal(JSON.parse(log).format,'silverlight-sync-diagnostics-v1');for(const canary of ['BOARD-CANARY','PRIVATE-NOTE-CANARY','account-canary','data:image'])assert.ok(!log.includes(canary));assert.ok(JSON.parse(log).events.some(e=>e.stage==='uploading'));
+const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+mobile.on('pageerror',e=>errors.push(e.message));
+await mobile.addInitScript(()=>{
+ if(!localStorage.getItem('silverlight.syncDiagnostics.v1')){
+  localStorage.setItem('silverlight.syncDiagnostics.v1',JSON.stringify([{event:'progress',stage:'uploading',run:1,at:1700000000000,elapsedMs:3600000,completed:3,total:9,title:'PRIVATE-NOTE-CANARY',token:'TOKEN-CANARY'}]));
+ }
+ window.diagnosticRequests=[];
+ window.ArcanumSyncDiagnostics={postMessage:json=>window.diagnosticRequests.push(json)};
+});
+await mobile.goto(server.url);
+await mobile.locator('#driveSync').click();
+await require('./sync-action.cjs')(mobile,'autoDiagnostics');
+const status=mobile.locator('#autoDiagnosticStatus');
+await status.filter({hasText:'Waiting for save location'}).waitFor();
+await mobile.evaluate(()=>{document.querySelector('#autoDiagnostics').click();document.querySelector('#autoDiagnostics').click();});
+const requests=await mobile.evaluate(()=>window.diagnosticRequests);
+assert.equal(requests.length,1);
+const previous=JSON.parse(requests[0]);
+assert.ok(previous.events.some(event=>event.stage==='uploading'&&event.elapsedMs===3600000&&event.completed===3));
+assert.ok(!requests[0].includes('CANARY'));
+const journal=await mobile.evaluate(()=>localStorage.getItem('silverlight.syncDiagnostics.v1'));
+const reply=state=>mobile.evaluate(data=>window.ArcanumSyncDiagnostics.onmessage({data}),state);
+await reply('cancelled');
+await status.filter({hasText:'Diagnostic save cancelled.'}).waitFor();
+assert.equal(await mobile.evaluate(()=>localStorage.getItem('silverlight.syncDiagnostics.v1')),journal);
+await require('./sync-action.cjs')(mobile,'autoDiagnostics');
+await status.filter({hasText:'Waiting for save location'}).waitFor();
+await reply('writing');
+await status.filter({hasText:'Writing diagnostic report'}).waitFor();
+await reply('write-failed');
+await status.filter({hasText:'choose another folder'}).waitFor();
+await require('./sync-action.cjs')(mobile,'autoDiagnostics');
+await status.filter({hasText:'Waiting for save location'}).waitFor();
+await reply('saved');
+await status.filter({hasText:'Diagnostic report saved.'}).waitFor();
+assert.deepEqual(errors,[]);console.log('PASS: automatic multipart progress with unique images, open/reopen continuity, stall notice, diagnostics export privacy, and incoming/outgoing sync while monitor stays open.');
 }finally{release?.();await browser.close();await server.close()}})().catch(e=>{console.error(e);process.exit(1)});

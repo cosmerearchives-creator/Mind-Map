@@ -3,6 +3,44 @@ window.installAutoSync=function(app,transport){
 const core=SilverlightSync,crdt=new Proxy(SilverlightAuto,{get(target,key){return ['join','capture','verify','observed','envelope','merge','projection','resolve','recoverReference'].includes(key)?(...values)=>SilverlightTasks.run('auto',{method:key,values},e=>diagnostic.stage(Object.hasOwn(SilverlightSyncDiagnostics.STAGES,e.phase)?e.phase:e.phase==='images'?'images':(Object.hasOwn(SilverlightSyncDiagnostics.STAGES,key)?key:'worker'),e)):target[key]}});
 let meta=null,running=false,retry=3000,label='Live sync is off',message='',started=false,generation=1,cleanGeneration=0,recordDigest=null,retryUntil=0,lastRepair=0,newest=0,lastChecked=0,changeCursor='',cursorDataset='',capturedGeneration=-1,sessionCache=null,sessionAt=0;const dirtyBoards=new Map();let fullCapture=true,lastEditAt=Date.now();
 const diagnostic=SilverlightSyncDiagnostics.create({render:drawProgress});
+const diagnosticBridge=window.ArcanumSyncDiagnostics;
+let diagnosticSaving=false,diagnosticSaveStatus='';
+function diagnosticFeedback(text,busy){
+ diagnosticSaveStatus=text;diagnosticSaving=busy;
+ const status=document.querySelector('#autoDiagnosticStatus'),button=document.querySelector('#autoDiagnostics');
+ if(status)status.textContent=text;
+ if(button)button.disabled=busy;
+}
+if(diagnosticBridge)diagnosticBridge.onmessage=({data})=>{
+ if(!diagnosticSaving)return;
+ switch(data){
+  case 'writing': diagnosticFeedback('Writing diagnostic report…',true);break;
+  case 'saved': diagnosticFeedback('Diagnostic report saved.',false);break;
+  case 'cancelled': diagnosticFeedback('Diagnostic save cancelled.',false);break;
+  case 'picker-failed': diagnosticFeedback('Could not open Save As. Check that Android’s Files app is available, then try again.',false);break;
+  case 'write-failed': diagnosticFeedback('Could not save diagnostics. Check available space or choose another folder and try again.',false);break;
+  case 'invalid': diagnosticFeedback('Could not save diagnostics. The report exceeds the export size limit.',false);break;
+ }
+};
+async function downloadDiagnostics(){
+ if(diagnosticSaving)return;
+ diagnosticFeedback('Preparing diagnostic report…',true);
+ try{
+  await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
+  const json=JSON.stringify(diagnostic.report(),null,2);
+  if(diagnosticBridge){
+   diagnosticFeedback('Waiting for save location…',true);
+   diagnosticBridge.postMessage(json);
+  }else if(/Android/i.test(navigator.userAgent)){
+   diagnosticFeedback('Native diagnostic saving is unavailable. Update Android System WebView and try again.',false);
+  }else{
+   const url=URL.createObjectURL(new Blob([json],{type:'application/json'})),a=document.createElement('a');
+   a.href=url;a.download='silverlight-sync-diagnostics.json';
+   try{a.click()}finally{setTimeout(()=>URL.revokeObjectURL(url),1000)}
+   diagnosticFeedback('Diagnostic download requested.',false);
+  }
+ }catch{diagnosticFeedback('Could not export diagnostics. Try again.',false)}
+}
 function drawProgress(p){const box=document.querySelector('#autoProgress');if(!box)return;box.hidden=!p;if(!p)return;if(p.active){const status=document.querySelector('#autoStatus');if(status)status.textContent='Syncing · '+p.title}const bar=box.querySelector('progress'),caption=box.querySelector('[data-caption]'),timing=box.querySelector('[data-timing]');const measurable=p.total>0&&Number.isFinite(p.completed);if(measurable){bar.max=p.total;bar.value=Math.min(p.completed,p.total)}else if(!p.active){bar.max=1;bar.value=p.stage==='complete'?1:0}else bar.removeAttribute('value');caption.textContent=p.title+(measurable?' · '+p.completed+' of '+p.total+' steps'+(p.reused?' · '+p.reused+' reused':''):'')+(!measurable&&p.stage==='images'&&p.completed?' · '+p.completed+' unique images prepared':'')+(p.bytes?' · '+(p.bytes/1048576).toFixed(1)+' MiB received':'');timing.textContent='Elapsed '+Math.floor(p.elapsedMs/1000)+'s · Stage '+Math.floor(p.stageMs/1000)+'s · Last progress '+Math.floor(p.quietMs/1000)+'s ago'+(p.stalled?' · No reported progress for over a minute; this step may still be working. Download diagnostics.':'')+(p.retryMs?' · Retry in '+Math.ceil(p.retryMs/1000)+'s':'');box.dataset.stalled=String(p.stalled);bar.setAttribute('aria-label',p.title);}
 const diagnosticTimer=setInterval(()=>diagnostic.tick(),1000);window.addEventListener('pagehide',()=>clearInterval(diagnosticTimer),{once:true});
 function transferProgress(e){const stages={preparing:'preparing',images:'images',processing:'worker',checking:'checking',partHash:'partHash',uploading:'uploading',downloading:'downloading',finishing:'finishing',done:'done'};if(stages[e.phase]||Object.hasOwn(SilverlightSyncDiagnostics.STAGES,e.phase))diagnostic.stage(stages[e.phase]||e.phase,e)}
@@ -136,8 +174,9 @@ function decorate(){const dialog=document.querySelector('#modalRoot .modal');if(
  button('autoEnable',meta?.enabled?'Pause live sync':'Enable live sync',()=>meta?.enabled?pause().then(transport.show).catch(e=>status('Needs attention',e.message)):enable());
  if(meta?.enabled){button('autoNow','Sync now',()=>{recordDigest=null;wake()});if(meta.conflicts?.length||meta.missing?.length)button('autoResolve','Review conflicts',conflicts)}
  button('autoRetention',meta?.cleanupEnabled?'Disable old-copy cleanup':'Set up old-copy cleanup',()=>{app.modal('Old cloud-copy cleanup','<p>Optional: automatically delete this device’s already-merged automatic copies older than 30 days, keeping at least its 10 newest copies and a newly confirmed complete replacement. Manual copies, other devices’ copies, and shared image parts are kept. This does not reclaim shared image storage. Google app-data deletion is permanent.</p>','<button id="retentionCancel" class="outline">Cancel</button><button id="retentionSave" class="primary">'+(meta?.cleanupEnabled?'Disable cleanup':'Enable cleanup')+'</button>');document.querySelector('#retentionCancel').onclick=transport.show;document.querySelector('#retentionSave').onclick=async()=>{if(running||!meta)return;try{const next=clone(meta);next.cleanupEnabled=!next.cleanupEnabled;await persist(next);transport.show()}catch(e){status('Needs attention',e.message)}}});
- button('autoDiagnostics','Download sync diagnostics',()=>{const blob=new Blob([JSON.stringify(diagnostic.report(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='silverlight-sync-diagnostics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
- panel.append(actions);dialog.querySelector('.actions').before(panel);status(label,message);
+ button('autoDiagnostics','Download sync diagnostics',downloadDiagnostics);
+ const saveStatus=document.createElement('p');saveStatus.id='autoDiagnosticStatus';saveStatus.setAttribute('role','status');
+ panel.append(saveStatus,actions);dialog.querySelector('.actions').before(panel);diagnosticFeedback(diagnosticSaveStatus,diagnosticSaving);status(label,message);
 }
 async function start(){if(started)return;started=true;try{meta=await app.readSync();if(meta?.version!==1)meta=null;if(meta?.enabled){const stamp=generation;let resumed=null;try{resumed=await app.resumeSync?.(meta)}catch{}if(resumed&&generation===stamp){if(!meta.publishedRecords)meta.publishedRecords=recordClocks(meta.records);recordDigest=resumed;capturedGeneration=generation;cleanGeneration=generation;fullCapture=false}status('Pending',resumed?'Checking for cloud changes':'Starting live sync');schedule(0)}}catch(e){status('Needs attention',e.message)}}
 window.addEventListener('online',wake);window.addEventListener('offline',()=>{if(meta?.enabled)status('Offline','Changes stay saved on this device')});window.addEventListener('focus',wake);window.addEventListener('silverlight-resume',wake);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wake();else scheduler.cancel()});

@@ -41,6 +41,7 @@ public class MainActivity extends Activity {
     private Uri readyApk;
     private DriveSync driveSync;
     private BackupFiles backupFiles;
+    private SyncDiagnosticSave syncDiagnosticSave;
     private ArcanumShare arcanumShare;
 
     @Override public void onCreate(Bundle state) {
@@ -81,7 +82,16 @@ public class MainActivity extends Activity {
         });
         driveSync = new DriveSync(this);
         backupFiles = new BackupFiles(this);
+        syncDiagnosticSave = new SyncDiagnosticSave(this);
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            WebViewCompat.addWebMessageListener(webView, "ArcanumSyncDiagnostics", java.util.Collections.singleton("https://appassets.androidplatform.net"),
+                (view, message, origin, mainFrame, proxy) -> {
+                    if (!mainFrame || !"https://appassets.androidplatform.net".equals(origin.toString())) return;
+                    String report = message.getData();
+                    if (report != null) syncDiagnosticSave.begin(report, status -> {
+                        try { proxy.postMessage(status); } catch (RuntimeException ignored) { /* WebView may have closed. */ }
+                    });
+                });
             WebViewCompat.addWebMessageListener(webView, "ArcanumShare", java.util.Collections.singleton("https://appassets.androidplatform.net"),
                 (view, message, origin, mainFrame, proxy) -> {
                     if (mainFrame && "https".equals(origin.getScheme()) && "appassets.androidplatform.net".equals(origin.getHost()) && (origin.getPort() == -1 || origin.getPort() == 443)) arcanumShare.receive(message.getData(), proxy);
@@ -215,6 +225,7 @@ public class MainActivity extends Activity {
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == BackupFiles.CREATE) { backupFiles.result(resultCode, data); }
+        else if (requestCode == SyncDiagnosticSave.CREATE) { syncDiagnosticSave.result(resultCode, data); }
         else if (requestCode == DriveSync.AUTHORIZE) {
             driveSync.authorizationResult(resultCode, data);
         } else if (requestCode == PICK_FILE && fileCallback != null) {
@@ -240,6 +251,7 @@ public class MainActivity extends Activity {
     }
     @Override protected void onDestroy() {
         if (backupFiles != null) backupFiles.close();
+        if (syncDiagnosticSave != null) syncDiagnosticSave.close();
         if (driveSync != null) driveSync.close();
         super.onDestroy();
     }

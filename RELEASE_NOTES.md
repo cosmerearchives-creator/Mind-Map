@@ -1,3 +1,8 @@
+# Archives of Arcanum 0.18.3 — Android sync diagnostics
+
+- Download sync diagnostics on Android now opens the system Save As picker. Choose a folder for archives-of-arcanum-sync-diagnostics.json. The app reports progress, cancellation, and write errors, and confirms only after writing and closing the file.
+- The export works offline and includes the bounded local diagnostic history, including saved events from interrupted syncs. Windows keeps its existing download flow.
+
 # Archives of Arcanum 0.18.2 — PDF import for Codex
 
 - Import PDFs with selectable text into the offline Codex reader. Read, search, highlight and annotate the imported text, with a research canvas for each readable page.
