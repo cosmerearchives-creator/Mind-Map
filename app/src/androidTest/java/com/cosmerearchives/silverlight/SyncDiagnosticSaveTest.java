@@ -29,7 +29,7 @@ public class SyncDiagnosticSaveTest {
         var instrumentation = InstrumentationRegistry.getInstrumentation();
         var context = instrumentation.getTargetContext();
         Activity activity = instrumentation.startActivitySync(new Intent(context, MainActivity.class)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
         ContentResolver resolver = context.getContentResolver();
         String filename = "archives-of-arcanum-sync-diagnostics.json";
         Uri downloads = null, subfolder = null;
