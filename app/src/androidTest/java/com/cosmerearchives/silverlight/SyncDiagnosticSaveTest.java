@@ -45,7 +45,7 @@ public class SyncDiagnosticSaveTest {
         };
         instrumentation.addMonitor(monitor);
         try {
-            waitFor(activity, "Boolean(document.querySelector('#driveSync') && window.ArcanumSyncDiagnostics)", "true");
+            waitFor(activity, "typeof document.querySelector('#driveSync')?.onclick === 'function' && Boolean(window.ArcanumSyncDiagnostics)", "true");
             evaluate(activity, "document.querySelector('#driveSync').click()");
             waitFor(activity, "Boolean(document.querySelector('#autoDiagnostics'))", "true");
             downloads = newDocument(resolver, "Download/", filename);
