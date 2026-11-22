@@ -1,3 +1,8 @@
+# Archives of Arcanum 0.18.4 — Drive download progress
+
+- Live sync distinguishes incoming download bytes from verified parts.
+- Android retries a download once after a 60-second read timeout. Diagnostics identify download timeouts and busy Drive requests without exposing report contents or credentials.
+
 # Archives of Arcanum 0.18.3 — Android sync diagnostics
 
 - Download sync diagnostics on Android now opens the system Save As picker. Choose a folder for archives-of-arcanum-sync-diagnostics.json. The app reports progress, cancellation, and write errors, and confirms only after writing and closing the file.

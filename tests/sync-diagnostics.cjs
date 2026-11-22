@@ -11,3 +11,10 @@ for(const message of ['Workspace changed; retrying sync.','Workspace save was in
 for(const message of ['QuotaExceededError','Not enough disk space','Device storage full','Device storage is full','Not enough device storage for this change','Insufficient space']){d.begin();d.finish('retry',new Error(message));assert.equal(d.report().events.at(-1).error,'storage-capacity',message)}
 
 global.SilverlightAssetStore={stats:{writes:3,syncRecordsWritten:1,lastPrepareMs:12,lastCommitMs:2,secret:'CONTENT-CANARY'}};const persistence=d.report().persistence;assert.equal(persistence.syncRecordsWritten,1);assert.equal(persistence.lastPrepareMs,12);assert.ok(!JSON.stringify(d.report()).includes('CANARY'));delete global.SilverlightAssetStore;
+
+assert.equal(D.category(new Error('Drive download timed out after retrying an idle request.')), 'timeout');
+assert.equal(D.category(new Error('Another Drive request is still running.')), 'drive-busy');
+d.begin();
+d.stage('receiving',{bytes:32768,private:'TOKEN-CANARY'});
+assert.equal(d.report().current.bytes,32768);
+assert.ok(!JSON.stringify(d.report()).includes('CANARY'));

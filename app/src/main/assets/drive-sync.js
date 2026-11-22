@@ -3,9 +3,53 @@ window.installDriveSync=function(app){
  'use strict';
  const core=window.SilverlightSync,pending=new Map();let uploadState=null;let busy=false,connected=false,status='Ready';
  let features=[];const native=window.SilverlightNative||window.chrome?.webview;
- function receive(event){let r;try{r=typeof event.data==='string'?JSON.parse(event.data):event.data}catch{return}if(r?.channel!=='silverlight-drive')return;if(typeof r.result?.connected==='boolean')connected=r.result.connected;const p=pending.get(r.id);if(!p)return;pending.delete(r.id);clearTimeout(p.timer);r.error?p.reject(Error(r.error)):(r.result?.features&&(features=r.result.features),p.resolve(r.result))}
+ function receive(event){
+  let response;
+  try{response=typeof event.data==='string'?JSON.parse(event.data):event.data}catch{return}
+  if(response?.channel!=='silverlight-drive')return;
+  const request=pending.get(response.id);
+  if(!request)return;
+  if(response.progress){
+   const bytes=response.progress.bytes;
+   if(request.download&&Number.isSafeInteger(bytes)&&bytes>request.bytes){
+    request.bytes=bytes;
+    request.arm();
+    try{request.onProgress?.({phase:'receiving',bytes})}catch{}
+   }
+   return;
+  }
+  pending.delete(response.id);
+  clearTimeout(request.timer);
+  if(typeof response.result?.connected==='boolean')connected=response.result.connected;
+  if(response.error)request.reject(Error(response.error));
+  else{
+   if(response.result?.features)features=response.result.features;
+   request.resolve(response.result);
+  }
+ }
  if(window.SilverlightNative)window.SilverlightNative.onmessage=receive;else native?.addEventListener('message',receive);
- function rawRequest(op,args={}){if(!native)return Promise.reject(Error('Google Drive transfers require the Android or Windows app.'));return new Promise((resolve,reject)=>{const id=crypto.randomUUID();const timer=setTimeout(()=>{pending.delete(id);reject(Error('The request timed out. Your local workspace is unchanged; check Drive snapshots before retrying an upload.'))},240000);pending.set(id,{resolve,reject,timer});const message={channel:'silverlight-drive',id,op,...args};try{native.postMessage(window.SilverlightNative?JSON.stringify(message):message)}catch(e){clearTimeout(timer);pending.delete(id);reject(e)}})}
+ function rawRequest(op,args={},onProgress){
+  if(!native)return Promise.reject(Error('Google Drive transfers require the Android or Windows app.'));
+  return new Promise((resolve,reject)=>{
+   const id=crypto.randomUUID();
+   const download=op==='download'||(op==='batch'&&args.requests?.every(r=>r.op==='download'));
+   const request={resolve,reject,download,onProgress,bytes:0,arm(){
+    clearTimeout(request.timer);
+    request.timer=setTimeout(()=>{
+     pending.delete(id);
+     reject(Error(download?'Drive download timed out waiting for the app to respond.':'The request timed out. Your local workspace is unchanged; check Drive snapshots before retrying an upload.'));
+    },240000);
+   }};
+   pending.set(id,request);
+   request.arm();
+   const message={channel:'silverlight-drive',id,op,...args};
+   try{native.postMessage(window.SilverlightNative?JSON.stringify(message):message)}catch(error){
+    clearTimeout(request.timer);
+    pending.delete(id);
+    reject(error);
+   }
+  });
+ }
  function text(message){let el=document.querySelector('#driveStatus');if(!el){const dialog=document.querySelector('#modalRoot .modal');if(dialog){el=document.createElement('p');el.id='driveStatus';el.setAttribute('role','status');dialog.append(el)}}if(el)el.textContent=message}
  function uploadProgress(event){uploadState=event;drawUploadProgress()}
  function drawUploadProgress(){if(!uploadState)return;let panel=document.querySelector('#driveUploadProgress');if(!panel){const anchor=document.querySelector('#driveStatus');if(!anchor)return;panel=document.createElement('section');panel.id='driveUploadProgress';panel.className='driveUploadProgress';panel.innerHTML='<label for="driveUploadBar">Workspace copy upload</label><progress id="driveUploadBar" max="100" aria-label="Workspace copy upload"></progress><p id="driveUploadCaption" role="status" aria-live="polite"></p>';anchor.after(panel)}const p=uploadState,bar=panel.querySelector('progress'),caption=panel.querySelector('p'),measurable=p.total>0,percent=measurable?Math.floor(100*p.completed/p.total):null;panel.dataset.phase=p.phase;if(measurable){bar.value=percent;bar.setAttribute('aria-valuetext',percent+'% of upload steps complete')}else if(p.phase==='error'){bar.value=0;bar.setAttribute('aria-valuetext','Upload failed')}else{bar.removeAttribute('value');bar.removeAttribute('aria-valuetext')}caption.textContent=p.phase==='error'?'Upload failed: '+p.message:p.phase==='done'?'Upload complete · 100%':p.phase==='images'?'Loading local images…':p.phase==='processing'?'Processing workspace…':p.phase==='preparing'?'Preparing workspace…':p.phase==='checking'?'Checking reusable image and workspace parts…':p.phase==='finishing'?'Finishing · saving the workspace copy…':measurable?`Uploading · ${percent}% · ${p.completed} of ${p.total} steps complete${p.reused?' · '+p.reused+' reused parts':''}`:'Uploading workspace…';}

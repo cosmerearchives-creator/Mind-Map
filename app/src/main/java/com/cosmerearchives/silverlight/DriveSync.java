@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -72,6 +73,7 @@ final class DriveSync {
     }
     private void execute() {
         final JSONObject request = current;
+        final DownloadProgress download = new DownloadProgress(reply, request.optString("id"));
         executor.execute(() -> {
             try {
                 String op = request.getString("op"); JSONObject result;
@@ -117,7 +119,7 @@ final class DriveSync {
                     JSONArray items=request.getJSONArray("requests");if(items.length()<1||items.length()>3)throw new Exception("A transfer batch permits one to three parts.");
                     java.util.List<java.util.concurrent.Callable<JSONObject>> jobs=new java.util.ArrayList<>();
                     for(int i=0;i<items.length();i++){final JSONObject item=items.getJSONObject(i);jobs.add(()->{JSONObject entry=new JSONObject();try{JSONObject value;
-                        if("download".equals(item.optString("op"))){String id=item.getString("fileId");if(!listed.contains(id)||!id.matches("[A-Za-z0-9_-]+"))throw new Exception("Choose a listed transfer part.");value=new JSONObject().put("snapshot",call("GET",API+"/"+id+"?alt=media",null,null));}
+                        if("download".equals(item.optString("op"))){String id=item.getString("fileId");if(!listed.contains(id)||!id.matches("[A-Za-z0-9_-]+"))throw new Exception("Choose a listed transfer part.");value=new JSONObject().put("snapshot",download.read(id));}
                         else if("upload".equals(item.optString("op"))){String text=item.getString("snapshot");if(text.getBytes(StandardCharsets.UTF_8).length>8*1024*1024||!"silverlight-part-v2".equals(new JSONObject(text).optString("format")))throw new Exception("Only bounded immutable parts can be batch uploaded.");value=upload(item);}
                         else throw new Exception("Invalid transfer batch operation.");entry.put("result",value);
                     }catch(Exception error){entry.put("error",error.getMessage()==null?"Part transfer failed":error.getMessage());}return entry;});}
@@ -125,7 +127,7 @@ final class DriveSync {
                 } else if ("download".equals(op)) {
                     String file = request.getString("fileId");
                     if (!listed.contains(file) || !file.matches("[A-Za-z0-9_-]+")) throw new Exception("Choose a snapshot from View cloud copies first.");
-                    result = new JSONObject().put("snapshot",call("GET", API+"/"+file+"?alt=media",null,null));
+                    result = new JSONObject().put("snapshot",download.read(file));
                 } else if ("prune".equals(op)) {
                     String file = request.getString("fileId"), replacementId = request.getString("replacementId");
                     if(file.equals(replacementId) || !listed.contains(file) || !listed.contains(replacementId) || !(file+replacementId).matches("[A-Za-z0-9_-]+")) throw new Exception("Cleanup requires listed automatic copies.");
@@ -167,16 +169,51 @@ final class DriveSync {
                     if(!expected.toString().equals(uploaded.optString("md5Checksum"))||uploaded.optLong("size",-1)!=content.length){String failed=uploaded.optString("id");if(failed.matches("[A-Za-z0-9_-]+"))try{call("DELETE",API+"/"+failed,null,null);}catch(Exception ignored){}throw new Exception("Drive upload checksum or byte count was not confirmed. Local data is unchanged.");}
                     return uploaded;
     }
+    private final class DownloadProgress {
+        private final JavaScriptReplyProxy proxy;
+        private final String id;
+        private long bytes, lastUpdate;
+        DownloadProgress(JavaScriptReplyProxy proxy, String id) {
+            this.proxy = proxy;
+            this.id = id;
+        }
+        synchronized void received(int count) {
+            bytes += count;
+            long now = android.os.SystemClock.elapsedRealtime();
+            if (now - lastUpdate < 1000) return;
+            lastUpdate = now;
+            long received = bytes;
+            activity.runOnUiThread(() -> {
+                if (current == null || !id.equals(current.optString("id"))) return;
+                try {
+                    proxy.postMessage(new JSONObject().put("channel", "silverlight-drive")
+                        .put("id", id).put("progress", new JSONObject().put("bytes", received)).toString());
+                } catch (Exception ignored) { /* The page may have closed. */ }
+            });
+        }
+        String read(String file) throws Exception {
+            for (int attempt = 0; ; attempt++) {
+                try {
+                    return call("GET", API+"/"+file+"?alt=media", null, null, this);
+                } catch (SocketTimeoutException error) {
+                    if (attempt != 0) throw new SocketTimeoutException("Drive download timed out after retrying an idle request.");
+                }
+            }
+        }
+    }
     private String call(String method,String address,byte[] body,String contentType) throws Exception {
+        return call(method, address, body, contentType, null);
+    }
+    private String call(String method,String address,byte[] body,String contentType, DownloadProgress progress) throws Exception {
         HttpURLConnection connection=(HttpURLConnection)new URL(address).openConnection();
-        connection.setInstanceFollowRedirects(false);connection.setConnectTimeout(15000);connection.setReadTimeout(120000);connection.setRequestMethod(method);connection.setRequestProperty("Authorization","Bearer "+token);
+        connection.setInstanceFollowRedirects(false);connection.setConnectTimeout(15000);connection.setReadTimeout(progress == null ? 120000 : 60000);connection.setRequestMethod(method);connection.setRequestProperty("Authorization","Bearer "+token);
         try {
             if(body!=null){connection.setDoOutput(true);connection.setRequestProperty("Content-Type",contentType);connection.setFixedLengthStreamingMode(body.length);try(java.io.OutputStream output=connection.getOutputStream()){output.write(body);}}
             int code=connection.getResponseCode();
             if(code==401){String expired=token;token=null;Identity.getAuthorizationClient(activity).clearToken(ClearTokenRequest.builder().setToken(expired).build());throw new Exception("Google session expired. Connect Google and retry.");}
             if(code==403)throw new Exception("Google Drive access was refused. Check Drive API, consent test users, scope and available storage.");
             if(code<200||code>=300)throw new Exception("Google Drive returned HTTP "+code+". Local BOARDS are unchanged. Check cloud copies before retrying an upload.");
-            try(InputStream input=connection.getInputStream();ByteArrayOutputStream output=new ByteArrayOutputStream()){byte[] buffer=new byte[16384];int count;while((count=input.read(buffer))!=-1){if(output.size()+count>LIMIT)throw new Exception("Cloud snapshot exceeds the transfer limit.");output.write(buffer,0,count);}return output.toString("UTF-8");}
+            try(InputStream input=connection.getInputStream();ByteArrayOutputStream output=new ByteArrayOutputStream()){byte[] buffer=new byte[16384];int count;while((count=input.read(buffer))!=-1){if(output.size()+count>LIMIT)throw new Exception("Cloud snapshot exceeds the transfer limit.");output.write(buffer,0,count);if(progress!=null)progress.received(count);}return output.toString("UTF-8");}
         } finally {connection.disconnect();}
     }
     private static String enc(String s)throws Exception{return URLEncoder.encode(s,"UTF-8");}
